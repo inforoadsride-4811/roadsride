@@ -68,8 +68,8 @@ export async function processOrder(orderData) {
       },
     });
 
-    // Send email asynchronously
-    sendOrderConfirmationEmail(order.id).catch(console.error);
+    // Send email synchronously to ensure it completes before the serverless function exits
+    await sendOrderConfirmationEmail(order.id).catch(err => console.error('Email sending failed:', err));
 
     return { success: true, orderId: order.id };
   } catch (error) {

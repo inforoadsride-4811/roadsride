@@ -5,6 +5,7 @@ import Footer from '@/components/layout/footer';
 import { Button } from '@/components/ui/button';
 import { getOrderDetails } from '@/actions/tracking';
 import { formatPrice } from '@/lib/product';
+import ClearCart from '@/components/cart/clear-cart';
 
 export const metadata = {
   title: 'Order Successful | RoadsRide',
@@ -50,6 +51,7 @@ export default async function OrderSuccessPage({ searchParams }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
+      <ClearCart />
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-12 md:py-16">
         <div className="bg-white border border-brand-border rounded-xl p-8 md:p-12 text-center shadow-sm">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -92,7 +94,7 @@ export default async function OrderSuccessPage({ searchParams }) {
                   order.paymentStatus === 'paid' ? 'text-green-600' : 
                   order.paymentStatus === 'failed' ? 'text-red-600' : 'text-yellow-600'
                 }`}>
-                  Status: {order.paymentStatus}
+                  Status: {order.paymentMethod === 'cod' && order.paymentStatus === 'pending' ? 'To be paid on delivery' : order.paymentStatus}
                 </p>
               </div>
 

@@ -78,7 +78,6 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
             const { success, orderId: dbOrderId, error } = await processOrder(completeOrderData);
 
             if (success) {
-              clearCart();
               router.push(`/order-success?id=${dbOrderId}`);
             } else {
               addToast({ title: 'Error', message: error || 'Failed to save order', type: 'error' });
@@ -150,7 +149,6 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
           throw new Error(error || 'Failed to process order');
         }
 
-        clearCart();
         router.push(`/order-success?id=${orderId}`);
       }
     } catch (err) {

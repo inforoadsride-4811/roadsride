@@ -164,20 +164,22 @@ export default function ProductInfo({ product }) {
       {/* Mobile Sticky Actions */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-brand-border p-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-safe">
         <div className="flex flex-col gap-2.5">
-          <div className="flex h-12 w-full items-center rounded-xl border border-brand-border bg-gray-50/50">
-            <button onClick={() => handleQuantityChange('dec')} className="flex h-full w-14 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
-              <Minus size={16} />
-            </button>
-            <div className="flex h-full flex-1 items-center justify-center border-x border-brand-border text-base font-semibold text-brand-black">
-              {quantity}
+          <div className="flex gap-2">
+            <div className="flex h-12 w-28 items-center rounded-xl border border-brand-border bg-gray-50/50 flex-shrink-0">
+              <button onClick={() => handleQuantityChange('dec')} className="flex h-full w-8 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+                <Minus size={16} />
+              </button>
+              <div className="flex h-full flex-1 items-center justify-center border-x border-brand-border text-base font-semibold text-brand-black">
+                {quantity}
+              </div>
+              <button onClick={() => handleQuantityChange('inc')} className="flex h-full w-8 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+                <Plus size={16} />
+              </button>
             </div>
-            <button onClick={() => handleQuantityChange('inc')} className="flex h-full w-14 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
-              <Plus size={16} />
-            </button>
+            <Button onClick={handleAddToCart} size="lg" className="h-12 flex-1 rounded-xl text-sm uppercase tracking-wide whitespace-nowrap">
+              Add To Cart
+            </Button>
           </div>
-          <Button onClick={handleAddToCart} size="lg" className="h-12 w-full rounded-xl text-sm uppercase tracking-wide whitespace-nowrap">
-            Add To Cart
-          </Button>
           <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" size="lg" className="h-12 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap">
             {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
             {isNavigating ? 'Processing...' : 'Order Now - Cash On Delivery'}

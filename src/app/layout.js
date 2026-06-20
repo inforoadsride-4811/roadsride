@@ -1,4 +1,5 @@
 import { ToastProvider } from '@/components/ui/toast';
+import WhatsAppButton from '@/components/layout/whatsapp-button';
 import './globals.css';
 
 export const metadata = {
@@ -11,6 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <ToastProvider>{children}</ToastProvider>
+        <WhatsAppButton />
       </body>
     </html>
   );
