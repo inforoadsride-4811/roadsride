@@ -14,7 +14,7 @@ export default function ProductGallery({ images, discount }) {
   const [isZooming, setIsZooming] = useState(false);
   const [mounted, setMounted] = useState(false);
   const imageRef = useRef(null);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -137,7 +137,7 @@ export default function ProductGallery({ images, discount }) {
           {/* Image */}
           <div
             ref={imageRef}
-            className="relative aspect-square w-full overflow-hidden bg-white cursor-crosshair"
+            className="relative aspect-square w-full rounded-2xl overflow-hidden bg-white cursor-crosshair p-0!"
             style={{ maxWidth: '470px' }}
             onMouseEnter={() => setIsZooming(true)}
             onMouseLeave={() => setIsZooming(false)}
@@ -151,13 +151,13 @@ export default function ProductGallery({ images, discount }) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="relative w-full h-full"
+                className="relative w-full h-full rounded-2xl"
               >
                 <Image
                   src={selected.src}
                   alt={selected.alt}
                   fill
-                  className="object-contain p-6"
+                  className="object-contain rounded-2xl"
                   sizes="(max-width: 768px) 100vw, 470px"
                   priority={selectedIndex === 0}
                 />
@@ -208,7 +208,7 @@ export default function ProductGallery({ images, discount }) {
           )}
 
           {/* Mobile Thumbnails (horizontal) */}
-          <div className="flex sm:hidden gap-2 mt-3 overflow-x-auto pb-2">
+          <div className="flex sm:hidden gap-2 mt-3 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {images.map((img, index) => (
               <button
                 key={img.id}

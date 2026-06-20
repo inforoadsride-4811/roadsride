@@ -23,6 +23,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
     email: '',
     phone: '',
     address: '',
+    apartment: '',
     city: '',
     state: '',
     pincode: '',
@@ -163,24 +164,16 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
       <div>
         <h2 className="text-xl font-bold text-brand-black mb-4">Contact Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="Email Address"
-            name="email"
-            type="email"
-            required
-            value={formData.email}
-            onChange={handleChange}
-            className="md:col-span-2"
-          />
-          <Input
-            label="Phone Number"
-            name="phone"
-            type="tel"
-            required
-            value={formData.phone}
-            onChange={handleChange}
-            className="md:col-span-2"
-          />
+          <div className="md:col-span-2">
+            <Input
+              label="Email Address"
+              name="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </div>
         </div>
       </div>
 
@@ -202,14 +195,23 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
             value={formData.lastName}
             onChange={handleChange}
           />
-          <Input
-            label="Address"
-            name="address"
-            required
-            value={formData.address}
-            onChange={handleChange}
-            className="md:col-span-2"
-          />
+          <div className="md:col-span-2">
+            <Input
+              label="Address"
+              name="address"
+              required
+              value={formData.address}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Input
+              label="Apartment, suite, etc."
+              name="apartment"
+              value={formData.apartment}
+              onChange={handleChange}
+            />
+          </div>
           <Input
             label="City"
             name="city"
@@ -217,22 +219,28 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
             value={formData.city}
             onChange={handleChange}
           />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="State"
-              name="state"
-              required
-              value={formData.state}
-              onChange={handleChange}
-            />
-            <Input
-              label="PIN Code"
-              name="pincode"
-              required
-              value={formData.pincode}
-              onChange={handleChange}
-            />
-          </div>
+          <Input
+            label="State"
+            name="state"
+            required
+            value={formData.state}
+            onChange={handleChange}
+          />
+          <Input
+            label="PIN Code"
+            name="pincode"
+            required
+            value={formData.pincode}
+            onChange={handleChange}
+          />
+          <Input
+            label="Phone"
+            name="phone"
+            type="tel"
+            required
+            value={formData.phone}
+            onChange={handleChange}
+          />
         </div>
       </div>
 

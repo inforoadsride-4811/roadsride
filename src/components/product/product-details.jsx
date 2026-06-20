@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-
-// Hide scrollbar on tab row (webkit)
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Star, ThumbsUp, ThumbsDown, UserCircle2 } from 'lucide-react';// Hide scrollbar on tab row (webkit)
 const hideScrollbarStyle = `
   .rr-tab-bar::-webkit-scrollbar { display: none; }
 `;
@@ -14,6 +14,7 @@ const CONTENT_PX = 0;  // content also flush; outer wrapper handles the padding
 
 function Tabs({ tabs, defaultTab = 0 }) {
   const [active, setActive] = useState(defaultTab);
+
   return (
     <div>
       <style>{hideScrollbarStyle}</style>
@@ -114,7 +115,7 @@ function Callout({ children }) {
       borderRadius: '8px',
       padding: '16px 20px',
       margin: '0',
-    }}>
+    }}>also make email coumn big
       <p style={{ fontSize: '16px', color: '#374151', lineHeight: '1.8', margin: 0 }}>{children}</p>
     </div>
   );
@@ -132,6 +133,25 @@ export default function ProductDetails({ product }) {
           <p style={{ fontSize: '16px', color: '#374151', lineHeight: '1.85', margin: 0 }}>
             Upgrade your car cleaning routine with this 1200 GSM microfiber car cleaning cloth (40×60 cm), designed for maximum absorption, scratch-free performance, and professional detailing results. Whether you're drying, polishing, or washing your vehicle, this ultra-thick microfiber towel delivers a spotless, streak-free finish every time.
           </p>
+
+          {/* YouTube Shorts */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', margin: '40px 0' }}>
+            <iframe width="100%" height="500" src="https://www.youtube.com/embed/HdmUVKFcIrk" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}></iframe>
+            <iframe width="100%" height="500" src="https://www.youtube.com/embed/KtmjFRxic08" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}></iframe>
+            <iframe width="100%" height="500" src="https://www.youtube.com/embed/qU08yuclneI" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}></iframe>
+          </div>
+
+          {/* Infographic Image */}
+          <div style={{ margin: '40px 0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <Image
+              src="/images/1200 GSM Microfiber 1st.png"
+              alt="1200 GSM Premium Microfiber Infographic"
+              width={1100}
+              height={600}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              priority
+            />
+          </div>
 
           <HR />
 
@@ -157,9 +177,50 @@ export default function ProductDetails({ product }) {
             title="Perfect Size – 40×60 cm"
             text="An ideal size for easy handling and efficient coverage, suitable for both small and large surfaces."
           />
-
+          {/* Infographic Image */}
+          <div style={{ margin: '40px 0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <Image
+              src="/images/1200 GSM Microfiber 3rd.png"
+              alt="1200 GSM Premium Microfiber Infographic"
+              width={1100}
+              height={600}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              priority
+            />
+          </div>
+          <H2>Key Benefits of 1200 GSM Microfiber Towel</H2>
+          <BulletList items={[
+            'Ultra-Fast Drying – Absorbs water quickly and dries surfaces in seconds.',
+            'Reusable & Washable – Machine washable and built for hundreds of uses.',
+            'Thick & Durable – Heavyweight 1200 GSM microfiber for long-lasting performance.',
+            'Lint-Free & Streak-Free – Leaves a spotless, clean finish without lint residue.',
+            'Super Absorbent – Holds more water for efficient cleaning and drying.',
+            'Ultra Soft Microfiber – Gentle on paint, glass, screens, and sensitive surfaces.',
+            'Multi-Surface Use – Perfect for cars, mirrors, glass, electronics, furniture, and home cleaning.',
+            'Eco-Friendly Choice – Reusable design helps reduce waste from disposable cloths.',
+            'Professional Cleaning Performance – Ideal for detailing, polishing, drying, and everyday cleaning.',
+          ]} />
           <HR />
-
+          <div style={{ margin: '40px 0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <Image
+              src="/images/1200 GSM Microfiber 4rth.png"
+              alt="1200 GSM Premium Microfiber Infographic"
+              width={1100}
+              height={600}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              priority
+            />
+          </div>
+          <div style={{ margin: '40px 0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <Image
+              src="/images/4th.png"
+              alt="1200 GSM Premium Microfiber Infographic"
+              width={1100}
+              height={600}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              priority
+            />
+          </div>
           {/* Multi-Purpose Use */}
           <H2>Multi-Purpose Use</H2>
           <BulletList items={[
@@ -169,7 +230,17 @@ export default function ProductDetails({ product }) {
             'Glass, windshield, and mirror cleaning',
             'Interior dashboard and surface cleaning',
           ]} />
-
+          <div style={{ margin: '40px 0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <Image
+              src="/images/1200 GSM Microfiber 5th.png"
+              alt="1200 GSM Premium Microfiber Infographic"
+              width={1100}
+              height={900}
+              className='object-contain'
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              priority
+            />
+          </div>
           <HR />
 
           {/* Durable & Reusable callout */}
@@ -249,47 +320,7 @@ export default function ProductDetails({ product }) {
       ),
     },
 
-    {
-      label: 'Reviews (0)',
-      content: (
-        <div style={col}>
-          <div style={{
-            display: 'flex',
-            gap: '32px',
-            alignItems: 'center',
-            background: '#f9fafb',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            padding: '24px 28px',
-            marginBottom: '24px',
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: '44px', fontWeight: '800', color: '#111827', margin: 0, lineHeight: 1 }}>—</p>
-              <div style={{ color: '#d1d5db', fontSize: '18px', marginTop: '6px', letterSpacing: '3px' }}>★★★★★</div>
-              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#9ca3af' }}>No ratings yet</p>
-            </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {[5, 4, 3, 2, 1].map((s) => (
-                <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '11px', color: '#9ca3af', width: '8px' }}>{s}</span>
-                  <span style={{ fontSize: '11px', color: '#d1d5db' }}>★</span>
-                  <div style={{ flex: 1, height: '6px', borderRadius: '99px', background: '#e5e7eb' }} />
-                  <span style={{ fontSize: '11px', color: '#9ca3af', width: '14px' }}>0</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ border: '1px dashed #d1d5db', borderRadius: '12px', padding: '48px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: '28px', margin: '0 0 10px' }}>✍️</p>
-            <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '600', color: '#111827' }}>No reviews yet</p>
-            <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#9ca3af' }}>Be the first to share your experience.</p>
-            <button style={{ background: '#F5C400', color: '#111', border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-              Write a Review
-            </button>
-          </div>
-        </div>
-      ),
-    },
+
 
     {
       label: 'Q & A',
@@ -311,6 +342,88 @@ export default function ProductDetails({ product }) {
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px', marginTop: '80px' }}>
       <Tabs tabs={tabs} defaultTab={0} />
+
+      {/* Customer Reviews Section */}
+      <div id="reviews-section" style={{ marginTop: '40px', paddingTop: '40px', borderTop: '1px solid #e5e7eb' }}>
+        <H2>Customer Reviews</H2>
+        <div style={col}>
+          {product.reviews && product.reviews.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              {product.reviews.map((review) => (
+                <div key={review.id} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '24px' }}>
+                  <div style={{ color: '#d1d5db', marginTop: '4px' }}>
+                    <UserCircle2 size={40} strokeWidth={1.5} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F5C400', marginBottom: '8px' }}>
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={14} fill={i < review.rating ? 'currentColor' : 'none'} className={i < review.rating ? '' : 'text-gray-300'} />
+                      ))}
+                    </div>
+                    <p style={{ fontSize: '13px', margin: '0 0 12px 0' }}>
+                      <span style={{ fontWeight: '700', color: '#111827' }}>{review.author} {review.verified && '(verified owner)'}</span>
+                      <span style={{ color: '#6b7280' }}> – {review.date}</span>
+                    </p>
+                    <p style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6', margin: '0 0 16px 0' }}>
+                      {review.content}
+                    </p>
+                    {review.image && (
+                      <div style={{ marginBottom: '16px', borderRadius: '8px', overflow: 'hidden', width: '100px', height: '100px', position: 'relative' }}>
+                        <Image src={review.image} alt="Review Image" fill style={{ objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: '16px', color: '#10b981', fontSize: '12px', fontWeight: '500' }}>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#10b981' }}>
+                        <ThumbsUp size={14} /> (1)
+                      </button>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
+                        <ThumbsDown size={14} /> (0)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              <div style={{
+                display: 'flex',
+                gap: '32px',
+                alignItems: 'center',
+                background: '#f9fafb',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                padding: '24px 28px',
+                marginBottom: '24px',
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '44px', fontWeight: '800', color: '#111827', margin: 0, lineHeight: 1 }}>—</p>
+                  <div style={{ color: '#d1d5db', fontSize: '18px', marginTop: '6px', letterSpacing: '3px' }}>★★★★★</div>
+                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#9ca3af' }}>No ratings yet</p>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {[5, 4, 3, 2, 1].map((s) => (
+                    <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', color: '#9ca3af', width: '8px' }}>{s}</span>
+                      <span style={{ fontSize: '11px', color: '#d1d5db' }}>★</span>
+                      <div style={{ flex: 1, height: '6px', borderRadius: '99px', background: '#e5e7eb' }} />
+                      <span style={{ fontSize: '11px', color: '#9ca3af', width: '14px' }}>0</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ border: '1px dashed #d1d5db', borderRadius: '12px', padding: '48px 24px', textAlign: 'center' }}>
+                <p style={{ fontSize: '28px', margin: '0 0 10px' }}>✍️</p>
+                <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '600', color: '#111827' }}>No reviews yet</p>
+                <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#9ca3af' }}>Be the first to share your experience.</p>
+                <button style={{ background: '#F5C400', color: '#111', border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                  Write a Review
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

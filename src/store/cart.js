@@ -27,6 +27,7 @@ const useCartStore = create(
                 id: product.id,
                 name: product.name,
                 slug: product.slug,
+                packName: product.packName,
                 price: product.price,
                 originalPrice: product.originalPrice,
                 image: product.images?.[0]?.src || product.image,
@@ -85,6 +86,7 @@ const useCartStore = create(
         return get().items.map((item) => ({
           productName: item.name,
           productSlug: item.slug,
+          packName: item.packName,
           quantity: item.quantity,
           price: item.price,
           originalPrice: item.originalPrice,

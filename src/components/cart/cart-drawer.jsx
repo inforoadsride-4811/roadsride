@@ -53,9 +53,14 @@ export default function CartDrawer({ open, onClose }) {
                   {/* Info */}
                   <div className="flex-1 flex flex-col min-w-0">
                     <div className="flex justify-between items-start gap-2">
-                      <h4 className="text-sm font-semibold text-brand-black truncate">
-                        {item.name}
-                      </h4>
+                      <div>
+                        <h4 className="text-sm font-semibold text-brand-black line-clamp-2">
+                          {item.name}
+                        </h4>
+                        {item.packName && (
+                          <p className="text-xs text-gray-500 mt-1">Number of Items: {item.packName}</p>
+                        )}
+                      </div>
                       <button
                         onClick={() => removeItem(item.id)}
                         className="p-1 text-gray-400 hover:text-brand-danger transition-colors cursor-pointer flex-shrink-0"

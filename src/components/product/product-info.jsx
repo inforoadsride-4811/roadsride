@@ -3,18 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Star, Minus, Plus, Truck, ShieldCheck, RotateCcw, MessageCircle, Loader2 } from 'lucide-react';
+import { Star, Minus, Plus, Truck, ShieldCheck, RotateCcw, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import useCartStore from '@/store/cart';
 import SalesBadge from './sales-badge';
 
-export default function ProductInfo({ product }) {
+export default function ProductInfo({ product, selectedPackIndex = 0, onPackSelect = () => { } }) {
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
   const { addToast } = useToast();
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
+
+  const currentPack = product.packs[selectedPackIndex];
 
   const handleQuantityChange = (type) => {
     if (type === 'inc') {
@@ -24,18 +26,29 @@ export default function ProductInfo({ product }) {
     }
   };
 
+  const getPackProduct = () => ({
+    ...product,
+    id: currentPack.id,
+    name: product.name,
+    packName: currentPack.name,
+    price: currentPack.price,
+    originalPrice: currentPack.originalPrice,
+    images: currentPack.images,
+  });
+
   const handleAddToCart = () => {
-    addItem(product, quantity);
+    const packProduct = getPackProduct();
+    addItem(packProduct, quantity);
     addToast({
       title: 'Added to cart',
-      message: `${quantity} × ${product.shortName} added to your cart.`,
+      message: `${quantity} × ${packProduct.name} added to your cart.`,
       type: 'success',
     });
   };
 
   const handleOrderNow = () => {
     setIsNavigating(true);
-    addItem(product, quantity);
+    addItem(getPackProduct(), quantity);
     router.push('/checkout?payment=cod');
   };
 
@@ -54,22 +67,50 @@ export default function ProductInfo({ product }) {
           {product.name}
         </h1>
 
+        {/* Rating and Stock */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => {
+              document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' });
+              window.dispatchEvent(new CustomEvent('open-reviews-tab'));
+            }}
+            className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <div className="flex items-center text-brand-yellow">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={16}
+                  fill={i < Math.floor(product.store.rating) ? 'currentColor' : 'none'}
+                  className={i < Math.floor(product.store.rating) ? '' : 'text-gray-300'}
+                />
+              ))}
+            </div>
+            <span className="text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-500">({product.store.reviewCount} customer reviews)</span>
+          </button>
+
+          <div className="flex items-center gap-1.5 text-brand-black">
+            <CheckCircle2 size={16} />
+            <span className="text-sm font-bold">In stock</span>
+          </div>
+        </div>
+
         {/* Price */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 line-through">
             {product.currency}
-            {product.originalPrice.toFixed(2)}
+            {currentPack.originalPrice.toFixed(2)}
           </span>
-          <span className="text-base font-semibold leading-none text-brand-black">
+          <span className="text-xl font-bold leading-none text-brand-black">
             {product.currency}
-            {product.price.toFixed(2)}
+            {currentPack.price.toFixed(2)}
           </span>
         </div>
 
         {/* Store Card */}
         <div className="flex w-full items-center gap-4 border border-brand-border bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.08)]" style={{ maxWidth: '380px' }}>
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-brand-border bg-white p-2">
-            <Image src="/rr.webp" alt="Store Logo" width={48} height={32} className="w-full object-contain" />
+          <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-brand-border bg-white p-1">
+            <Image src={currentPack.images[0].src} alt="Product Thumbnail" width={48} height={48} className="w-full h-full object-cover rounded-sm" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-gray-500 font-medium">Store</p>
@@ -110,13 +151,34 @@ export default function ProductInfo({ product }) {
           ))}
         </ul>
 
-        {/* Stock */}
-        <p className="inline-flex items-center gap-2 text-sm text-brand-black">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-brand-success"></span>
-          {product.stock} in stock
-        </p>
+        {/* Removed Stock Indicator from here */}
+
+        {/* Packs Variation */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-bold text-brand-black uppercase">Number of Items</p>
+          <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-2">
+            {product.packs.map((pack, index) => (
+              <button
+                key={pack.id}
+                onClick={() => onPackSelect(index)}
+                className={`relative rounded-md border px-4 py-3 sm:py-2 text-base sm:text-sm font-medium transition-all ${index === selectedPackIndex
+                    ? 'border-brand-black bg-gray-50 text-brand-black border-2'
+                    : 'border-brand-border bg-gray-50 text-brand-black hover:border-gray-400'
+                  }`}
+              >
+                {pack.name}
+                {pack.isBestSeller && (
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 sm:left-auto sm:right-[-5px] sm:translate-x-0 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm uppercase whitespace-nowrap">
+                    BEST SELLER
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Actions */}
+
         <div className="flex flex-col gap-3 pt-1">
           <div className="flex flex-col gap-3 sm:flex-row">
             {/* Quantity selector */}
@@ -147,7 +209,7 @@ export default function ProductInfo({ product }) {
           </div>
           <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" size="lg" className="h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap ">
             {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : 'Order Now - Cash On Delivery'}
+            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (COD)`}
           </Button>
 
           <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
@@ -162,27 +224,43 @@ export default function ProductInfo({ product }) {
       </div>
 
       {/* Mobile Sticky Actions */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-brand-border p-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-safe">
-        <div className="flex flex-col gap-2.5">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-brand-border p-2.5 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-safe">
+        <div className="flex flex-col gap-2">
           <div className="flex gap-2">
-            <div className="flex h-12 w-28 items-center rounded-xl border border-brand-border bg-gray-50/50 flex-shrink-0">
-              <button onClick={() => handleQuantityChange('dec')} className="flex h-full w-8 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
-                <Minus size={16} />
+            <div className="flex h-10 w-24 items-center rounded-xl border border-brand-border bg-gray-50/50 flex-shrink-0">
+              <button onClick={() => handleQuantityChange('dec')} className="flex h-full w-7 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+                <Minus size={14} />
               </button>
-              <div className="flex h-full flex-1 items-center justify-center border-x border-brand-border text-base font-semibold text-brand-black">
+              <div className="flex h-full flex-1 items-center justify-center border-x border-brand-border text-sm font-semibold text-brand-black">
                 {quantity}
               </div>
-              <button onClick={() => handleQuantityChange('inc')} className="flex h-full w-8 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
-                <Plus size={16} />
+              <button onClick={() => handleQuantityChange('inc')} className="flex h-full w-7 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+                <Plus size={14} />
               </button>
             </div>
-            <Button onClick={handleAddToCart} size="lg" className="h-12 flex-1 rounded-xl text-sm uppercase tracking-wide whitespace-nowrap">
-              Add To Cart
-            </Button>
+            <div className="flex flex-1 overflow-x-auto gap-2 items-center py-1 [&::-webkit-scrollbar]:hidden" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+              {product.packs.map((pack, index) => (
+                <button
+                  key={pack.id}
+                  onClick={() => onPackSelect(index)}
+                  className={`relative flex-shrink-0 h-9 flex items-center justify-center rounded-lg border px-3 text-[11px] font-medium transition-all ${index === selectedPackIndex
+                      ? 'border-brand-black bg-gray-50 text-brand-black border-2'
+                      : 'border-brand-border bg-gray-50 text-brand-black'
+                    }`}
+                >
+                  {pack.name}
+                  {pack.isBestSeller && (
+                    <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded bg-red-500 px-1 py-[2px] text-[7px] font-bold text-white shadow-sm uppercase whitespace-nowrap z-10">
+                      BEST SELLER
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" size="lg" className="h-12 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap">
-            {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : 'Order Now - Cash On Delivery'}
+          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" className="h-10 w-full rounded-full text-xs font-bold uppercase tracking-wide whitespace-nowrap">
+            {isNavigating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (COD)`}
           </Button>
         </div>
       </div>

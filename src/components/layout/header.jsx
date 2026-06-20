@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, Package } from 'lucide-react';
 import { Sheet } from '@/components/ui/sheet';
 import useCartStore from '@/store/cart';
+import AnnouncementBar from './announcement-bar';
 
 const navLinks = [
   // { name: 'Home', href: '/' },
@@ -37,8 +38,9 @@ export default function Header({ onCartOpen }) {
 
   return (
     <>
+      <AnnouncementBar />
       <header
-        className={`sticky top-0 z-40 bg-white transition-shadow duration-300 border-b border-brand-border`}
+        className={`sticky top-0 z-800 bg-white transition-shadow duration-300 border-b border-brand-border`}
       >
         <div className="w-full px-4 sm:px-6" style={{ maxWidth: '1170px', margin: '0 auto' }}>
           <div className="grid h-[80px] grid-cols-[auto_1fr_auto] items-center gap-6">
@@ -57,7 +59,7 @@ export default function Header({ onCartOpen }) {
                 alt="RoadsRide"
                 width={160}
                 height={40}
-                className="h-12 w-auto md:h-14"
+                className="h-14 w-40  md:h-14"
                 priority
               />
             </Link>

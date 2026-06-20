@@ -31,6 +31,7 @@ export const generateOrderConfirmationHTML = (order) => `
       <p><strong>Payment Method:</strong> ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</p>
       <p><strong>Shipping Address:</strong><br/>
       ${order.address}<br/>
+      ${order.apartment ? `${order.apartment}<br/>` : ''}
       ${order.city}, ${order.state} ${order.pincode}</p>
     </div>
 
@@ -38,7 +39,10 @@ export const generateOrderConfirmationHTML = (order) => `
       <h3>Items Ordered</h3>
       ${order.items.map(item => `
         <div class="item">
-          <div>${item.quantity}x ${item.productName}</div>
+          <div>
+            ${item.quantity}x ${item.productName}
+            ${item.packName ? `<br/><small style="color: #6B7280; margin-left: 20px;">Number of Items: ${item.packName}</small>` : ''}
+          </div>
           <div>₹${item.price * item.quantity}</div>
         </div>
       `).join('')}
@@ -101,7 +105,7 @@ export const generateAdminOrderNotificationHTML = (order) => `
       <tr><th>Customer Name</th><td>${order.customerName}</td></tr>
       <tr><th>Email</th><td>${order.email}</td></tr>
       <tr><th>Phone</th><td>${order.phone}</td></tr>
-      <tr><th>Address</th><td>${order.address}<br/>${order.city}, ${order.state} ${order.pincode}</td></tr>
+      <tr><th>Address</th><td>${order.address}<br/>${order.apartment ? `${order.apartment}<br/>` : ''}${order.city}, ${order.state} ${order.pincode}</td></tr>
       <tr><th>Payment Method</th><td>${order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</td></tr>
       <tr><th>Subtotal</th><td>₹${order.subtotal}</td></tr>
       ${order.discount > 0 ? `<tr><th>Discount</th><td style="color: #22C55E">-₹${order.discount}</td></tr>` : ''}
@@ -117,7 +121,10 @@ export const generateAdminOrderNotificationHTML = (order) => `
       </tr>
       ${order.items.map(item => `
         <tr>
-          <td>${item.productName}</td>
+          <td>
+            ${item.productName}
+            ${item.packName ? `<br/><small style="color: #6B7280;">Number of Items: ${item.packName}</small>` : ''}
+          </td>
           <td>${item.quantity}</td>
           <td>₹${item.price * item.quantity}</td>
         </tr>

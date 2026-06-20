@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 
 export default function Breadcrumb({ items, currentPage, nextHref }) {
   return (
-    <div className="flex items-center justify-between py-3 overflow-x-auto">
+    <div className="flex items-center justify-between pt-7 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <nav className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 whitespace-nowrap">
         {items.map((item, index) => (
           <span key={index} className="flex items-center gap-1">

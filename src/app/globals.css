@@ -217,3 +217,17 @@ body {
   border-left: 3px solid #F5C400;
   color: #F5C400;
 }
+
+/* ── Marquee Animation ── */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 120s linear infinite;
+}

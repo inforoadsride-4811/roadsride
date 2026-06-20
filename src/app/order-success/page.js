@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { CheckCircle, Package } from 'lucide-react';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
@@ -102,6 +103,34 @@ export default async function OrderSuccessPage({ searchParams }) {
                 <p className="text-sm text-gray-500 mb-1">Total Amount</p>
                 <p className="font-bold text-brand-black text-lg">{formatPrice(order.total)}</p>
               </div>
+            </div>
+          </div>
+
+          {/* Items Section */}
+          <div className="bg-gray-50 rounded-lg p-6 text-left mb-8 border border-brand-border">
+            <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
+              <Package size={20} /> Items Ordered
+            </h2>
+            <div className="space-y-4 divide-y divide-gray-200">
+              {order.items?.map((item) => (
+                <div key={item.id} className="pt-4 first:pt-0 flex items-center gap-4">
+                  {item.image && (
+                    <div className="w-16 h-16 relative rounded border border-brand-border bg-white flex-shrink-0">
+                      <Image src={item.image} alt={item.productName} fill className="object-cover rounded" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-brand-black line-clamp-2 text-sm">{item.productName}</p>
+                    {item.packName && (
+                      <p className="text-xs text-gray-500 mt-0.5">Number of Items: {item.packName}</p>
+                    )}
+                    <div className="flex justify-between items-center mt-1">
+                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="text-sm font-bold text-brand-black">{formatPrice(item.price * item.quantity)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

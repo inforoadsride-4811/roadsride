@@ -12,6 +12,7 @@ export async function processOrder(orderData) {
       email,
       phone,
       address,
+      apartment,
       city,
       state,
       pincode,
@@ -26,6 +27,7 @@ export async function processOrder(orderData) {
       return {
         productSlug: item.productSlug,
         productName: item.productName,
+        packName: item.packName || null,
         quantity: item.quantity,
         price: item.price,
         originalPrice: item.originalPrice || item.price,
@@ -50,6 +52,7 @@ export async function processOrder(orderData) {
         email,
         phone,
         address,
+        apartment,
         city,
         state,
         pincode,

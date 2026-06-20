@@ -49,6 +49,7 @@ model OrderItem {
   order         Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productName   String
   productSlug   String
+  packName      String?
   quantity      Int
   price         Float
   originalPrice Float

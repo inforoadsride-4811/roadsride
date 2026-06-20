@@ -13,17 +13,84 @@ export const product = {
   store: {
     name: 'RoadsRide',
     rating: 4.64,
-    reviewCount: 84,
+    reviewCount: 5,
   },
-  images: [
-    { id: 1, src: '/products/product-1.png', alt: 'Microfiber cloth folded - main view' },
-    { id: 2, src: '/products/product-2.png', alt: 'Car cleaning with microfiber cloth' },
-    { id: 3, src: '/products/product-3.png', alt: 'Microfiber cloth texture closeup' },
-    { id: 4, src: '/products/product-4.png', alt: 'Stacked microfiber cloths' },
-    { id: 5, src: '/products/product-5.png', alt: 'Microfiber cloth unfolded full size' },
-    { id: 6, src: '/products/product-6.png', alt: 'Glass cleaning with microfiber' },
-    { id: 7, src: '/products/product-7.png', alt: 'Rolled microfiber cloth' },
-    { id: 8, src: '/products/product-8.png', alt: 'Bike cleaning with microfiber cloth' },
+  packs: [
+    {
+      id: 'pack-1',
+      name: 'Pack of 1',
+      price: 599.00,
+      originalPrice: 999.00,
+      isBestSeller: false,
+      images: [
+        { id: 1, src: '/products/pack1/1.jpeg', alt: 'Pack 1 - Image 1' },
+        { id: 2, src: '/products/pack1/2.jpeg', alt: 'Pack 1 - Image 2' },
+        { id: 3, src: '/products/pack1/3.jpeg', alt: 'Pack 1 - Image 3' },
+        { id: 4, src: '/products/pack1/WhatsApp Image 2026-06-20 at 22.22.12.jpeg', alt: 'Pack 1 - Image 4' },
+        { id: 5, src: '/products/pack1/WhatsApp Image 2026-06-20 at 22.22.13 (1).jpeg', alt: 'Pack 1 - Image 5' },
+        { id: 6, src: '/products/pack1/WhatsApp Image 2026-06-20 at 22.22.13 (2).jpeg', alt: 'Pack 1 - Image 6' },
+        { id: 7, src: '/products/pack1/WhatsApp Image 2026-06-20 at 22.22.13 (3).jpeg', alt: 'Pack 1 - Image 7' },
+        { id: 8, src: '/products/pack1/WhatsApp Image 2026-06-20 at 22.22.13.jpeg', alt: 'Pack 1 - Image 8' },
+      ],
+    },
+    {
+      id: 'pack-2',
+      name: 'Pack of 2',
+      price: 999.00,
+      originalPrice: 1599.00,
+      isBestSeller: true,
+      images: [
+        { id: 1, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50 (3).jpeg', alt: 'Pack 2 - Image 3' },
+        { id: 2, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50 (1).jpeg', alt: 'Pack 2 - Image 1' },
+        { id: 3, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50 (2).jpeg', alt: 'Pack 2 - Image 2' },
+        { id: 4, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50 (4).jpeg', alt: 'Pack 2 - Image 4' },
+        { id: 5, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50 (5).jpeg', alt: 'Pack 2 - Image 5' },
+        { id: 6, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50 (6).jpeg', alt: 'Pack 2 - Image 6' },
+        { id: 7, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50 (7).jpeg', alt: 'Pack 2 - Image 7' },
+        { id: 8, src: '/products/pack2/WhatsApp Image 2026-06-20 at 22.22.50.jpeg', alt: 'Pack 2 - Image 8' },
+      ],
+    },
+    {
+      id: 'pack-3',
+      name: 'Pack of 3',
+      price: 1399.00,
+      originalPrice: 1999.00,
+      isBestSeller: false,
+      images: [
+        { id: 1, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (8).jpeg', alt: 'Pack 3 - Image 8' },
+        { id: 2, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (1).jpeg', alt: 'Pack 3 - Image 1' },
+        { id: 3, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (2).jpeg', alt: 'Pack 3 - Image 2' },
+        { id: 4, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (3).jpeg', alt: 'Pack 3 - Image 3' },
+        { id: 5, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (4).jpeg', alt: 'Pack 3 - Image 4' },
+        { id: 6, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (5).jpeg', alt: 'Pack 3 - Image 5' },
+        { id: 7, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (6).jpeg', alt: 'Pack 3 - Image 6' },
+        { id: 8, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34 (7).jpeg', alt: 'Pack 3 - Image 7' },
+        { id: 9, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.34.jpeg', alt: 'Pack 3 - Image 9' },
+        { id: 10, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.35 (1).jpeg', alt: 'Pack 3 - Image 10' },
+        { id: 11, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.35 (2).jpeg', alt: 'Pack 3 - Image 11' },
+        { id: 12, src: '/products/pack3/WhatsApp Image 2026-06-20 at 22.23.35.jpeg', alt: 'Pack 3 - Image 12' },
+      ],
+    },
+    {
+      id: 'pack-4',
+      name: 'Pack of 4',
+      price: 1799.00,
+      originalPrice: 2599.00,
+      isBestSeller: false,
+      images: [
+        { id: 1, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (9).jpeg', alt: 'Pack 4 - Image 9' },
+        { id: 2, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (1).jpeg', alt: 'Pack 4 - Image 1' },
+        { id: 3, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (2).jpeg', alt: 'Pack 4 - Image 2' },
+        { id: 4, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (3).jpeg', alt: 'Pack 4 - Image 3' },
+        { id: 5, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (4).jpeg', alt: 'Pack 4 - Image 4' },
+        { id: 6, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (5).jpeg', alt: 'Pack 4 - Image 5' },
+        { id: 7, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (6).jpeg', alt: 'Pack 4 - Image 6' },
+        { id: 8, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (7).jpeg', alt: 'Pack 4 - Image 7' },
+        { id: 9, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (8).jpeg', alt: 'Pack 4 - Image 8' },
+        { id: 10, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20 (10).jpeg', alt: 'Pack 4 - Image 10' },
+        { id: 11, src: '/products/pack4/WhatsApp Image 2026-06-20 at 22.24.20.jpeg', alt: 'Pack 4 - Image 11' },
+      ],
+    }
   ],
   features: [
     { bold: '1200 GSM Ultra Thick Microfiber Cloth', text: 'for superior cleaning performance' },
@@ -38,6 +105,49 @@ export const product = {
     { name: 'Home', href: '/' },
     { name: 'Car & Bike Accessories', href: '#' },
     { name: 'Car External Accessories', href: '#' },
+  ],
+  reviews: [
+    {
+      id: 1,
+      author: 'Arun Reality',
+      date: 'June 3, 2026',
+      rating: 5,
+      content: 'Super and Scratch Free microfiber. I Like this 1200 GSM Cloth for my car',
+      image: '/reviews/1.webp'
+    },
+    {
+      id: 2,
+      author: 'Anoop Narayan',
+      date: 'June 8, 2026',
+      rating: 5,
+      content: 'Main pehle normal microfiber use karta tha, lekin iski thickness aur absorbency alag level ki hai. Ek hi wipe me paani absorb ho jata hai aur car bilkul saaf.'
+    },
+    {
+      id: 3,
+      author: 'Rohit',
+      date: 'June 12, 2026',
+      rating: 4,
+      content: 'Superb scratch free microfiber towel like this microfiber towel but side ke feeting per thoda dhyan dena pade ga side ke feeting per'
+    },
+    {
+      id: 4,
+      author: 'SATINDER SINGH KALA',
+      verified: false,
+      date: 'June 18, 2026',
+      rating: 5,
+      content: 'quality to mujhe thik lag rhi hai lekin agar thoda aur bad hota hota to jyda achha hota.',
+      image: '/reviews/2.webp'
+    },
+    {
+      id: 5,
+      author: 'Vikram Shivadas',
+      verified: false,
+      date: 'June 18, 2026',
+      rating: 5,
+      content: 'Softest with no scratch marks in my car',
+      image: '/reviews/3.webp'
+
+    }
   ],
   additionalInfo: {
     weight: '120g',

@@ -58,6 +58,9 @@ export default function CartPageContent() {
                           {item.name}
                         </Link>
                       </h3>
+                      {item.packName && (
+                        <p className="text-xs text-gray-500 mt-1">Number of Items: {item.packName}</p>
+                      )}
                       <div className="mt-1 md:hidden">
                         <span className="font-bold text-brand-black">{formatPrice(item.price)}</span>
                       </div>

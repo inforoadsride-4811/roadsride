@@ -21,6 +21,9 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
               <h4 className="text-sm font-medium text-brand-black line-clamp-2 leading-snug">
                 {item.name}
               </h4>
+              {item.packName && (
+                <p className="text-xs text-gray-500 mt-0.5">Number of Items: {item.packName}</p>
+              )}
               <div className="text-sm font-bold text-brand-black mt-1">
                 {formatPrice(item.price * item.quantity)}
               </div>
@@ -48,6 +51,27 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
           </div>
         )}
       </div>
+
+      {!isPrepaid && (
+        <div className="mt-4 bg-orange-50/50 border border-orange-100 text-[#ea580c] text-[13px] font-medium px-3 py-2.5 rounded-lg flex items-start gap-1.5">
+          <span>🚚</span> 
+          <p>Please order only if you are ready to receive the parcel.</p>
+        </div>
+      )}
+
+      {isPrepaid && (
+        <div className="mt-4 bg-[#f0fdf4] border border-[#bbf7d0] rounded-lg p-3 flex flex-col gap-2">
+          <p className="text-[13px] font-bold text-[#166534] flex items-center gap-2 m-0 leading-tight">
+            ✅ Extra 5% Off on Prepaid Orders
+          </p>
+          <p className="text-[13px] font-bold text-[#166534] flex items-center gap-2 m-0 leading-tight">
+            ✅ Priority Processing
+          </p>
+          <p className="text-[13px] font-bold text-[#166534] flex items-center gap-2 m-0 leading-tight">
+            ✅ FREE Surprise Gift 🎁
+          </p>
+        </div>
+      )}
 
       <div className="border-t border-brand-border mt-4 pt-4">
         <div className="flex justify-between items-center">

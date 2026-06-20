@@ -3,7 +3,23 @@
 import { Shield } from 'lucide-react';
 import { formatPrice } from '@/lib/product';
 
-export default function PrepaidBanner({ discountAmount }) {
+export default function PrepaidBanner({ discountAmount, isPrepaid }) {
+  if (isPrepaid) {
+    return (
+      <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-lg p-4 flex flex-col gap-2.5">
+        <p className="text-sm font-bold text-[#166534] flex items-center gap-2">
+          ✅ Extra 5% Off on Prepaid Orders
+        </p>
+        <p className="text-sm font-bold text-[#166534] flex items-center gap-2">
+          ✅ Priority Processing
+        </p>
+        <p className="text-sm font-bold text-[#166534] flex items-center gap-2">
+          ✅ FREE Surprise Gift 🎁
+        </p>
+      </div>
+    );
+  }
+
   if (!discountAmount || discountAmount <= 0) return null;
 
   return (

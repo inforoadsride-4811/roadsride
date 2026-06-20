@@ -84,6 +84,7 @@ export default function OrderDetailModal({ order, open, onClose }) {
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Shipping Address</h3>
               <div className="bg-gray-50 p-4 rounded-lg border border-brand-border text-sm">
                 <p>{order.address}</p>
+                {order.apartment && <p>{order.apartment}</p>}
                 <p>{order.city}, {order.state} {order.pincode}</p>
               </div>
             </div>
@@ -138,6 +139,9 @@ export default function OrderDetailModal({ order, open, onClose }) {
                   <div key={item.id} className="p-3 flex justify-between items-center text-sm">
                     <div>
                       <p className="font-medium text-brand-black line-clamp-1">{item.productName}</p>
+                      {item.packName && (
+                        <p className="text-xs text-gray-500">Pack: {item.packName}</p>
+                      )}
                       <p className="text-gray-500">Qty: {item.quantity} × {formatPrice(item.price)}</p>
                     </div>
                     <p className="font-bold">{formatPrice(item.price * item.quantity)}</p>

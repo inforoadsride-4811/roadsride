@@ -9,6 +9,7 @@ import useCartStore from '@/store/cart';
 import CheckoutForm from '@/components/checkout/checkout-form';
 import OrderSummary from '@/components/checkout/order-summary';
 import PrepaidBanner from '@/components/checkout/prepaid-banner';
+import AnnouncementBar from '@/components/layout/announcement-bar';
 import { calculatePrepaidDiscount, SHIPPING_COST } from '@/lib/product';
 
 export default function CheckoutPage() {
@@ -37,6 +38,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <AnnouncementBar />
       {/* Checkout Header */}
       <header className="border-b border-brand-border bg-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -62,7 +64,7 @@ export default function CheckoutPage() {
           {/* Left Column: Form */}
           <div className="flex-1 lg:max-w-2xl">
             <h1 className="text-2xl md:text-3xl font-bold text-brand-black mb-8">Secure Checkout</h1>
-            <PrepaidBanner discountAmount={calculatePrepaidDiscount(subtotal)} />
+            <PrepaidBanner discountAmount={calculatePrepaidDiscount(subtotal)} isPrepaid={isPrepaid} />
             <div className="mt-8">
               <CheckoutForm isPrepaid={isPrepaid} setIsPrepaid={setIsPrepaid} total={total} />
             </div>
