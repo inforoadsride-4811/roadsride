@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  orderNumber       String      @unique
+  customerName      String
+  email             String
+  phone             String
+  address           String
+  apartment         String?
+  city              String
+  state             String
+  pincode           String
+  country           String      @default("India")
+  paymentMethod     String      // "razorpay" | "cod"
+  paymentStatus     String      @default("pending") // pending, paid, failed
+  orderStatus       String      @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  subtotal          Float
+  discount          Float       @default(0)
+  shipping          Float       @default(0)
+  total             Float
+  orderNote         String?
+  createAccount     Boolean     @default(false)
+  useSameBilling    Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  items             OrderItem[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([orderStatus])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id            String @id @default(cuid())
+  orderId       String
+  order         Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productName   String
+  productSlug   String
+  quantity      Int
+  price         Float
+  originalPrice Float
+  image         String?
+
+  @@index([orderId])
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  authId    String   @unique
+  email     String   @unique
+  name      String
+  role      String   @default("staff") // "super_admin" | "admin" | "staff"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StoreSettings {
+  id             String   @id @default("default")
+  storeName      String   @default("RoadsRide")
+  contactPhone1  String?
+  contactPhone2  String?
+  email          String?
+  address        String?
+  razorpayKeyId  String?
+  razorpaySecret String?
+  resendApiKey   String?
+  updatedAt      DateTime @updatedAt
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  status    String   @default("subscribed") // "subscribed" | "unsubscribed"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
