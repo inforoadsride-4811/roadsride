@@ -12,7 +12,7 @@ export const product = {
   soldPeriod: '12 hours',
   store: {
     name: 'RoadsRide',
-    rating: 4.64,
+    rating: 4.8,
     reviewCount: 5,
   },
   packs: [
@@ -151,7 +151,7 @@ export const product = {
   ],
   additionalInfo: {
     weight: '120g',
-    dimensions: '40 × 60 cm',
+    dimensions: '40 × 60 cm , 40cm = 15.75 Inch, 60 cm = 23.62 inch',
     material: '80% Polyester, 20% Polyamide',
     gsm: '1200 GSM',
     color: 'Teal / Turquoise',
@@ -178,7 +178,7 @@ export const product = {
         text: 'This lint-free microfiber towel leaves no residue or marks, giving your car a clean, polished, and professional look.',
       },
       {
-        title: 'Perfect Size – 40×60 cm',
+        title: 'Perfect Size – 40 × 60 cm , 40cm = 15.75 Inch, 60 cm = 23.62 inch',
         text: 'An ideal size for easy handling and efficient coverage, suitable for both small and large surfaces.',
       },
     ],

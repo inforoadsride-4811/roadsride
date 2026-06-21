@@ -49,7 +49,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
   const handleOrderNow = () => {
     setIsNavigating(true);
     addItem(getPackProduct(), quantity);
-    router.push('/checkout?payment=cod');
+    router.push('/checkout?payment=Cash On Delivery');
   };
 
   const trustItems = [
@@ -63,7 +63,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
     <>
       <div className="flex w-full flex-col gap-5 lg:pt-1" style={{ maxWidth: '570px' }}>
         {/* Title */}
-        <h1 className="text-2xl font-bold leading-snug text-brand-black lg:text-[26px]">
+        <h1 className="font-poppins font-bold text-2xl leading-snug text-brand-black lg:text-[26px]">
           {product.name}
         </h1>
 
@@ -97,11 +97,11 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
         {/* Price */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 line-through">
+          <span className="font-montserrat font-bold text-sm text-gray-500 line-through">
             {product.currency}
             {currentPack.originalPrice.toFixed(2)}
           </span>
-          <span className="text-xl font-bold leading-none text-brand-black">
+          <span className="font-montserrat text-xl font-bold leading-none text-brand-black">
             {product.currency}
             {currentPack.price.toFixed(2)}
           </span>
@@ -162,8 +162,8 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                 key={pack.id}
                 onClick={() => onPackSelect(index)}
                 className={`relative rounded-md border px-4 py-3 sm:py-2 text-base sm:text-sm font-medium transition-all ${index === selectedPackIndex
-                    ? 'border-brand-black bg-gray-50 text-brand-black border-2'
-                    : 'border-brand-border bg-gray-50 text-brand-black hover:border-gray-400'
+                  ? 'border-brand-black bg-gray-50 text-brand-black border-2'
+                  : 'border-brand-border bg-gray-50 text-brand-black hover:border-gray-400'
                   }`}
               >
                 {pack.name}
@@ -202,14 +202,14 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
             {/* Buttons */}
             <div className="flex flex-1">
-              <Button onClick={handleAddToCart} size="lg" className="h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap">
+              <Button onClick={handleAddToCart} size="lg" className="font-poppins font-bold h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap">
                 Add To Cart
               </Button>
             </div>
           </div>
-          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" size="lg" className="h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap ">
+          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" size="lg" className="font-poppins font-bold h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap ">
             {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (COD)`}
+            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (Cash On Delivery)`}
           </Button>
 
           <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
@@ -244,8 +244,8 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                   key={pack.id}
                   onClick={() => onPackSelect(index)}
                   className={`relative flex-shrink-0 h-9 flex items-center justify-center rounded-lg border px-3 text-[11px] font-medium transition-all ${index === selectedPackIndex
-                      ? 'border-brand-black bg-gray-50 text-brand-black border-2'
-                      : 'border-brand-border bg-gray-50 text-brand-black'
+                    ? 'border-brand-black bg-gray-50 text-brand-black border-2'
+                    : 'border-brand-border bg-gray-50 text-brand-black'
                     }`}
                 >
                   {pack.name}
@@ -258,9 +258,9 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
               ))}
             </div>
           </div>
-          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" className="h-10 w-full rounded-full text-xs font-bold uppercase tracking-wide whitespace-nowrap">
+          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" className="font-poppins font-bold h-10 w-full rounded-full text-xs uppercase tracking-wide whitespace-nowrap">
             {isNavigating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (COD)`}
+            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (Cash On Delivery)`}
           </Button>
         </div>
       </div>

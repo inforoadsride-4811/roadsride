@@ -115,7 +115,7 @@ function Callout({ children }) {
       borderRadius: '8px',
       padding: '16px 20px',
       margin: '0',
-    }}>also make email coumn big
+    }}>
       <p style={{ fontSize: '16px', color: '#374151', lineHeight: '1.8', margin: 0 }}>{children}</p>
     </div>
   );
@@ -174,7 +174,7 @@ export default function ProductDetails({ product }) {
             text="This lint-free microfiber towel leaves no residue or marks, giving your car a clean, polished, and professional look."
           />
           <FeatureRow
-            title="Perfect Size – 40×60 cm"
+            title="Perfect Size – 40 × 60 cm , 40cm = 15.75 Inch, 60 cm = 23.62 inch"
             text="An ideal size for easy handling and efficient coverage, suitable for both small and large surfaces."
           />
           {/* Infographic Image */}

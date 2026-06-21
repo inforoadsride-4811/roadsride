@@ -5,7 +5,7 @@ import Script from 'next/script';
 import './globals.css';
 
 export const metadata = {
-  title: 'RoadsRide | Premium Car & Bike Accessories',
+  title: 'RoadsRide 1200 GSM Microfiber Car Cleaning Cloth (40×60 cm) | Scratch-Free & 100% Paint Safe | Absorbs Up to 800ml Water | Ultra Thick, Super Soft, Lint-Free Drying Towel for Car, Bike, SUV & Detailing',
   description: 'RoadsRide provides premium car and bike accessories, focusing on quality, durability, affordability, and enhancing every ride with smart solutions.',
   icons: {
     icon: '/favicon.jpeg',
@@ -35,10 +35,10 @@ export default function RootLayout({ children }) {
       <body>
         {/* Google Tag Manager (noscript) */}
         <noscript>
-          <iframe 
+          <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-M7LPZ5SS"
-            height="0" 
-            width="0" 
+            height="0"
+            width="0"
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
