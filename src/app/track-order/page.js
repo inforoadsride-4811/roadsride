@@ -13,12 +13,11 @@ export default function TrackOrderPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header onCartOpen={() => setCartOpen(true)} />
+    
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-16">
         <TrackingForm onResult={setOrder} />
         <TrackingResult order={order} />
       </main>
-      <Footer />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
