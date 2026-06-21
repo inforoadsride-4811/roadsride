@@ -1,5 +1,6 @@
 import { ToastProvider } from '@/components/ui/toast';
 import WhatsAppButton from '@/components/layout/whatsapp-button';
+import ClientLayout from '@/components/layout/client-layout';
 import Script from 'next/script';
 import './globals.css';
 
@@ -43,7 +44,9 @@ export default function RootLayout({ children }) {
         </noscript>
         {/* End Google Tag Manager (noscript) */}
 
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </ToastProvider>
         <WhatsAppButton />
       </body>
     </html>

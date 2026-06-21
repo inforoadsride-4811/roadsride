@@ -8,22 +8,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { subscribeNewsletter } from '@/actions/subscriber';
+import TrustBadges from './trust-badges';
 
 const departments = [
-  { name: 'Who Are We', href: '#' },
   { name: 'Home', href: '/' },
-  { name: 'Blog', href: '#' },
   { name: 'Shop', href: '/' },
-  { name: 'Contact Us', href: '#' },
-  { name: 'My Account', href: '#' },
+  { name: 'About Us', href: '/about-us' },
+  { name: 'Contact Us', href: '/contact-us' },
   { name: 'Track Order', href: '/track-order' },
-  { name: 'Wishlist', href: '#' },
 ];
 
 const quickLinks = [
-  { name: 'Terms & Conditions', href: '#' },
-  { name: 'Refunds & Cancellations Policy', href: '#' },
-  { name: 'Privacy Policy', href: '#' },
+  { name: 'Terms & Conditions', href: '/terms-conditions' },
+  { name: 'Privacy Policy', href: '/privacy-policy' },
+  { name: 'Refund Policy & Cancellation Policy', href: '/refund-policy' },
 ];
 
 export default function Footer() {
@@ -49,6 +47,10 @@ export default function Footer() {
 
   return (
     <footer className="border-t border-brand-border bg-white">
+      <div className="mt-16">
+        <TrustBadges />
+      </div>
+
       <div className="px-6 py-14 md:py-20" style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1.3fr] xl:gap-16">
           {/* About Us */}

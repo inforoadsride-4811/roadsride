@@ -1,27 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import Header from '@/components/layout/header';
-import Footer from '@/components/layout/footer';
+
 import TrustBadges from '@/components/layout/trust-badges';
 import Breadcrumb from '@/components/product/breadcrumb';
 import ProductGallery from '@/components/product/product-gallery';
 import ProductInfo from '@/components/product/product-info';
 import ProductDetails from '@/components/product/product-details';
-import CartDrawer from '@/components/cart/cart-drawer';
+
 import { product } from '@/lib/product';
 
 export default function ProductPage() {
-  const [cartOpen, setCartOpen] = useState(false);
+
   const [selectedPackIndex, setSelectedPackIndex] = useState(0);
 
   const currentPack = product.packs[selectedPackIndex];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header onCartOpen={() => setCartOpen(true)} />
+    <div className="bg-white">
       {/* bg-[#f5f5f5]  */}
-      <main className="pb-[200px] sm:pb-0">
+      <div className="pb-[200px] sm:pb-0">
         <div className="bg-[#f5f5f5] pb-10!  ">
           <div className="w-full px-4 sm:px-6" style={{ maxWidth: '1170px', margin: '0 auto' }}>
 
@@ -44,14 +42,7 @@ export default function ProductPage() {
           </div>
         </div>
         <ProductDetails product={product} />
-      </main>
-
-      <div className="mt-16">
-        <TrustBadges />
       </div>
-
-      <Footer />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 }
