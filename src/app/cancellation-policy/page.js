@@ -51,7 +51,7 @@ export default function RefundPolicyPage() {
         <p>Then contact your credit card company, it may take some time before your refund is officially posted.</p>
         <p>Next contact your bank. There is often some processing time before a refund is posted.</p>
         <p>
-          If you’ve done all of this and you still have not received your refund yet, please contact us at <strong>roadsride@gmail.com</strong>.
+          If you’ve done all of this and you still have not received your refund yet, please contact us at <strong>info.roadsride@gmail.com</strong>.
         </p>
 
         <h2 className="mt-10 mb-4 text-2xl font-bold text-brand-black">Sale items</h2>
@@ -59,7 +59,7 @@ export default function RefundPolicyPage() {
 
         <h2 className="mt-10 mb-4 text-2xl font-bold text-brand-black">Exchanges</h2>
         <p>
-          We only replace items if they are defective or damaged. If you need to exchange it for the same item, send us an email at <strong>roadsride@gmail.com</strong> and send your item to: <strong>Pahalwan Dairy, Jogabai Extention, Jamia Nagar, Delhi 110025</strong>.
+          We only replace items if they are defective or damaged. If you need to exchange it for the same item, send us an email at <strong>  info.roadsride@gmail.com</strong> and send your item to: <strong>Pahalwan Dairy, Jogabai Extention, Jamia Nagar, Delhi 110025</strong>.
         </p>
 
         <h2 className="mt-10 mb-4 text-2xl font-bold text-brand-black">Gifts</h2>
@@ -90,7 +90,7 @@ export default function RefundPolicyPage() {
             <span className="font-semibold">📞 Mobile:</span> <a href="tel:+919097968671" className="text-brand-black hover:underline">+91 90979 68671</a>
           </p>
           <p className="flex items-center gap-2">
-            <span className="font-semibold">📧 Email:</span> <a href="mailto:roadsride@gmail.com" className="text-brand-black hover:underline">roadsride@gmail.com</a>
+            <span className="font-semibold">📧 Email:</span> <a href="mailto:  info.roadsride@gmail.com" className="text-brand-black hover:underline">  info.roadsride@gmail.com</a>
           </p>
         </div>
       </div>
