@@ -57,6 +57,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
       currency: 'INR',
       name: 'RoadsRide',
       description: 'Order Payment',
+      image: '/rr.webp',
       order_id: orderId,
       handler: async function (response) {
         try {
