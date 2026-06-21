@@ -19,7 +19,7 @@ export const product = {
     {
       id: 'pack-1',
       name: 'Pack of 1',
-      price: 599.00,
+      price: 10.00,
       originalPrice: 999.00,
       isBestSeller: false,
       images: [
