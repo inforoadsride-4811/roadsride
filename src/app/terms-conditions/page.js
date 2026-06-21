@@ -83,7 +83,7 @@ export default function TermsConditionsPage() {
             <span className="font-semibold">📞 Mobile:</span> <a href="tel:+919097968671" className="text-brand-black hover:underline">+91 90979 68671</a>
           </p>
           <p className="flex items-center gap-2">
-            <span className="font-semibold">📧 Email:</span> <a href="mailto:roadsride@gmail.com" className="text-brand-black hover:underline">roadsride@gmail.com</a>
+            <span className="font-semibold">📧 Email:</span> <a href="mailto:info.roadsride@gmail.com" className="text-brand-black hover:underline">  info.roadsride@gmail.com</a>
           </p>
         </div>
       </div>
