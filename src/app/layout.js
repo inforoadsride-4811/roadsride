@@ -1,6 +1,7 @@
 import { ToastProvider } from '@/components/ui/toast';
 import WhatsAppButton from '@/components/layout/whatsapp-button';
 import ClientLayout from '@/components/layout/client-layout';
+import NextTopLoader from 'nextjs-toploader';
 import Script from 'next/script';
 import './globals.css';
 
@@ -44,10 +45,23 @@ export default function RootLayout({ children }) {
         </noscript>
         {/* End Google Tag Manager (noscript) */}
 
+        <NextTopLoader
+          color="#F5C400"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #F5C400,0 0 5px #F5C400"
+        />
+
         <ToastProvider>
           <ClientLayout>{children}</ClientLayout>
         </ToastProvider>
         <WhatsAppButton />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </body>
     </html>
   );

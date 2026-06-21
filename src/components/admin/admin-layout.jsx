@@ -2,12 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, Search, Mail } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Settings, LogOut, Search, Mail, Home, MessageSquare, Star } from 'lucide-react';
 import { adminLogout } from '@/actions/auth';
+import { getPendingQACount } from '@/actions/qa';
 import { useToast } from '@/components/ui/toast';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Homepage', href: '/admin/homepage', icon: Home },
+  { name: 'Products', href: '/admin/products', icon: Package },
+  { name: 'Categories', href: '/admin/categories', icon: FolderTree },
+  { name: 'Reviews', href: '/admin/reviews', icon: Star },
+  { name: 'Q & A', href: '/admin/qa', icon: MessageSquare },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Subscribers', href: '/admin/subscribers', icon: Mail },
@@ -18,6 +25,18 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }) {
   const pathname = usePathname();
   const router = useRouter();
   const { addToast } = useToast();
+  const [pendingQA, setPendingQA] = useState(0);
+
+  useEffect(() => {
+    // Fetch pending QA count on mount and every 30s
+    const fetchQACount = async () => {
+      const res = await getPendingQACount();
+      if (res.success) setPendingQA(res.count);
+    };
+    fetchQACount();
+    const interval = setInterval(fetchQACount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = async () => {
     const { success } = await adminLogout();
@@ -45,14 +64,21 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }) {
               key={item.name}
               href={item.href}
               onClick={() => setMobileOpen?.(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive 
                   ? 'admin-nav-active' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-brand-black'
               }`}
             >
-              <Icon size={18} className={isActive ? 'text-brand-yellow' : 'text-gray-400'} />
-              {item.name}
+              <div className="flex items-center gap-3">
+                <Icon size={18} className={isActive ? 'text-brand-yellow' : 'text-gray-400'} />
+                {item.name}
+              </div>
+              {item.name === 'Q & A' && pendingQA > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {pendingQA}
+                </span>
+              )}
             </Link>
           );
         })}

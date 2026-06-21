@@ -4,47 +4,70 @@ import prisma from '@/lib/db';
 
 export async function getDashboardStats() {
   try {
-    const totalOrders = await prisma.order.count();
-    
-    const revenueAgg = await prisma.order.aggregate({
-      _sum: { total: true },
-      where: {
-        paymentStatus: 'paid', // or confirmed for COD if needed
-      }
-    });
-    
-    const pendingOrders = await prisma.order.count({
-      where: { orderStatus: 'pending' }
-    });
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const codOrders = await prisma.order.count({
-      where: { paymentMethod: 'cod' }
-    });
-
-    const prepaidOrders = await prisma.order.count({
-      where: { paymentMethod: 'razorpay' }
-    });
-
-    const recentOrders = await prisma.order.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: { items: true }
-    });
+    const [
+      totalOrders,
+      todayOrders,
+      totalRevenueAgg,
+      todayRevenueAgg,
+      totalProducts,
+      totalCustomers,
+      lowStockProducts,
+      outOfStockProducts,
+      recentOrders
+    ] = await Promise.all([
+      prisma.order.count(),
+      prisma.order.count({ where: { createdAt: { gte: startOfToday } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { paymentStatus: 'paid' } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { paymentStatus: 'paid', createdAt: { gte: startOfToday } } }),
+      prisma.product.count(),
+      prisma.customer.count(),
+      prisma.product.findMany({ where: { stock: { gt: 0, lte: 5 } }, select: { id: true, name: true, stock: true }, take: 5 }),
+      prisma.product.findMany({ where: { stock: 0 }, select: { id: true, name: true, stock: true }, take: 5 }),
+      prisma.order.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { items: true } })
+    ]);
 
     return {
       success: true,
       stats: {
         totalOrders,
-        revenue: revenueAgg._sum.total || 0,
-        pendingOrders,
-        codOrders,
-        prepaidOrders,
+        todayOrders,
+        totalRevenue: totalRevenueAgg._sum.total || 0,
+        todayRevenue: todayRevenueAgg._sum.total || 0,
+        totalProducts,
+        totalCustomers,
       },
+      lowStockProducts,
+      outOfStockProducts,
       recentOrders,
     };
   } catch (error) {
     console.error('Failed to fetch dashboard stats:', error);
     return { success: false, error: 'Failed to fetch dashboard data' };
+  }
+}
+
+// Activity Logging Helper
+export async function logAdminActivity({ authId, action, entityType, entityId, description, metadata = null }) {
+  try {
+    if (!authId) return;
+    const adminUser = await prisma.adminUser.findUnique({ where: { authId } });
+    if (!adminUser) return;
+
+    await prisma.adminActivityLog.create({
+      data: {
+        adminUserId: adminUser.id,
+        action,
+        entityType,
+        entityId,
+        description,
+        metadata,
+      }
+    });
+  } catch (err) {
+    console.error('Failed to log admin activity:', err);
   }
 }
 
@@ -55,7 +78,7 @@ export async function getAllOrders(page = 1, limit = 10, search = '') {
     const where = search ? {
       OR: [
         { orderNumber: { contains: search, mode: 'insensitive' } },
-        { firstName: { contains: search, mode: 'insensitive' } },
+        { customerName: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search, mode: 'insensitive' } },
       ]

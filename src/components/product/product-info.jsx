@@ -16,7 +16,12 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
 
-  const currentPack = product.packs[selectedPackIndex];
+  const packs = product.packs || product.variants || [];
+  const currentPack = packs.length > 0 ? packs[selectedPackIndex] : null;
+  const displayPrice = currentPack?.price || product.price;
+  const displayOriginalPrice = currentPack?.originalPrice || product.originalPrice;
+  const displayImages = currentPack?.images?.length > 0 ? currentPack.images : (product.images || []);
+  const store = product.store || { name: 'RoadsRide', rating: 4.8, reviewCount: 124 };
 
   const handleQuantityChange = (type) => {
     if (type === 'inc') {
@@ -28,12 +33,12 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
   const getPackProduct = () => ({
     ...product,
-    id: currentPack.id,
+    id: currentPack?.id || product.id,
     name: product.name,
-    packName: currentPack.name,
-    price: currentPack.price,
-    originalPrice: currentPack.originalPrice,
-    images: currentPack.images,
+    packName: currentPack?.name || '',
+    price: displayPrice,
+    originalPrice: displayOriginalPrice,
+    images: displayImages,
   });
 
   const handleAddToCart = () => {
@@ -81,12 +86,12 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                 <Star
                   key={i}
                   size={16}
-                  fill={i < Math.floor(product.store.rating) ? 'currentColor' : 'none'}
-                  className={i < Math.floor(product.store.rating) ? '' : 'text-gray-300'}
+                  fill={i < Math.floor(store.rating) ? 'currentColor' : 'none'}
+                  className={i < Math.floor(store.rating) ? '' : 'text-gray-300'}
                 />
               ))}
             </div>
-            <span className="text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-500">({product.store.reviewCount} customer reviews)</span>
+            <span className="text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-500">({store.reviewCount} customer reviews)</span>
           </button>
 
           <div className="flex items-center gap-1.5 text-brand-black">
@@ -97,24 +102,26 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
         {/* Price */}
         <div className="flex items-center gap-2">
-          <span className="font-montserrat font-bold text-sm text-gray-500 line-through">
-            {product.currency}
-            {currentPack.originalPrice.toFixed(2)}
-          </span>
+          {displayOriginalPrice > displayPrice && (
+            <span className="font-montserrat font-bold text-sm text-gray-500 line-through">
+              {product.currency}
+              {displayOriginalPrice.toFixed(2)}
+            </span>
+          )}
           <span className="font-montserrat text-xl font-bold leading-none text-brand-black">
             {product.currency}
-            {currentPack.price.toFixed(2)}
+            {displayPrice.toFixed(2)}
           </span>
         </div>
 
         {/* Store Card */}
         <div className="flex w-full items-center gap-4 border border-brand-border bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.08)]" style={{ maxWidth: '380px' }}>
           <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-brand-border bg-white p-1">
-            <Image src={currentPack.images[0].src} alt="Product Thumbnail" width={48} height={48} className="w-full h-full object-cover rounded-sm" />
+            <Image src={displayImages[0]?.src || '/placeholder.png'} alt="Product Thumbnail" width={48} height={48} className="w-full h-full object-cover rounded-sm" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-gray-500 font-medium">Store</p>
-            <p className="text-base font-bold text-brand-black">{product.store.name}</p>
+            <p className="text-base font-bold text-brand-black">{store.name}</p>
           </div>
           <div className="h-10 w-px bg-brand-border"></div>
           <div className="flex min-w-0 flex-col">
@@ -123,13 +130,13 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                 <Star
                   key={i}
                   size={14}
-                  fill={i < Math.floor(product.store.rating) ? 'currentColor' : 'none'}
-                  className={i < Math.floor(product.store.rating) ? '' : 'text-gray-300'}
+                  fill={i < Math.floor(store.rating) ? 'currentColor' : 'none'}
+                  className={i < Math.floor(store.rating) ? '' : 'text-gray-300'}
                 />
               ))}
             </div>
             <p className="mt-1 text-xs font-semibold text-gray-700">
-              {product.store.rating} ({product.store.reviewCount} Reviews)
+              {store.rating} ({store.reviewCount} Reviews)
             </p>
           </div>
         </div>
@@ -154,28 +161,30 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         {/* Removed Stock Indicator from here */}
 
         {/* Packs Variation */}
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-bold text-brand-black uppercase">Number of Items</p>
-          <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-2">
-            {product.packs.map((pack, index) => (
-              <button
-                key={pack.id}
-                onClick={() => onPackSelect(index)}
-                className={`relative rounded-md border px-4 py-3 sm:py-2 text-base sm:text-sm font-medium transition-all ${index === selectedPackIndex
-                  ? 'border-brand-black bg-gray-50 text-brand-black border-2'
-                  : 'border-brand-border bg-gray-50 text-brand-black hover:border-gray-400'
-                  }`}
-              >
-                {pack.name}
-                {pack.isBestSeller && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 sm:left-auto sm:right-[-5px] sm:translate-x-0 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm uppercase whitespace-nowrap">
-                    BEST SELLER
-                  </span>
-                )}
-              </button>
-            ))}
+        {packs.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-bold text-brand-black uppercase">Number of Items</p>
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-2">
+              {packs.map((pack, index) => (
+                <button
+                  key={pack.id}
+                  onClick={() => onPackSelect(index)}
+                  className={`relative rounded-md border px-4 py-3 sm:py-2 text-base sm:text-sm font-medium transition-all ${index === selectedPackIndex
+                    ? 'border-brand-black bg-gray-50 text-brand-black border-2'
+                    : 'border-brand-border bg-gray-50 text-brand-black hover:border-gray-400'
+                    }`}
+                >
+                  {pack.name}
+                  {pack.isBestSeller && (
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 sm:left-auto sm:right-[-5px] sm:translate-x-0 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm uppercase whitespace-nowrap">
+                      BEST SELLER
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Actions */}
 
@@ -209,7 +218,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
           </div>
           <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" size="lg" className="font-poppins font-bold h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap ">
             {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (Cash On Delivery)`}
+            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(displayPrice * quantity).toFixed(2)} (Cash On Delivery)`}
           </Button>
 
           <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
@@ -239,7 +248,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
               </button>
             </div>
             <div className="flex flex-1 overflow-x-auto gap-2 items-center py-1 [&::-webkit-scrollbar]:hidden" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-              {product.packs.map((pack, index) => (
+              {packs.map((pack, index) => (
                 <button
                   key={pack.id}
                   onClick={() => onPackSelect(index)}
@@ -260,7 +269,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
           </div>
           <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" className="font-poppins font-bold h-10 w-full rounded-full text-xs uppercase tracking-wide whitespace-nowrap">
             {isNavigating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(currentPack.price * quantity).toFixed(2)} (Cash On Delivery)`}
+            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(displayPrice * quantity).toFixed(2)} (Cash On Delivery)`}
           </Button>
         </div>
       </div>

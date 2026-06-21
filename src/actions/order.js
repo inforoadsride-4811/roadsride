@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/db';
-import { generateOrderNumber } from '@/lib/product';
+import { generateOrderNumber, SHIPPING_COST } from '@/lib/product';
 import { sendOrderConfirmationEmail } from './email';
 
 export async function processOrder(orderData) {
@@ -18,9 +18,10 @@ export async function processOrder(orderData) {
       pincode,
       paymentMethod,
       items,
+      customerId,
     } = orderData;
 
-    // Calculate totals
+    // Calculate totals (pure computation — no DB calls)
     let subtotal = 0;
     const orderItems = items.map(item => {
       subtotal += item.price * item.quantity;
@@ -40,14 +41,15 @@ export async function processOrder(orderData) {
       discount = Math.round((subtotal * 5 / 100) * 100) / 100;
     }
 
-    const total = subtotal - discount;
-
+    const total = subtotal + SHIPPING_COST - discount;
     const orderNumber = generateOrderNumber();
     const customerName = `${firstName} ${lastName}`.trim();
 
+    // Single DB write — order + items created in one transaction (Prisma nested create)
     const order = await prisma.order.create({
       data: {
         orderNumber,
+        customerId: customerId || null,
         customerName,
         email,
         phone,
@@ -61,7 +63,7 @@ export async function processOrder(orderData) {
         total,
         paymentMethod,
         paymentStatus: paymentMethod === 'razorpay' ? 'paid' : 'pending',
-        orderStatus: 'confirmed',
+        orderStatus: 'processing',
         razorpayOrderId: orderData.razorpayOrderId,
         razorpayPaymentId: orderData.razorpayPaymentId,
         razorpaySignature: orderData.razorpaySignature,
@@ -69,10 +71,11 @@ export async function processOrder(orderData) {
           create: orderItems,
         },
       },
+      include: { items: true }, // Include items so we can pass the full order to email
     });
 
-    // Send email synchronously to ensure it completes before the serverless function exits
-    await sendOrderConfirmationEmail(order.id).catch(err => console.error('Email sending failed:', err));
+    // Fire-and-forget email — don't block the response
+    sendOrderConfirmationEmail(null, order).catch(err => console.error('Email sending failed:', err));
 
     return { success: true, orderId: order.id };
   } catch (error) {

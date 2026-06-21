@@ -10,11 +10,9 @@ export const metadata = {
 export default function CartPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
       <main className="flex-1">
         <CartPageContent />
       </main>
-      <Footer />
     </div>
   );
 }

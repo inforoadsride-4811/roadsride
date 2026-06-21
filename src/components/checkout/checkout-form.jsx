@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,13 +9,18 @@ import { useToast } from '@/components/ui/toast';
 import useCartStore from '@/store/cart';
 import { processOrder } from '@/actions/order';
 import { getRazorpayOrderId, verifyRazorpayPayment } from '@/actions/payment';
+import { getSessionCustomer } from '@/actions/customer-auth';
+import { saveAddress } from '@/actions/customer-address';
 import { formatPrice } from '@/lib/product';
+import { checkoutSchema, validateForm } from '@/lib/validations';
+import { Loader2, MapPin, Home, Briefcase, Plus } from 'lucide-react';
 
 export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
   const router = useRouter();
   const { addToast } = useToast();
   const { items, clearCart, getCartForCheckout } = useCartStore();
   const [loading, setLoading] = useState(false);
+  const [autofilling, setAutofilling] = useState(true);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -28,25 +33,88 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
     state: '',
     pincode: '',
   });
+  const [customerId, setCustomerId] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [useNewAddress, setUseNewAddress] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    const fetchCustomer = async () => {
+      try {
+        const { customer } = await getSessionCustomer();
+        if (customer) {
+          setCustomerId(customer.id);
+          const addresses = customer.addresses || [];
+          setSavedAddresses(addresses);
 
-  const loadRazorpay = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
+          const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
+
+          if (defaultAddress) {
+            setSelectedAddressId(defaultAddress.id);
+            applyAddress(defaultAddress, customer.email, customer.phone);
+          } else {
+            setUseNewAddress(true);
+            const nameParts = customer.name.split(' ');
+            setFormData(prev => ({
+              ...prev,
+              firstName: nameParts[0] || '',
+              lastName: nameParts.slice(1).join(' ') || '',
+              email: customer.email,
+              phone: customer.phone || '',
+            }));
+          }
+        } else {
+          setUseNewAddress(true);
+        }
+      } catch (err) {
+        // Silently fail — user can fill manually
+      } finally {
+        setAutofilling(false);
+      }
+    };
+    fetchCustomer();
+  }, []);
+
+  const applyAddress = (addr, email, phone) => {
+    setFormData({
+      firstName: addr.firstName,
+      lastName: addr.lastName,
+      email: email || formData.email,
+      phone: addr.phone || phone || '',
+      address: addr.address,
+      apartment: addr.apartment || '',
+      city: addr.city,
+      state: addr.state,
+      pincode: addr.pincode,
     });
   };
 
+  const selectAddress = (addr) => {
+    setSelectedAddressId(addr.id);
+    setUseNewAddress(false);
+    applyAddress(addr, formData.email, formData.phone);
+  };
+
+  const handleUseNewAddress = () => {
+    setSelectedAddressId(null);
+    setUseNewAddress(true);
+    setFormData(prev => ({
+      ...prev,
+      firstName: '', lastName: '', address: '', apartment: '',
+      city: '', state: '', pincode: '', phone: '',
+    }));
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: undefined }));
+  };
+
   const handleRazorpayPayment = async (orderId, totalAmount, orderData) => {
-    const res = await loadRazorpay();
-    if (!res) {
-      addToast({ title: 'Error', message: 'Razorpay SDK failed to load', type: 'error' });
+    if (!window.Razorpay) {
+      addToast({ title: 'Error', message: 'Payment SDK not loaded. Please refresh and try again.', type: 'error' });
       setLoading(false);
       return;
     }
@@ -80,6 +148,10 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
             const { success, orderId: dbOrderId, error } = await processOrder(completeOrderData);
 
             if (success) {
+              // Save new address to customer profile
+              if (useNewAddress && customerId) {
+                saveAddress({ firstName: formData.firstName, lastName: formData.lastName, phone: formData.phone, address: formData.address, apartment: formData.apartment, city: formData.city, state: formData.state, pincode: formData.pincode, label: 'Other' }).catch(() => { });
+              }
               router.push(`/order-success?id=${dbOrderId}`);
             } else {
               addToast({ title: 'Error', message: error || 'Failed to save order', type: 'error' });
@@ -126,12 +198,23 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
     }
 
     setLoading(true);
+    setErrors({});
+
+    // Zod validation
+    const validation = validateForm(checkoutSchema, formData);
+    if (!validation.success) {
+      setErrors(validation.errors);
+      setLoading(false);
+      return;
+    }
 
     try {
       const orderData = {
         ...formData,
         paymentMethod: isPrepaid ? 'razorpay' : 'cod',
         items: getCartForCheckout(),
+        total,
+        customerId,
       };
 
       if (isPrepaid) {
@@ -151,6 +234,11 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
           throw new Error(error || 'Failed to process order');
         }
 
+        // Save new address to customer profile
+        if (useNewAddress && customerId) {
+          saveAddress({ firstName: formData.firstName, lastName: formData.lastName, phone: formData.phone, address: formData.address, apartment: formData.apartment, city: formData.city, state: formData.state, pincode: formData.pincode, label: 'Other' }).catch(() => { });
+        }
+
         router.push(`/order-success?id=${orderId}`);
       }
     } catch (err) {
@@ -161,6 +249,14 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Autofill Loader */}
+      {autofilling && (
+        <div className="flex items-center gap-3 p-4 bg-brand-yellow/10 border border-brand-yellow/30 rounded-xl animate-pulse">
+          <Loader2 size={18} className="animate-spin text-brand-yellow" />
+          <span className="text-sm font-medium text-brand-black">Auto-filling your saved details...</span>
+        </div>
+      )}
+
       {/* Contact Info */}
       <div>
         <h2 className="text-xl font-bold text-brand-black mb-4">Contact Information</h2>
@@ -173,77 +269,153 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
               required
               value={formData.email}
               onChange={handleChange}
+              className={errors.email ? 'border-red-400' : ''}
             />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
         </div>
       </div>
 
-      {/* Shipping Address */}
-      <div>
-        <h2 className="text-xl font-bold text-brand-black mb-4">Shipping Address</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="First Name"
-            name="firstName"
-            required
-            value={formData.firstName}
-            onChange={handleChange}
-          />
-          <Input
-            label="Last Name"
-            name="lastName"
-            required
-            value={formData.lastName}
-            onChange={handleChange}
-          />
-          <div className="md:col-span-2">
-            <Input
-              label="Address"
-              name="address"
-              required
-              value={formData.address}
-              onChange={handleChange}
-            />
+      {/* Saved Address Picker (logged-in users) */}
+      {savedAddresses.length > 0 && (
+        <div>
+          <h2 className="text-xl font-bold text-brand-black mb-4">Delivery Address</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            {savedAddresses.map(addr => (
+              <button
+                key={addr.id}
+                type="button"
+                onClick={() => selectAddress(addr)}
+                className={`text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedAddressId === addr.id && !useNewAddress
+                  ? 'border-brand-yellow bg-brand-yellow/5 shadow-sm'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xs font-semibold bg-gray-100 text-gray-700 px-2 py-0.5 rounded flex items-center gap-1">
+                    {addr.label === 'Home' ? <Home size={10} /> : addr.label === 'Office' ? <Briefcase size={10} /> : <MapPin size={10} />}
+                    {addr.label || 'Address'}
+                  </span>
+                  {addr.isDefault && (
+                    <span className="text-xs font-medium text-brand-yellow">Default</span>
+                  )}
+                </div>
+                <p className="text-sm font-medium text-brand-black">{addr.firstName} {addr.lastName}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{addr.address}{addr.apartment ? `, ${addr.apartment}` : ''}</p>
+                <p className="text-xs text-gray-500">{addr.city}, {addr.state} {addr.pincode}</p>
+              </button>
+            ))}
+
+            {/* Use a different address */}
+            <button
+              type="button"
+              onClick={handleUseNewAddress}
+              className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer min-h-[100px] ${useNewAddress
+                ? 'border-brand-yellow bg-brand-yellow/5'
+                : 'border-gray-300 hover:border-gray-400 text-gray-500'
+                }`}
+            >
+              <Plus size={20} className={useNewAddress ? 'text-brand-yellow mb-1' : 'text-gray-400 mb-1'} />
+              <span className="text-sm font-medium">Use a different address</span>
+            </button>
           </div>
-          <div className="md:col-span-2">
-            <Input
-              label="Apartment, suite, etc."
-              name="apartment"
-              value={formData.apartment}
-              onChange={handleChange}
-            />
-          </div>
-          <Input
-            label="City"
-            name="city"
-            required
-            value={formData.city}
-            onChange={handleChange}
-          />
-          <Input
-            label="State"
-            name="state"
-            required
-            value={formData.state}
-            onChange={handleChange}
-          />
-          <Input
-            label="PIN Code"
-            name="pincode"
-            required
-            value={formData.pincode}
-            onChange={handleChange}
-          />
-          <Input
-            label="Phone"
-            name="phone"
-            type="tel"
-            required
-            value={formData.phone}
-            onChange={handleChange}
-          />
         </div>
-      </div>
+      )}
+
+      {/* Shipping Address Form (show for new address or guest) */}
+      {(useNewAddress || savedAddresses.length === 0) && (
+        <div>
+          <h2 className="text-xl font-bold text-brand-black mb-4">{savedAddresses.length > 0 ? 'New Address' : 'Shipping Address'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Input
+                label="First Name"
+                name="firstName"
+                required
+                value={formData.firstName}
+                onChange={handleChange}
+                className={errors.firstName ? 'border-red-400' : ''}
+              />
+              {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
+            </div>
+            <div>
+              <Input
+                label="Last Name"
+                name="lastName"
+                required
+                value={formData.lastName}
+                onChange={handleChange}
+                className={errors.lastName ? 'border-red-400' : ''}
+              />
+              {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
+            </div>
+            <div className="md:col-span-2">
+              <Input
+                label="Address"
+                name="address"
+                required
+                value={formData.address}
+                onChange={handleChange}
+                className={errors.address ? 'border-red-400' : ''}
+              />
+              {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
+            </div>
+            <div className="md:col-span-2">
+              <Input
+                label="Apartment, suite, etc."
+                name="apartment"
+                value={formData.apartment}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <Input
+                label="City"
+                name="city"
+                required
+                value={formData.city}
+                onChange={handleChange}
+                className={errors.city ? 'border-red-400' : ''}
+              />
+              {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city}</p>}
+            </div>
+            <div>
+              <Input
+                label="State"
+                name="state"
+                required
+                value={formData.state}
+                onChange={handleChange}
+                className={errors.state ? 'border-red-400' : ''}
+              />
+              {errors.state && <p className="text-xs text-red-500 mt-1">{errors.state}</p>}
+            </div>
+            <div>
+              <Input
+                label="PIN Code"
+                name="pincode"
+                required
+                value={formData.pincode}
+                onChange={handleChange}
+                className={errors.pincode ? 'border-red-400' : ''}
+              />
+              {errors.pincode && <p className="text-xs text-red-500 mt-1">{errors.pincode}</p>}
+            </div>
+            <div>
+              <Input
+                label="Phone"
+                name="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className={errors.phone ? 'border-red-400' : ''}
+              />
+              {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Payment Method */}
       <div>

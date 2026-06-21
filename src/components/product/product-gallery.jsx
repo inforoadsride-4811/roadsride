@@ -74,7 +74,7 @@ export default function ProductGallery({ images, discount }) {
           >
             {images.map((img, index) => (
               <button
-                key={img.id}
+                key={img.id || index}
                 onClick={() => setSelectedIndex(index)}
                 className={`relative h-20 w-20 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${index === selectedIndex
                   ? 'border-brand-yellow shadow-sm'

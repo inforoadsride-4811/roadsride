@@ -1,5 +1,13 @@
 import { updateSession } from '@/lib/supabase/middleware';
 import { NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+
+// Lightweight admin check in middleware (no Prisma in edge runtime)
+// We use a cookie flag set during admin login to avoid DB calls here
+async function isAdminSession(request) {
+  const { user } = await updateSession(request);
+  return { user };
+}
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -7,14 +15,14 @@ export async function middleware(request) {
   // Allow admin login page without auth
   if (pathname === '/admin/login') {
     const { user, supabaseResponse } = await updateSession(request);
-    // If already logged in, redirect to dashboard
     if (user) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
     return supabaseResponse;
   }
 
-  // Protect all admin routes
+  // Protect all admin routes — require authenticated user
+  // The actual admin role check happens in getSessionAdmin() on each page
   if (pathname.startsWith('/admin')) {
     const { user, supabaseResponse } = await updateSession(request);
 

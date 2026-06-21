@@ -1,48 +1,60 @@
-'use client';
+import { getHomepageSections } from '@/actions/admin-homepage';
+import HeroSection from '@/components/homepage/HeroSection';
+import CategoriesGrid from '@/components/homepage/CategoriesGrid';
+import ProductsGrid from '@/components/homepage/ProductsGrid';
+import PromoBento from '@/components/homepage/PromoBento';
+import CtaSection from '@/components/homepage/CtaSection';
 
-import { useState } from 'react';
+export const metadata = {
+  title: 'RoadsRide - High-Performance Automotive & Lifestyle Retail',
+  description: 'Drive Smart, Stay Safe. Discover our premium collection of car and bike accessories designed for ultimate performance and protection.',
+};
 
-import TrustBadges from '@/components/layout/trust-badges';
-import Breadcrumb from '@/components/product/breadcrumb';
-import ProductGallery from '@/components/product/product-gallery';
-import ProductInfo from '@/components/product/product-info';
-import ProductDetails from '@/components/product/product-details';
+export const dynamic = 'force-dynamic';
 
-import { product } from '@/lib/product';
+export default async function HomePage() {
+  const { success, sections, error } = await getHomepageSections();
 
-export default function ProductPage() {
+  if (!success) {
+    return <div className="text-center py-20 text-red-500">Failed to load homepage sections.</div>;
+  }
 
-  const [selectedPackIndex, setSelectedPackIndex] = useState(0);
+  // Filter only active sections and sort by order
+  const activeSections = sections.filter(s => s.isActive).sort((a, b) => a.order - b.order);
 
-  const currentPack = product.packs[selectedPackIndex];
+  const heroSlides = activeSections.filter(s => s.type === 'HERO');
+  const categoriesSec = activeSections.find(s => s.type === 'CATEGORIES') || { type: 'CATEGORIES', id: 'empty-cat' };
+  const productsSec = activeSections.find(s => s.type === 'PRODUCTS') || { type: 'PRODUCTS', id: 'empty-prod' };
+  const promoSec = activeSections.find(s => s.type === 'PROMO_BENTO') || { type: 'PROMO_BENTO', id: 'empty-promo' };
+  const ctaSec = activeSections.find(s => s.type === 'CTA') || { type: 'CTA', id: 'empty-cta' };
+
+  const finalSections = [
+    { type: 'HERO_CAROUSEL', id: 'hero-cluster', slides: heroSlides },
+    categoriesSec,
+    productsSec,
+    promoSec,
+    ctaSec
+  ];
 
   return (
-    <div className="bg-white">
-      {/* bg-[#f5f5f5]  */}
-      <div className="pb-[200px] sm:pb-0">
-        <div className="bg-[#f5f5f5] pb-10!  ">
-          <div className="w-full px-4 sm:px-6" style={{ maxWidth: '1170px', margin: '0 auto' }}>
-
-            <div className="pt-2!">
-              <Breadcrumb items={product.breadcrumb} currentPage={product.shortName} />
-            </div>
-            <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
-              <div className="order-1 lg:sticky lg:top-24 h-fit z-50">
-                <ProductGallery images={currentPack.images} discount={product.discount} />
-              </div>
-
-              <div className="order-2 min-w-0">
-                <ProductInfo
-                  product={product}
-                  selectedPackIndex={selectedPackIndex}
-                  onPackSelect={setSelectedPackIndex}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <ProductDetails product={product} />
-      </div>
+    <div className="bg-[#f8f8f8] pb-16">
+      {finalSections.map(section => {
+        switch (section.type) {
+          case 'HERO': // Fallback if single, though handled by CAROUSEL
+          case 'HERO_CAROUSEL':
+            return <HeroSection key={section.id} slides={section.slides} />;
+          case 'CATEGORIES':
+            return <CategoriesGrid key={section.id} section={section} />;
+          case 'PRODUCTS':
+            return <ProductsGrid key={section.id} section={section} />;
+          case 'PROMO_BENTO':
+            return <PromoBento key={section.id} section={section} />;
+          case 'CTA':
+            return <CtaSection key={section.id} section={section} />;
+          default:
+            return null;
+        }
+      })}
     </div>
   );
 }

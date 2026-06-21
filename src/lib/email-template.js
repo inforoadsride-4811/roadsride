@@ -200,3 +200,105 @@ export const generateAdminSubscriberNotificationHTML = (email) => `
 </body>
 </html>
 `;
+
+export const generateCustomerWelcomeHTML = (name) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1A1A1A; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #E5E5E5; border-radius: 8px; text-align: center; }
+    .header { padding-bottom: 20px; border-bottom: 1px solid #E5E5E5; }
+    .logo { color: #F5C400; font-size: 24px; font-weight: bold; }
+    .content { padding: 30px 0; }
+    .footer { margin-top: 30px; font-size: 12px; color: #6B7280; }
+    .button { display: inline-block; padding: 12px 24px; background-color: #F5C400; color: #1A1A1A; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">RoadsRide</div>
+    </div>
+    <div class="content">
+      <h2>Welcome to RoadsRide! 🚗✨</h2>
+      <p>Hello ${name},</p>
+      <p>We are thrilled to have you join our community! Your account has been successfully created.</p>
+      <p>At RoadsRide, we bring you the finest premium car care products and accessories.</p>
+      <a href="${process.env.NEXT_PUBLIC_APP_URL}/shop" class="button">Start Shopping</a>
+    </div>
+    <div class="footer">
+      <p>If you have any questions, reply to this email or contact us at info.roadsride@gmail.com</p>
+      <p>RoadsRide © 2026. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const generateOTPVerificationHTML = (otp) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1A1A1A; margin: 0; padding: 0; background: #F8F8F8; }
+    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .card { background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 12px; padding: 40px; text-align: center; }
+    .logo { color: #F5C400; font-size: 28px; font-weight: bold; margin-bottom: 24px; }
+    h2 { color: #1A1A1A; font-size: 22px; margin-bottom: 12px; }
+    .otp-box { display: inline-block; background: #F8F8F8; border: 2px solid #F5C400; border-radius: 12px; padding: 16px 40px; margin: 24px 0; letter-spacing: 8px; font-size: 32px; font-weight: bold; color: #1A1A1A; }
+    .expiry { color: #6B7280; font-size: 14px; margin-top: 8px; }
+    .footer { margin-top: 30px; font-size: 12px; color: #9CA3AF; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">RoadsRide</div>
+      <h2>Verify your email address</h2>
+      <p>Enter this verification code to complete your registration:</p>
+      <div class="otp-box">${otp}</div>
+      <p class="expiry">This code expires in <strong>10 minutes</strong>.</p>
+      <p style="color: #6B7280; font-size: 13px; margin-top: 20px;">If you did not request this code, please ignore this email.</p>
+    </div>
+    <div class="footer">
+      <p>RoadsRide © 2026. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const generatePasswordResetOTPHTML = (otp) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1A1A1A; margin: 0; padding: 0; background: #F8F8F8; }
+    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .card { background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 12px; padding: 40px; text-align: center; }
+    .logo { color: #F5C400; font-size: 28px; font-weight: bold; margin-bottom: 24px; }
+    h2 { color: #1A1A1A; font-size: 22px; margin-bottom: 12px; }
+    .otp-box { display: inline-block; background: #F8F8F8; border: 2px solid #F5C400; border-radius: 12px; padding: 16px 40px; margin: 24px 0; letter-spacing: 8px; font-size: 32px; font-weight: bold; color: #1A1A1A; }
+    .expiry { color: #6B7280; font-size: 14px; margin-top: 8px; }
+    .footer { margin-top: 30px; font-size: 12px; color: #9CA3AF; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">RoadsRide</div>
+      <h2>Reset your password</h2>
+      <p>Enter this code to reset your RoadsRide password:</p>
+      <div class="otp-box">${otp}</div>
+      <p class="expiry">This code expires in <strong>10 minutes</strong>.</p>
+      <p style="color: #6B7280; font-size: 13px; margin-top: 20px;">If you did not request a password reset, please ignore this email.</p>
+    </div>
+    <div class="footer">
+      <p>RoadsRide © 2026. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+

@@ -8,9 +8,307 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ==========================================
+// PRODUCT MANAGEMENT
+// ==========================================
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?   // Supabase Storage URL
+  parentId    String?
+  parent      Category? @relation("CategoryChildren", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryChildren")
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  // SEO
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+  homepageSections HomepageSection[] @relation("CategorySections")
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+model Product {
+  id               String    @id @default(cuid())
+  name             String
+  slug             String    @unique
+  shortName        String?
+  // Rich text HTML (TipTap output)
+  description      String?   @db.Text
+  // Structured description data (JSON for legacy compatibility)
+  descriptionData  Json?
+  // Pricing (base pricing, variants override)
+  price            Float
+  originalPrice    Float
+  discount         Int       @default(0)
+  currency         String    @default("₹")
+  // Stock
+  stock            Int       @default(0)
+  soldCount        Int       @default(0)
+  soldPeriod       String?   // e.g. "12 hours"
+  // Status
+  status           String    @default("active") // active, draft, archived
+  isFeatured       Boolean   @default(false)
+  // Category
+  categoryId       String?
+  category         Category? @relation(fields: [categoryId], references: [id])
+  // SEO
+  seoTitle         String?
+  seoDescription   String?
+  seoKeywords      String?
+  ogImage          String?
+  canonicalUrl     String?
+  // Breadcrumb (JSON array)
+  breadcrumb       Json?
+  // Additional info (JSON for weight, dimensions, material, etc.)
+  additionalInfo   Json?
+  // Timestamps
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  // Relations
+  images           ProductImage[]
+  variants         ProductVariant[]
+  features         ProductFeature[]
+  specs            ProductSpec[]
+  reviews          ProductReview[]
+  qa               ProductQA[]
+  homepageSections HomepageSectionProduct[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([status])
+  @@index([isFeatured])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  src       String  // Supabase Storage URL
+  alt       String?
+  sortOrder Int     @default(0)
+  isFeatured Boolean @default(false)
+
+  @@index([productId])
+}
+
+model ProductVariant {
+  id            String  @id @default(cuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String  // e.g. "Pack of 1", "Pack of 2"
+  price         Float
+  originalPrice Float
+  stock         Int     @default(0)
+  isBestSeller  Boolean @default(false)
+  sortOrder     Int     @default(0)
+  isActive      Boolean @default(true)
+  // Variant-specific images (JSON array of { src, alt } objects)
+  images        Json?
+
+  @@index([productId])
+}
+
+model ProductFeature {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  bold      String
+  text      String
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+model ProductSpec {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label     String
+  value     String
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+// ==========================================
+// REVIEWS
+// ==========================================
+
+model ProductReview {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  author    String
+  title     String?
+  rating    Int      // 1-5
+  content   String   @db.Text
+  image     String?  // Legacy single image
+  images    Json?    // Array of Supabase Storage URLs
+  
+  helpfulCount Int   @default(0)
+  isFeatured   Boolean @default(false)
+
+  verified  Boolean  @default(false)
+  approved  Boolean  @default(false) // Admin must approve
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([customerId])
+  @@index([approved])
+}
+
+// ==========================================
+// Q&A
+// ==========================================
+
+model ProductQA {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Question
+  question  String   @db.Text
+  author    String   @default("Customer") // Customer name or "Admin"
+  
+  // Answer
+  answer    String?  @db.Text // Null if unanswered
+  
+  // Metadata
+  status    String   @default("pending") // "pending", "answered", "rejected"
+  isDummy   Boolean  @default(false)     // True if created by admin directly
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([status])
+}
+
+// ==========================================
+// COUPONS (Future-proof)
+// ==========================================
+
+model Coupon {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  type      String    // "percentage" | "fixed"
+  value     Float     // discount amount or percentage
+  minOrder  Float     @default(0)
+  maxUses   Int?      // null = unlimited
+  usedCount Int       @default(0)
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([code])
+  @@index([active])
+}
+
+// ==========================================
+// CUSTOMERS
+// ==========================================
+
+model Customer {
+  id        String   @id @default(cuid())
+  authId    String   @unique // Supabase Auth UUID
+  email     String   @unique
+  name      String
+  phone     String?
+  avatar    String?
+
+  role      String   @default("customer")
+  status    String   @default("active") // active, suspended, banned, deleted
+
+  emailVerified Boolean @default(false)
+
+  lastLoginDate     DateTime?
+  lastActiveDate    DateTime?
+  lastLoginIp       String?
+  lastLoginDevice   String?
+  lastLoginBrowser  String?
+  lastLoginPlatform String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  addresses CustomerAddress[]
+  orders    Order[]
+  reviews   ProductReview[]
+  cartItems CartItem[]
+
+  @@index([authId])
+  @@index([email])
+  @@index([status])
+}
+
+model CartItem {
+  id            String   @id @default(cuid())
+  customerId    String
+  productId     String   // pack variant id
+  productName   String
+  productSlug   String
+  packName      String?
+  price         Float
+  originalPrice Float
+  image         String?
+  quantity      Int      @default(1)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, productId])
+  @@index([customerId])
+}
+
+model CustomerAddress {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String   @default("Home") // "Home", "Office", etc.
+  firstName  String
+  lastName   String
+  phone      String
+  address    String
+  apartment  String?
+  city       String
+  state      String
+  pincode    String
+  country    String   @default("India")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([customerId])
+}
+
+// ==========================================
+// ORDERS
+// ==========================================
+
 model Order {
   id                String      @id @default(cuid())
   orderNumber       String      @unique
+  // Customer link (optional, guest checkout allowed)
+  customerId        String?
+  customer          Customer?   @relation(fields: [customerId], references: [id])
   customerName      String
   email             String
   phone             String
@@ -21,22 +319,30 @@ model Order {
   pincode           String
   country           String      @default("India")
   paymentMethod     String      // "razorpay" | "cod"
-  paymentStatus     String      @default("pending") // pending, paid, failed
-  orderStatus       String      @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled
+  paymentStatus     String      @default("pending") // pending, paid, failed, refunded
+  orderStatus       String      @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled, refunded
   razorpayOrderId   String?
   razorpayPaymentId String?
   razorpaySignature String?
   subtotal          Float
   discount          Float       @default(0)
+  couponCode        String?
   shipping          Float       @default(0)
   total             Float
   orderNote         String?
+  invoiceUrl        String?     // Supabase Storage URL for PDF invoice
+  trackingNumber    String?
+  trackingUrl       String?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  cancelledAt       DateTime?
   createAccount     Boolean     @default(false)
   useSameBilling    Boolean     @default(true)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
   items             OrderItem[]
 
+  @@index([customerId])
   @@index([email])
   @@index([phone])
   @@index([orderStatus])
@@ -44,9 +350,10 @@ model Order {
 }
 
 model OrderItem {
-  id            String @id @default(cuid())
+  id            String  @id @default(cuid())
   orderId       String
-  order         Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String? // Link to Product (nullable for deleted products)
   productName   String
   productSlug   String
   packName      String?
@@ -56,31 +363,127 @@ model OrderItem {
   image         String?
 
   @@index([orderId])
+  @@index([productId])
 }
+
+// ==========================================
+// ADMIN
+// ==========================================
 
 model AdminUser {
   id        String   @id @default(cuid())
   authId    String   @unique
   email     String   @unique
   name      String
-  role      String   @default("staff") // "super_admin" | "admin" | "staff"
+  role      String   @default("admin") // "admin" | "staff"
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  activityLogs AdminActivityLog[]
 }
 
-model StoreSettings {
-  id             String   @id @default("default")
-  storeName      String   @default("RoadsRide")
-  contactPhone1  String?
-  contactPhone2  String?
-  email          String?
-  address        String?
-  razorpayKeyId  String?
-  razorpaySecret String?
-  resendApiKey   String?
-  updatedAt      DateTime @updatedAt
+model AdminActivityLog {
+  id          String    @id @default(cuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  action      String    // "created_product", "updated_order_status", "deleted_category", etc.
+  entityType  String    // "product", "order", "category", "settings"
+  entityId    String?   // ID of the affected entity
+  description String    // Human-readable: "Mansha updated product 'Microfiber Cloth'"
+  metadata    Json?     // Any additional data (old value, new value, etc.)
+  createdAt   DateTime  @default(now())
+
+  @@index([adminUserId])
+  @@index([entityType])
+  @@index([createdAt])
 }
+
+// ==========================================
+// STORE SETTINGS
+// ==========================================
+
+model StoreSettings {
+  id                      String   @id @default("default")
+  // General
+  storeName               String   @default("RoadsRide")
+  storeDescription        String?
+  storeLogo               String?  // Supabase Storage URL
+  storeEmail              String?
+  storePhone              String?
+  storeAddress            String?  @db.Text
+  contactPhone1           String?
+  contactPhone2           String?
+  email                   String?
+  address                 String?
+  // Social & Support
+  whatsappNumber          String?
+  supportEmail            String?
+  socialLinks             Json?    // { facebook, instagram, twitter, youtube }
+  footerContent           String?  @db.Text
+  // Payment
+  razorpayKeyId           String?
+  razorpaySecret          String?
+  razorpayEnabled         Boolean  @default(true)
+  codEnabled              Boolean  @default(true)
+  prepaidDiscountPercent  Float    @default(5)
+  defaultCurrency         String   @default("INR")
+  // Email
+  resendApiKey            String?
+  resendSenderEmail       String?
+  resendSenderName        String?
+  resendReplyTo           String?
+  emailsEnabled           Boolean  @default(true)
+  // Timestamps
+  updatedAt               DateTime @updatedAt
+}
+
+// ==========================================
+// HOMEPAGE MANAGEMENT
+// ==========================================
+
+model HomepageSection {
+  id          String   @id @default(cuid())
+  type        String   // 'HERO', 'CATEGORIES', 'PRODUCTS', 'PROMO_BENTO', 'CTA'
+  title       String?  
+  subtitle    String?  
+  badge       String?  
+  linkText    String?  
+  linkUrl     String?  
+  imageUrl    String?  // Supabase Storage URL
+  
+  // Layout/Ordering
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  // Products Source Configuration (For 'PRODUCTS' type)
+  productMode String?  // 'AUTOMATIC_CATEGORY', 'MANUAL'
+  categoryId  String?  // ID of category if AUTOMATIC_CATEGORY
+  category    Category? @relation("CategorySections", fields: [categoryId], references: [id])
+  manualProducts HomepageSectionProduct[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+}
+
+model HomepageSectionProduct {
+  id        String @id @default(cuid())
+  sectionId String
+  section   HomepageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order     Int @default(0)
+
+  @@unique([sectionId, productId])
+  @@index([sectionId])
+  @@index([productId])
+}
+
+// ==========================================
+// SUBSCRIBERS
+// ==========================================
 
 model Subscriber {
   id        String   @id @default(cuid())
@@ -88,4 +491,22 @@ model Subscriber {
   status    String   @default("subscribed") // "subscribed" | "unsubscribed"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// OTP VERIFICATION
+// ==========================================
+
+model OTPVerification {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  type      String   // "signup" | "password_reset"
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  // Temporary signup data stored as JSON so we don't create auth user prematurely
+  signupData Json?
+  createdAt DateTime @default(now())
+
+  @@index([email, type])
 }

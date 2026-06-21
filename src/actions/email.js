@@ -6,14 +6,18 @@ import {
   generateOrderConfirmationHTML,
   generateAdminOrderNotificationHTML,
   generateSubscriberThankYouHTML,
-  generateAdminSubscriberNotificationHTML
+  generateAdminSubscriberNotificationHTML,
+  generateCustomerWelcomeHTML,
+  generateOTPVerificationHTML,
+  generatePasswordResetOTPHTML
 } from '@/lib/email-template';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function sendOrderConfirmationEmail(orderId) {
+export async function sendOrderConfirmationEmail(orderId, preloadedOrder = null) {
   try {
-    const order = await prisma.order.findUnique({
+    // Use pre-loaded order if available, otherwise fetch from DB
+    const order = preloadedOrder || await prisma.order.findUnique({
       where: { id: orderId },
       include: { items: true },
     });
@@ -87,3 +91,71 @@ export async function sendSubscriptionEmail(email) {
     return { success: false, error: 'Failed to send subscription email' };
   }
 }
+
+export async function sendCustomerWelcomeEmail(email, name) {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('Skipping welcome email send - RESEND_API_KEY not configured');
+      return { success: true, warning: 'Email skipped (dev mode)' };
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: 'RoadsRide <orders@roadsride.co.in>',
+      to: [email],
+      subject: 'Welcome to RoadsRide!',
+      html: generateCustomerWelcomeHTML(name),
+    });
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Welcome email error:', error);
+    return { success: false, error: 'Failed to send welcome email' };
+  }
+}
+
+export async function sendOTPEmail(email, otp) {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('OTP for', email, ':', otp);
+      return { success: true, warning: 'Email skipped (dev mode)' };
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: 'RoadsRide <orders@roadsride.co.in>',
+      to: [email],
+      subject: 'Your RoadsRide Verification Code',
+      html: generateOTPVerificationHTML(otp),
+    });
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('OTP email error:', error);
+    return { success: false, error: 'Failed to send verification email' };
+  }
+}
+
+export async function sendPasswordResetOTPEmail(email, otp) {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('Password reset OTP for', email, ':', otp);
+      return { success: true, warning: 'Email skipped (dev mode)' };
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: 'RoadsRide <orders@roadsride.co.in>',
+      to: [email],
+      subject: 'Reset Your RoadsRide Password',
+      html: generatePasswordResetOTPHTML(otp),
+    });
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Password reset email error:', error);
+    return { success: false, error: 'Failed to send password reset email' };
+  }
+}
+

@@ -2,8 +2,6 @@
 
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import prisma from '@/lib/db';
-import { sendOrderConfirmationEmail } from './email';
 
 export async function getRazorpayOrderId(amount) {
   try {

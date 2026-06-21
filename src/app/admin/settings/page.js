@@ -1,14 +1,25 @@
+import { getStoreSettings } from '@/actions/admin-products';
+import SettingsClient from '@/components/admin/settings-client';
+
 export const metadata = {
-  title: 'Settings | Admin',
+  title: 'Store Settings | Admin',
 };
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const { success, settings, error } = await getStoreSettings();
+
+  if (!success) {
+    return <div className="p-6 text-red-500">Error loading settings: {error}</div>;
+  }
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-brand-black">Store Settings</h1>
-      <div className="bg-white border border-brand-border rounded-xl p-8 text-center shadow-sm">
-        <p className="text-gray-500">Settings module is under construction.</p>
-        <p className="text-sm text-gray-400 mt-2">Manage tax rates, shipping zones, and admin users here.</p>
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-brand-black">Store Settings</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage global configuration for your store</p>
+        </div>
+        <SettingsClient initialSettings={settings} />
       </div>
     </div>
   );
