@@ -39,7 +39,9 @@ export const metadata = {
     images: ['/favicon.jpeg'],
   },
   icons: {
-    icon: '/favicon.jpeg',
+    icon: [
+      { url: '/favicon.jpeg', type: 'image/jpeg' }
+    ],
   },
 };
 

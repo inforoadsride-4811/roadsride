@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Star, Minus, Plus, Truck, ShieldCheck, RotateCcw, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Star, StarHalf, Minus, Plus, Truck, ShieldCheck, RotateCcw, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import useCartStore from '@/store/cart';
@@ -25,8 +25,8 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
   const reviews = product.reviews || [];
   const reviewCount = reviews.length;
-  const averageRating = reviewCount > 0 
-    ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount 
+  const averageRating = reviewCount > 0
+    ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount
     : 5;
   const roundedRating = Math.round(averageRating);
 
@@ -134,15 +134,23 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
           </div>
           <div className="h-10 w-px bg-brand-border"></div>
           <div className="flex min-w-0 flex-col justify-center">
-            <div className="flex items-center text-brand-yellow">
-              {[...Array(5)].map((_, i) => (
+            <div className="flex items-center gap-0.5 text-brand-yellow">
+              {[...Array(4)].map((_, i) => (
                 <Star
                   key={i}
                   size={16}
                   fill="currentColor"
+                  className="text-brand-yellow"
                 />
               ))}
+              <div className="relative w-4 h-4">
+                <Star size={16} className="text-brand-yellow absolute inset-0" fill="transparent" />
+                <StarHalf size={16} className="text-brand-yellow absolute inset-0" fill="currentColor" />
+              </div>
             </div>
+            <p className="text-xs font-medium text-gray-500 mt-1">
+              4.7 rating (114 reviews)
+            </p>
           </div>
         </div>
 

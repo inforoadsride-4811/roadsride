@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, Copy, Eye, Loader2, Trash2, Plus, GripVertical } from 'lucide-react';
+import { Save, Copy, Eye, Loader2, Trash2, Plus, GripVertical, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
@@ -10,6 +10,7 @@ import { createProduct, updateProduct, deleteProduct, saveProductVariants, saveP
 import { uploadFile, deleteFile, BUCKETS } from '@/lib/storage';
 import RichTextEditor from './rich-text-editor';
 import useAdminStore from '@/store/admin';
+import { ProductFaqModal } from './product-faq-modal';
 
 const TABS = [
   { id: 'general', label: 'General' },
@@ -30,6 +31,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
   const [activeTab, setActiveTab] = useState('general');
   const [loading, setLoading] = useState(false);
   const [isNew] = useState(!initialData);
+  const [showFaqModal, setShowFaqModal] = useState(false);
 
   // Form State
   const getInitialFormState = () => ({
@@ -281,8 +283,9 @@ export default function ProductForm({ initialData = null, categories = [] }) {
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <>
+      <form onSubmit={handleSave} className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-brand-black">{isNew ? 'Create Product' : 'Edit Product'}</h1>
           <p className="text-sm text-gray-500 mt-1">{formData.name || 'New Product'}</p>
@@ -290,6 +293,9 @@ export default function ProductForm({ initialData = null, categories = [] }) {
         <div className="flex gap-2">
           {!isNew && (
             <>
+              <Button type="button" variant="outline" onClick={() => setShowFaqModal(true)}>
+                <HelpCircle size={16} className="mr-2" /> FAQs
+              </Button>
               <Button type="button" variant="outline" onClick={() => window.open(`/preview/${initialData.id}`, '_blank')}>
                 <Eye size={16} className="mr-2" /> Preview
               </Button>
@@ -653,5 +659,14 @@ export default function ProductForm({ initialData = null, categories = [] }) {
         </div>
       </div>
     </form>
+
+      {!isNew && (
+        <ProductFaqModal
+          isOpen={showFaqModal}
+          onClose={() => setShowFaqModal(false)}
+          product={initialData}
+        />
+      )}
+    </>
   );
 }

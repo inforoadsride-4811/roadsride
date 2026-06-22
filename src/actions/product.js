@@ -12,7 +12,7 @@ const getProductBySlugQuery = async (slug) => {
 
   if (!product) return null;
 
-  const [images, variants, features, specs, reviews, qa, category] = await Promise.all([
+  const [images, variants, features, specs, reviews, qa, faqs, category] = await Promise.all([
     prisma.productImage.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
     prisma.productVariant.findMany({ where: { productId: product.id, isActive: true }, orderBy: { sortOrder: 'asc' } }),
     prisma.productFeature.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
@@ -23,17 +23,19 @@ const getProductBySlugQuery = async (slug) => {
       include: { customer: true }
     }),
     prisma.productQA.findMany({ where: { productId: product.id, status: 'answered' }, orderBy: { createdAt: 'desc' } }),
+    prisma.productFAQ.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
     product.categoryId ? prisma.category.findUnique({ where: { id: product.categoryId } }) : null
   ]);
 
-  return {
-    ...product,
-    images,
-    variants,
-    features,
-    specs,
-    reviews,
-    qa,
+    return {
+      ...product,
+      images,
+      variants,
+      features,
+      specs,
+      reviews,
+      qa,
+      faqs,
       category
     };
   },
@@ -98,6 +100,11 @@ export async function getProductBySlug(slug) {
         answer: q.answer,
         author: q.author,
         date: new Date(q.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      })),
+      faqs: product.faqs.map((faq) => ({
+        id: faq.id,
+        question: faq.question,
+        answer: faq.answer,
       })),
       breadcrumb: product.breadcrumb || [
         { name: 'Home', href: '/' },

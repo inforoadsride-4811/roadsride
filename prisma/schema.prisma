@@ -81,6 +81,7 @@ model Product {
   specs            ProductSpec[]
   reviews          ProductReview[]
   qa               ProductQA[]
+  faqs             ProductFAQ[]
   homepageSections HomepageSectionProduct[]
 
   @@index([slug])
@@ -197,6 +198,25 @@ model ProductQA {
 
   @@index([productId])
   @@index([status])
+}
+
+// ==========================================
+// FAQ
+// ==========================================
+
+model ProductFAQ {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  question  String
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
 }
 
 // ==========================================

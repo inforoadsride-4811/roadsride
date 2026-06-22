@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Search, Edit, Trash2, Eye, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Package, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge, getOrderStatusVariant } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
@@ -12,6 +12,7 @@ import { deleteProduct } from '@/actions/admin-products';
 import { bulkDeleteProducts } from '@/actions/admin';
 import { formatPrice } from '@/lib/product';
 import { useToast } from '@/components/ui/toast';
+import { ProductFaqModal } from './product-faq-modal';
 
 const statusOptions = [
   { label: 'All', value: '' },
@@ -37,6 +38,7 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
   const [deleting, setDeleting] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [faqModalProduct, setFaqModalProduct] = useState(null);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -255,6 +257,13 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
+                      <button 
+                        onClick={() => setFaqModalProduct(product)}
+                        className="p-2 text-gray-400 hover:text-brand-blue hover:bg-blue-50 rounded-lg transition-colors cursor-pointer" 
+                        title="Manage FAQs"
+                      >
+                        <HelpCircle size={16} />
+                      </button>
                       <Link href={`/product/${product.slug}`} target="_blank">
                         <button className="p-2 text-gray-400 hover:text-brand-black hover:bg-gray-100 rounded-lg transition-colors cursor-pointer" title="View">
                           <Eye size={16} />
@@ -320,6 +329,12 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
           </div>
         )}
       </div>
+
+      <ProductFaqModal 
+        isOpen={!!faqModalProduct} 
+        onClose={() => setFaqModalProduct(null)} 
+        product={faqModalProduct} 
+      />
     </div>
   );
 }

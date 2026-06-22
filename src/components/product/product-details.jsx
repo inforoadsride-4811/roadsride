@@ -318,6 +318,51 @@ export default function ProductDetails({ product }) {
     },
 
     {
+      label: 'FAQs',
+      content: (
+        <div style={col}>
+          {product.faqs && product.faqs.length > 0 ? (
+            <div className="space-y-4">
+              {product.faqs.map((faq) => (
+                <details 
+                  key={faq.id} 
+                  className="group border border-gray-200 rounded-lg bg-white overflow-hidden [&_summary::-webkit-details-marker]:hidden"
+                >
+                  <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-4 text-gray-900 font-semibold bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <h2 className="text-base">{faq.question}</h2>
+                    <span className="shrink-0 rounded-full bg-white p-1.5 text-gray-900 sm:p-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 shrink-0 transition duration-300 group-open:-rotate-180"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </span>
+                  </summary>
+                  <div className="border-t border-gray-200 px-4 py-4 leading-relaxed text-gray-700 whitespace-pre-wrap">
+                    {faq.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <div style={{ border: '1px dashed #d1d5db', borderRadius: '12px', padding: '48px 24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '28px', margin: '0 0 10px' }}>❓</p>
+              <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '600', color: '#111827' }}>No FAQs yet</p>
+              <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#9ca3af' }}>Frequently asked questions will appear here.</p>
+            </div>
+          )}
+        </div>
+      ),
+    },
+
+    {
       label: 'Q & A',
       content: (
         <div style={col}>
