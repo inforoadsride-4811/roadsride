@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge, getOrderStatusVariant } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { deleteProduct } from '@/actions/admin-products';
+import { bulkDeleteProducts } from '@/actions/admin';
 import { formatPrice } from '@/lib/product';
 import { useToast } from '@/components/ui/toast';
 
@@ -34,6 +35,8 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
   const [search, setSearch] = useState(initialSearch);
   const [status, setStatus] = useState(initialStatus);
   const [deleting, setDeleting] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -64,6 +67,48 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
     setDeleting(null);
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(initialProducts.map(p => p.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (e, id) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      if (selectedIds.length >= 10) {
+        addToast({ title: 'Limit Reached', message: 'Maximum 10 records can be selected at once', type: 'error' });
+        return;
+      }
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} products? This cannot be undone.`)) return;
+
+    setIsDeletingBulk(true);
+    try {
+      const result = await bulkDeleteProducts(selectedIds);
+      if (result.success) {
+        addToast({ title: 'Success', message: `Successfully deleted ${selectedIds.length} products`, type: 'success' });
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        addToast({ title: 'Error', message: result.error || 'Failed to delete products', type: 'error' });
+      }
+    } catch (error) {
+      addToast({ title: 'Error', message: 'An unexpected error occurred', type: 'error' });
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -82,6 +127,18 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
       {/* Filters */}
       <div className="bg-white border border-brand-border rounded-xl p-4 flex flex-col sm:flex-row gap-4">
         <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+          {selectedIds.length > 0 && (
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={isDeletingBulk}
+            >
+              {isDeletingBulk ? 'Deleting...' : <Trash2 className="w-4 h-4 mr-2" />}
+              {isDeletingBulk ? '' : `Delete Selected (${selectedIds.length})`}
+            </Button>
+          )}
           <div className="flex-1 flex items-center bg-gray-50 border border-brand-border rounded-lg px-3 focus-within:border-brand-yellow focus-within:ring-1 focus-within:ring-brand-yellow/30 transition-all">
             <Search size={16} className="text-gray-400 mr-2" />
             <input
@@ -129,6 +186,14 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px] text-center">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300"
+                    checked={initialProducts.length > 0 && selectedIds.length === initialProducts.length}
+                    onChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Price</TableHead>
@@ -139,7 +204,15 @@ export default function ProductsClient({ initialProducts, pagination, initialSea
             </TableHeader>
             <TableBody>
               {initialProducts.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} className={selectedIds.includes(product.id) ? 'bg-blue-50/50' : ''}>
+                  <TableCell className="w-[50px] text-center" onClick={e => e.stopPropagation()}>
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300"
+                      checked={selectedIds.includes(product.id)}
+                      onChange={(e) => handleSelectOne(e, product.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 relative rounded-lg border border-brand-border bg-gray-50 overflow-hidden flex-shrink-0">

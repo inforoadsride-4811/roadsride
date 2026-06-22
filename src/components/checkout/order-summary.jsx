@@ -61,13 +61,14 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
 
       {isPrepaid && (
         <div className="mt-4 bg-[#f0fdf4] border border-[#bbf7d0] rounded-lg p-3 flex flex-col gap-2">
-          <p className="text-[13px] font-bold text-[#166534] flex items-center gap-2 m-0 leading-tight">
+          <h3 className="font-bold text-[#166534] text-sm mb-0.5">Prepaid Order Benefits:</h3>
+          <p className="text-[13px] font-semibold text-[#166534] flex items-center gap-2 m-0 leading-tight">
             ✅ Extra 5% Off on Prepaid Orders
           </p>
-          <p className="text-[13px] font-bold text-[#166534] flex items-center gap-2 m-0 leading-tight">
+          <p className="text-[13px] font-semibold text-[#166534] flex items-center gap-2 m-0 leading-tight">
             ✅ Priority Processing
           </p>
-          <p className="text-[13px] font-bold text-[#166534] flex items-center gap-2 m-0 leading-tight">
+          <p className="text-[13px] font-semibold text-[#166534] flex items-center gap-2 m-0 leading-tight">
             ✅ FREE Surprise Gift 🎁
           </p>
         </div>

@@ -87,6 +87,8 @@ export default function ProductGallery({ images, discount }) {
                   fill
                   className="object-cover"
                   sizes="80px"
+                  unoptimized={true}
+                  loading="lazy"
                 />
               </button>
             ))}
@@ -163,6 +165,7 @@ export default function ProductGallery({ images, discount }) {
                   className="object-contain rounded-2xl"
                   sizes="(max-width: 768px) 100vw, 470px"
                   priority={selectedIndex === 0}
+                  unoptimized={true}
                 />
               </motion.div>
             </AnimatePresence>
@@ -205,6 +208,7 @@ export default function ProductGallery({ images, discount }) {
                   className="object-contain p-6"
                   sizes="1000px"
                   priority
+                  unoptimized={true}
                 />
               </div>
             </div>
@@ -227,6 +231,8 @@ export default function ProductGallery({ images, discount }) {
                   fill
                   className="object-cover"
                   sizes="56px"
+                  unoptimized={true}
+                  loading="lazy"
                 />
               </button>
             ))}
@@ -273,6 +279,7 @@ export default function ProductGallery({ images, discount }) {
                   fill
                   className="object-contain"
                   sizes="(max-width: 1024px) 100vw, 80vw"
+                  unoptimized={true}
                 />
               </motion.div>
 

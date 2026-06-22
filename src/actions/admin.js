@@ -133,3 +133,95 @@ export async function updatePaymentStatus(orderId, status) {
     return { success: false, error: 'Failed to update payment status' };
   }
 }
+
+// ==========================================
+// BULK DELETE ACTIONS (Max 10)
+// ==========================================
+
+export async function bulkDeleteOrders(ids) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (ids.length > 10) return { success: false, error: 'Maximum 10 records can be deleted at once' };
+    
+    await prisma.order.deleteMany({
+      where: { id: { in: ids } }
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to delete orders' };
+  }
+}
+
+export async function bulkDeleteProducts(ids) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (ids.length > 10) return { success: false, error: 'Maximum 10 records can be deleted at once' };
+    
+    await prisma.product.deleteMany({
+      where: { id: { in: ids } }
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to delete products' };
+  }
+}
+
+export async function bulkDeleteCategories(ids) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (ids.length > 10) return { success: false, error: 'Maximum 10 records can be deleted at once' };
+    
+    await prisma.category.deleteMany({
+      where: { id: { in: ids } }
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to delete categories' };
+  }
+}
+
+export async function bulkDeleteReviews(ids) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (ids.length > 10) return { success: false, error: 'Maximum 10 records can be deleted at once' };
+    
+    await prisma.productReview.deleteMany({
+      where: { id: { in: ids } }
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to delete reviews' };
+  }
+}
+
+export async function bulkDeleteCustomers(ids) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (ids.length > 10) return { success: false, error: 'Maximum 10 records can be deleted at once' };
+    
+    await prisma.customer.deleteMany({
+      where: { id: { in: ids } }
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to delete customers' };
+  }
+}
+
+export async function bulkUpdateOrderStatus(ids, status) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (!status) return { success: false, error: 'No status provided' };
+    
+    // Using updateMany is efficient but doesn't trigger individual hooks. For basic fields it's perfect.
+    await prisma.order.updateMany({
+      where: { id: { in: ids } },
+      data: { orderStatus: status, updatedAt: new Date() }
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Bulk update order status error:', error);
+    return { success: false, error: 'Failed to update order statuses' };
+  }
+}

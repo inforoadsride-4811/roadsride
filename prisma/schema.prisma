@@ -514,3 +514,32 @@ model OTPVerification {
 
   @@index([email, type])
 }
+
+// ==========================================
+// CHECKOUT DRAFTS
+// ==========================================
+
+model CheckoutDraft {
+  id        String   @id @default(cuid())
+  email     String?
+  phone     String?
+  firstName String?
+  lastName  String?
+  address   String?
+  apartment String?
+  city      String?
+  state     String?
+  pincode   String?
+  cartItems Json
+  subtotal  Float
+  shipping  Float
+  total     Float
+  status    String   @default("draft") // "draft" | "completed"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+  @@index([createdAt])
+}

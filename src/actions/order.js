@@ -1,9 +1,10 @@
 'use server';
 
-import { after } from 'next/server';
 import prisma from '@/lib/db';
 import { generateOrderNumber, SHIPPING_COST } from '@/lib/product';
 import { sendOrderConfirmationEmail } from './email';
+import { completeCheckoutDraft } from './drafts';
+import { after } from 'next/server';
 
 export async function processOrder(orderData) {
   try {
@@ -20,6 +21,7 @@ export async function processOrder(orderData) {
       paymentMethod,
       items,
       customerId,
+      draftId,
     } = orderData;
 
     // Calculate totals (pure computation — no DB calls)
@@ -75,12 +77,11 @@ export async function processOrder(orderData) {
       include: { items: true }, // Include items so we can pass the full order to email
     });
 
-    // Fire-and-forget email safely using after() to guarantee execution without blocking
-    after(async () => {
-      try {
-        await sendOrderConfirmationEmail(null, order);
-      } catch (err) {
-        console.error('Email sending failed:', err);
+    // Fire and forget background tasks safely using Next.js after()
+    after(() => {
+      sendOrderConfirmationEmail(null, order).catch(err => console.error('Email sending failed:', err));
+      if (draftId) {
+        completeCheckoutDraft(draftId).catch(err => console.error('Draft completion failed:', err));
       }
     });
 

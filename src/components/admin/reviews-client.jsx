@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { updateReviewStatus } from '@/actions/review';
 import { useToast } from '@/components/ui/toast';
+import { Button } from '@/components/ui/button';
+import { bulkDeleteReviews } from '@/actions/admin';
 import { Loader2, Search, CheckCircle2, XCircle, Trash2, Star, EyeOff, Eye } from 'lucide-react';
 import Image from 'next/image';
 
@@ -13,6 +14,8 @@ export default function ReviewsClient({ initialData, pagination }) {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // all, pending, approved
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -39,19 +42,75 @@ export default function ReviewsClient({ initialData, pagination }) {
     }
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(initialData.map(r => r.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (e, id) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      if (selectedIds.length >= 10) {
+        addToast({ title: 'Limit Reached', message: 'Maximum 10 records can be selected at once', type: 'error' });
+        return;
+      }
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} reviews? This cannot be undone.`)) return;
+
+    setIsDeletingBulk(true);
+    try {
+      const result = await bulkDeleteReviews(selectedIds);
+      if (result.success) {
+        addToast({ title: 'Success', message: `Successfully deleted ${selectedIds.length} reviews`, type: 'success' });
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        addToast({ title: 'Error', message: result.error || 'Failed to delete reviews', type: 'error' });
+      }
+    } catch (error) {
+      addToast({ title: 'Error', message: 'An unexpected error occurred', type: 'error' });
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
       <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
-        <form onSubmit={handleSearch} className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search reviews..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow bg-white"
-          />
-        </form>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {selectedIds.length > 0 && (
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={isDeletingBulk}
+            >
+              {isDeletingBulk ? 'Deleting...' : <Trash2 className="w-4 h-4 mr-2" />}
+              {isDeletingBulk ? '' : `Delete Selected (${selectedIds.length})`}
+            </Button>
+          )}
+          <form onSubmit={handleSearch} className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search reviews..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow bg-white"
+            />
+          </form>
+        </div>
 
         <div className="flex gap-2 w-full sm:w-auto overflow-x-auto">
           {['all', 'pending', 'approved'].map((f) => (
@@ -74,6 +133,14 @@ export default function ReviewsClient({ initialData, pagination }) {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50/80 text-gray-500 font-medium border-b border-gray-100 uppercase text-[11px] tracking-wider">
             <tr>
+              <th className="px-6 py-4 w-[50px] text-center">
+                <input 
+                  type="checkbox" 
+                  className="rounded border-gray-300"
+                  checked={initialData.length > 0 && selectedIds.length === initialData.length}
+                  onChange={handleSelectAll}
+                />
+              </th>
               <th className="px-6 py-4">Product & Customer</th>
               <th className="px-6 py-4">Review</th>
               <th className="px-6 py-4">Status</th>
@@ -90,7 +157,15 @@ export default function ReviewsClient({ initialData, pagination }) {
               </tr>
             ) : (
               initialData.map((review) => (
-                <tr key={review.id} className={`hover:bg-gray-50/50 transition-colors ${!review.approved ? 'bg-orange-50/30' : ''}`}>
+                <tr key={review.id} className={`transition-colors ${!review.approved ? 'bg-orange-50/30' : ''} ${selectedIds.includes(review.id) ? 'bg-blue-50/50 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}>
+                  <td className="px-6 py-4 text-center" onClick={e => e.stopPropagation()}>
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300"
+                      checked={selectedIds.includes(review.id)}
+                      onChange={(e) => handleSelectOne(e, review.id)}
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-3">

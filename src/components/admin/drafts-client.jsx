@@ -2,33 +2,36 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Eye, Users, AlertCircle, Ban, Trash2, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { Search, Trash2, ShoppingCart, CheckCircle2, Clock } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
-import { bulkDeleteCustomers } from '@/actions/admin';
+import { bulkDeleteDrafts, deleteDraft } from '@/actions/drafts';
+import { formatPrice } from '@/lib/product';
+import DraftDetailModal from '@/components/admin/draft-detail-modal';
 
-export default function CustomersClient({ initialData, pagination }) {
+export default function DraftsClient({ initialData, pagination }) {
   const router = useRouter();
   const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [selectedDraft, setSelectedDraft] = useState(null);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    router.push(`/admin/customers?search=${encodeURIComponent(searchTerm)}&status=${filter}`);
+    router.push(`/admin/drafts?search=${encodeURIComponent(searchTerm)}&status=${filter}`);
   };
 
   const handleFilter = (status) => {
     setFilter(status);
-    router.push(`/admin/customers?search=${encodeURIComponent(searchTerm)}&status=${status}`);
+    router.push(`/admin/drafts?search=${encodeURIComponent(searchTerm)}&status=${status}`);
   };
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedIds(initialData.map(c => c.id));
+      setSelectedIds(initialData.map(d => d.id));
     } else {
       setSelectedIds([]);
     }
@@ -49,23 +52,36 @@ export default function CustomersClient({ initialData, pagination }) {
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} customers? This cannot be undone.`)) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} drafts? This cannot be undone.`)) return;
 
     setIsDeletingBulk(true);
     try {
-      const result = await bulkDeleteCustomers(selectedIds);
+      const result = await bulkDeleteDrafts(selectedIds);
       if (result.success) {
-        addToast({ title: 'Success', message: `Successfully deleted ${selectedIds.length} customers`, type: 'success' });
+        addToast({ title: 'Success', message: `Successfully deleted ${selectedIds.length} drafts`, type: 'success' });
         setSelectedIds([]);
         router.refresh();
       } else {
-        addToast({ title: 'Error', message: result.error || 'Failed to delete customers', type: 'error' });
+        addToast({ title: 'Error', message: result.error || 'Failed to delete drafts', type: 'error' });
       }
     } catch (error) {
       addToast({ title: 'Error', message: 'An unexpected error occurred', type: 'error' });
     } finally {
       setIsDeletingBulk(false);
     }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this draft?')) return;
+    setDeletingId(id);
+    const result = await deleteDraft(id);
+    if (result.success) {
+      addToast({ title: 'Success', message: 'Draft deleted', type: 'success' });
+      router.refresh();
+    } else {
+      addToast({ title: 'Error', message: result.error || 'Failed to delete draft', type: 'error' });
+    }
+    setDeletingId(null);
   };
 
   return (
@@ -88,7 +104,7 @@ export default function CustomersClient({ initialData, pagination }) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search name, email, phone..."
+              placeholder="Search email, phone, name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow bg-white"
@@ -97,7 +113,7 @@ export default function CustomersClient({ initialData, pagination }) {
         </div>
 
         <div className="flex gap-2 w-full sm:w-auto overflow-x-auto">
-          {['all', 'active', 'suspended', 'banned'].map((f) => (
+          {['all', 'draft', 'completed'].map((f) => (
             <button
               key={f}
               onClick={() => handleFilter(f)}
@@ -126,75 +142,100 @@ export default function CustomersClient({ initialData, pagination }) {
                 />
               </th>
               <th className="px-6 py-4">Customer</th>
+              <th className="px-6 py-4">Cart Summary</th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-center">Orders</th>
-              <th className="px-6 py-4 text-right">Total Spend</th>
-              <th className="px-6 py-4 text-right">Registered</th>
+              <th className="px-6 py-4 text-right">Value</th>
+              <th className="px-6 py-4 text-right">Last Updated</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {initialData.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                  <p className="text-base mb-1">No customers found</p>
-                  <p className="text-sm">Adjust your search or filter to see more results.</p>
+                <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
+                  <div className="flex flex-col items-center">
+                    <ShoppingCart size={40} className="text-gray-300 mb-3" />
+                    <p className="text-base mb-1">No drafts found</p>
+                    <p className="text-sm">When users abandon their checkout, it will appear here.</p>
+                  </div>
                 </td>
               </tr>
             ) : (
-              initialData.map((customer) => (
-                <tr key={customer.id} className={`transition-colors ${selectedIds.includes(customer.id) ? 'bg-blue-50/50 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}>
+              initialData.map((draft) => (
+                <tr key={draft.id} className={`transition-colors ${selectedIds.includes(draft.id) ? 'bg-blue-50/50 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}>
                   <td className="px-6 py-4 text-center" onClick={e => e.stopPropagation()}>
                     <input 
                       type="checkbox" 
                       className="rounded border-gray-300"
-                      checked={selectedIds.includes(customer.id)}
-                      onChange={(e) => handleSelectOne(e, customer.id)}
+                      checked={selectedIds.includes(draft.id)}
+                      onChange={(e) => handleSelectOne(e, draft.id)}
                     />
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {customer.avatar ? (
-                        <img src={customer.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-brand-yellow/20 flex items-center justify-center text-brand-yellow-dark font-bold text-sm">
-                          {customer.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-semibold text-gray-900">{customer.name}</p>
-                        <p className="text-xs text-gray-500">{customer.email}</p>
-                        {customer.phone && <p className="text-xs text-gray-400">{customer.phone}</p>}
-                      </div>
+                    <div className="flex flex-col">
+                      <p className="font-medium text-gray-900">{[draft.firstName, draft.lastName].filter(Boolean).join(' ') || 'Unknown'}</p>
+                      {draft.email && <p className="text-xs text-gray-500">{draft.email}</p>}
+                      {draft.phone && <p className="text-xs text-gray-500">{draft.phone}</p>}
                     </div>
                   </td>
 
                   <td className="px-6 py-4">
-                    {customer.status === 'active' && <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded text-xs font-semibold border border-green-200">Active</span>}
-                    {customer.status === 'suspended' && <span className="inline-flex items-center gap-1 text-orange-700 bg-orange-50 px-2 py-1 rounded text-xs font-semibold border border-orange-200"><AlertCircle size={12} /> Suspended</span>}
-                    {customer.status === 'banned' && <span className="inline-flex items-center gap-1 text-red-700 bg-red-50 px-2 py-1 rounded text-xs font-semibold border border-red-200"><Ban size={12} /> Banned</span>}
+                    <div className="flex flex-col gap-1 max-w-[200px]">
+                      {Array.isArray(draft.cartItems) ? (
+                        <>
+                          {draft.cartItems.slice(0, 2).map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs">
+                              {item.image && <img src={item.image} alt="" className="w-6 h-6 rounded object-cover border border-gray-200" />}
+                              <span className="truncate">{item.quantity}x {item.productName}</span>
+                            </div>
+                          ))}
+                          {draft.cartItems.length > 2 && (
+                            <span className="text-xs text-gray-400">+{draft.cartItems.length - 2} more items</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-400">Invalid cart data</span>
+                      )}
+                    </div>
                   </td>
 
-                  <td className="px-6 py-4 text-center font-medium text-gray-700">
-                    {customer.totalOrders}
+                  <td className="px-6 py-4">
+                    {draft.status === 'completed' ? (
+                      <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded text-xs font-semibold border border-green-200">
+                        <CheckCircle2 size={12} /> Completed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-orange-700 bg-orange-50 px-2 py-1 rounded text-xs font-semibold border border-orange-200">
+                        <Clock size={12} /> Draft
+                      </span>
+                    )}
                   </td>
 
                   <td className="px-6 py-4 text-right font-medium text-gray-900">
-                    ₹{customer.totalSpend.toFixed(2)}
+                    {formatPrice(draft.total)}
                   </td>
 
                   <td className="px-6 py-4 text-right text-gray-500">
-                    {new Date(customer.registrationDate).toLocaleDateString()}
+                    {new Date(draft.updatedAt).toLocaleString()}
                   </td>
 
-                  <td className="px-6 py-4 text-right">
-                    <Link 
-                      href={`/admin/customers/${customer.id}`}
-                      className="inline-flex items-center gap-2 p-2 text-brand-black hover:bg-gray-100 rounded transition-colors"
-                      title="View Profile"
+                  <td className="px-6 py-4 text-right space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedDraft(draft)}
                     >
-                      <Eye size={18} />
-                    </Link>
+                      View
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDelete(draft.id)}
+                      disabled={deletingId === draft.id}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 p-2 h-auto"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </td>
                 </tr>
               ))
@@ -211,14 +252,14 @@ export default function CustomersClient({ initialData, pagination }) {
           <div className="flex gap-1">
             <button
               disabled={pagination.page <= 1}
-              onClick={() => router.push(`/admin/customers?page=${pagination.page - 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
+              onClick={() => router.push(`/admin/drafts?page=${pagination.page - 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
               className="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-700"
             >
               Prev
             </button>
             <button
               disabled={pagination.page >= pagination.totalPages}
-              onClick={() => router.push(`/admin/customers?page=${pagination.page + 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
+              onClick={() => router.push(`/admin/drafts?page=${pagination.page + 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
               className="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-700"
             >
               Next
@@ -226,6 +267,12 @@ export default function CustomersClient({ initialData, pagination }) {
           </div>
         </div>
       )}
+
+      <DraftDetailModal 
+        draft={selectedDraft}
+        open={!!selectedDraft}
+        onClose={() => setSelectedDraft(null)}
+      />
     </div>
   );
 }

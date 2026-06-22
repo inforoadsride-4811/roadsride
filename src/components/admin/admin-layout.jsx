@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Settings, LogOut, Search, Mail, Home, MessageSquare, Star } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Package, FolderTree, Users, Settings, LogOut, Search, Mail, Home, MessageSquare, Star } from 'lucide-react';
 import { adminLogout } from '@/actions/auth';
 import { getPendingQACount } from '@/actions/qa';
 import { useToast } from '@/components/ui/toast';
@@ -17,6 +17,7 @@ const navItems = [
   { name: 'Reviews', href: '/admin/reviews', icon: Star },
   { name: 'Q & A', href: '/admin/qa', icon: MessageSquare },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+  { name: 'Abandoned Checkouts', href: '/admin/drafts', icon: ShoppingCart },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Subscribers', href: '/admin/subscribers', icon: Mail },
   { name: 'Settings', href: '/admin/settings', icon: Settings },

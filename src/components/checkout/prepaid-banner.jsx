@@ -7,13 +7,14 @@ export default function PrepaidBanner({ discountAmount, isPrepaid }) {
   if (isPrepaid) {
     return (
       <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-lg p-4 flex flex-col gap-2.5">
-        <p className="text-sm font-bold text-[#166534] flex items-center gap-2">
+        <h3 className="font-bold text-[#166534] text-base mb-1">Prepaid Order Benefits:</h3>
+        <p className="text-sm font-semibold text-[#166534] flex items-center gap-2">
           ✅ Extra 5% Off on Prepaid Orders
         </p>
-        <p className="text-sm font-bold text-[#166534] flex items-center gap-2">
+        <p className="text-sm font-semibold text-[#166534] flex items-center gap-2">
           ✅ Priority Processing
         </p>
-        <p className="text-sm font-bold text-[#166534] flex items-center gap-2">
+        <p className="text-sm font-semibold text-[#166534] flex items-center gap-2">
           ✅ FREE Surprise Gift 🎁
         </p>
       </div>

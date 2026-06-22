@@ -11,16 +11,19 @@ import { processOrder } from '@/actions/order';
 import { getRazorpayOrderId, verifyRazorpayPayment } from '@/actions/payment';
 import { getSessionCustomer } from '@/actions/customer-auth';
 import { saveAddress } from '@/actions/customer-address';
+import { saveCheckoutDraft } from '@/actions/drafts';
 import { formatPrice } from '@/lib/product';
 import { checkoutSchema, validateForm } from '@/lib/validations';
-import { Loader2, MapPin, Home, Briefcase, Plus } from 'lucide-react';
+import { Loader2, MapPin, Home, Briefcase, Plus, CheckCircle2 } from 'lucide-react';
 
 export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
   const router = useRouter();
   const { addToast } = useToast();
   const { items, clearCart, getCartForCheckout } = useCartStore();
   const [loading, setLoading] = useState(false);
+  const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [autofilling, setAutofilling] = useState(true);
+  const [draftId, setDraftId] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -75,6 +78,37 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
     };
     fetchCustomer();
   }, []);
+
+  // Debounced auto-save for checkout drafts
+  useEffect(() => {
+    // Only save if there's at least an email or phone, and items
+    if ((formData.email || formData.phone) && items.length > 0 && !orderConfirmed) {
+      const handler = setTimeout(async () => {
+        const payload = {
+          id: draftId,
+          email: formData.email,
+          phone: formData.phone,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          address: formData.address,
+          apartment: formData.apartment,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          cartItems: getCartForCheckout(),
+          subtotal: total - (isPrepaid ? total * 0.05 : 0), // approximate based on current
+          shipping: 0,
+          total: total - (isPrepaid ? total * 0.05 : 0)
+        };
+        const res = await saveCheckoutDraft(payload);
+        if (res.success && res.draftId && !draftId) {
+          setDraftId(res.draftId);
+        }
+      }, 2000);
+
+      return () => clearTimeout(handler);
+    }
+  }, [formData, items, isPrepaid, total, draftId, orderConfirmed]);
 
   const applyAddress = (addr, email, phone) => {
     setFormData({
@@ -167,6 +201,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
               if (useNewAddress && customerId) {
                 saveAddress({ firstName: formData.firstName, lastName: formData.lastName, phone: formData.phone, address: formData.address, apartment: formData.apartment, city: formData.city, state: formData.state, pincode: formData.pincode, label: 'Other' }).catch(() => { });
               }
+              setOrderConfirmed(true);
               router.push(`/order-success?id=${dbOrderId}`);
             } else {
               addToast({ title: 'Error', message: error || 'Failed to save order', type: 'error' });
@@ -235,6 +270,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
         items: getCartForCheckout(),
         total,
         customerId,
+        draftId, // pass draftId to convert it
       };
 
       if (isPrepaid) {
@@ -259,6 +295,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
           saveAddress({ firstName: formData.firstName, lastName: formData.lastName, phone: formData.phone, address: formData.address, apartment: formData.apartment, city: formData.city, state: formData.state, pincode: formData.pincode, label: 'Other' }).catch(() => { });
         }
 
+        setOrderConfirmed(true);
         router.push(`/order-success?id=${orderId}`);
       }
     } catch (err) {
@@ -465,8 +502,20 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
         </div>
       </div>
 
-      <Button type="submit" size="xl" className="w-full text-lg" disabled={loading}>
-        {loading ? 'Processing...' : isPrepaid ? `Pay ${formatPrice(total)}` : 'Place Order (COD)'}
+      <Button type="submit" size="xl" className="w-full text-lg" disabled={loading || orderConfirmed}>
+        {orderConfirmed ? (
+          <span className="flex items-center gap-2">
+            <CheckCircle2 size={20} /> Order Confirmed! Redirecting...
+          </span>
+        ) : loading ? (
+          <span className="flex items-center gap-2">
+            <Loader2 className="animate-spin" size={20} /> Processing...
+          </span>
+        ) : isPrepaid ? (
+          `Pay ${formatPrice(total)}`
+        ) : (
+          'Place Order (COD)'
+        )}
       </Button>
     </form>
   );

@@ -74,7 +74,7 @@ export default function OrderDetailModal({ order, open, onClose }) {
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Customer Information</h3>
               <div className="bg-gray-50 p-4 rounded-lg border border-brand-border space-y-2 text-sm">
-                <p><span className="font-medium">Name:</span> {order.firstName} {order.lastName}</p>
+                <p><span className="font-medium">Name:</span> {order.customerName}</p>
                 <p><span className="font-medium">Email:</span> {order.email}</p>
                 <p><span className="font-medium">Phone:</span> {order.phone}</p>
               </div>

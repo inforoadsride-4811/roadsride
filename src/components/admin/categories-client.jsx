@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { createCategory, updateCategory, deleteCategory } from '@/actions/admin-products';
+import { bulkDeleteCategories } from '@/actions/admin';
 import { uploadFile, deleteFile, BUCKETS } from '@/lib/storage';
 
 const COMMON_ICONS = [
@@ -28,6 +29,8 @@ export default function CategoriesClient({ initialCategories, pagination }) {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [iconSearchQuery, setIconSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -142,20 +145,76 @@ export default function CategoriesClient({ initialCategories, pagination }) {
     }
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(initialCategories.map(c => c.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (e, id) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      if (selectedIds.length >= 10) {
+        addToast({ title: 'Limit Reached', message: 'Maximum 10 records can be selected at once', type: 'error' });
+        return;
+      }
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} categories? Products in these categories will become uncategorized. This cannot be undone.`)) return;
+
+    setIsDeletingBulk(true);
+    try {
+      const result = await bulkDeleteCategories(selectedIds);
+      if (result.success) {
+        addToast({ title: 'Success', message: `Successfully deleted ${selectedIds.length} categories`, type: 'success' });
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        addToast({ title: 'Error', message: result.error || 'Failed to delete categories', type: 'error' });
+      }
+    } catch (error) {
+      addToast({ title: 'Error', message: 'An unexpected error occurred', type: 'error' });
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-brand-border">
-        <form onSubmit={handleSearch} className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <Input 
-            placeholder="Search categories..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-10 w-full"
-          />
-        </form>
-        <Button onClick={openCreateModal} className="bg-brand-yellow text-brand-black hover:bg-brand-yellow-hover font-semibold">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
+          {selectedIds.length > 0 && (
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={isDeletingBulk}
+            >
+              {isDeletingBulk ? 'Deleting...' : <Trash2 className="w-4 h-4 mr-2" />}
+              {isDeletingBulk ? '' : `Delete Selected (${selectedIds.length})`}
+            </Button>
+          )}
+          <form onSubmit={handleSearch} className="relative w-full sm:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Input 
+              placeholder="Search categories..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-10 w-full"
+            />
+          </form>
+        </div>
+        <Button onClick={openCreateModal} className="bg-brand-yellow text-brand-black hover:bg-brand-yellow-hover font-semibold shrink-0">
           <Plus size={16} className="mr-2" />
           Add Category
         </Button>
@@ -167,6 +226,14 @@ export default function CategoriesClient({ initialCategories, pagination }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-brand-border">
               <tr>
+                <th className="px-6 py-4 w-[50px] text-center">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300"
+                    checked={initialCategories.length > 0 && selectedIds.length === initialCategories.length}
+                    onChange={handleSelectAll}
+                  />
+                </th>
                 <th className="px-6 py-4 font-medium">Category Name</th>
                 <th className="px-6 py-4 font-medium">Slug</th>
                 <th className="px-6 py-4 font-medium">Products Count</th>
@@ -183,7 +250,15 @@ export default function CategoriesClient({ initialCategories, pagination }) {
                 </tr>
               ) : (
                 initialCategories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={cat.id} className={`transition-colors ${selectedIds.includes(cat.id) ? 'bg-blue-50/50 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}>
+                    <td className="px-6 py-4 text-center" onClick={e => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-gray-300"
+                        checked={selectedIds.includes(cat.id)}
+                        onChange={(e) => handleSelectOne(e, cat.id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 font-medium text-brand-black flex items-center gap-3">
                       {cat.image ? (
                         cat.image.startsWith('lucide:') ? (
