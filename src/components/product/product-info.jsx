@@ -21,7 +21,14 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
   const displayPrice = currentPack?.price || product.price;
   const displayOriginalPrice = currentPack?.originalPrice || product.originalPrice;
   const displayImages = currentPack?.images?.length > 0 ? currentPack.images : (product.images || []);
-  const store = product.store || { name: 'RoadsRide', rating: 4.8, reviewCount: 124 };
+  const store = product.store || { name: 'RoadsRide' };
+
+  const reviews = product.reviews || [];
+  const reviewCount = reviews.length;
+  const averageRating = reviewCount > 0 
+    ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount 
+    : 5;
+  const roundedRating = Math.round(averageRating);
 
   const handleQuantityChange = (type) => {
     if (type === 'inc') {
@@ -86,12 +93,14 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                 <Star
                   key={i}
                   size={16}
-                  fill={i < Math.floor(store.rating) ? 'currentColor' : 'none'}
-                  className={i < Math.floor(store.rating) ? '' : 'text-gray-300'}
+                  fill={i < roundedRating ? 'currentColor' : 'none'}
+                  className={i < roundedRating ? '' : 'text-gray-300'}
                 />
               ))}
             </div>
-            <span className="text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-500">({store.reviewCount} customer reviews)</span>
+            <span className="text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-4 hover:decoration-gray-500">
+              ({reviewCount} customer review{reviewCount !== 1 ? 's' : ''})
+            </span>
           </button>
 
           <div className="flex items-center gap-1.5 text-brand-black">
@@ -124,20 +133,16 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
             <p className="text-base font-bold text-brand-black">{store.name}</p>
           </div>
           <div className="h-10 w-px bg-brand-border"></div>
-          <div className="flex min-w-0 flex-col">
+          <div className="flex min-w-0 flex-col justify-center">
             <div className="flex items-center text-brand-yellow">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  size={14}
-                  fill={i < Math.floor(store.rating) ? 'currentColor' : 'none'}
-                  className={i < Math.floor(store.rating) ? '' : 'text-gray-300'}
+                  size={16}
+                  fill="currentColor"
                 />
               ))}
             </div>
-            <p className="mt-1 text-xs font-semibold text-gray-700">
-              {store.rating} ({store.reviewCount} Reviews)
-            </p>
           </div>
         </div>
 

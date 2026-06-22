@@ -2,6 +2,8 @@ import { getProductBySlug } from '@/actions/product';
 import { notFound } from 'next/navigation';
 import ProductPageClient from '@/components/product/product-page-client';
 
+export const revalidate = 60; // Cache the page for 60 seconds (ISR)
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const { success, product } = await getProductBySlug(slug);

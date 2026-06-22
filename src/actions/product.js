@@ -1,6 +1,40 @@
 'use server';
 
 import prisma from '@/lib/db';
+import { cache } from 'react';
+
+const getProductBySlugQuery = cache(async (slug) => {
+  const product = await prisma.product.findUnique({
+    where: { slug }
+  });
+
+  if (!product) return null;
+
+  const [images, variants, features, specs, reviews, qa, category] = await Promise.all([
+    prisma.productImage.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
+    prisma.productVariant.findMany({ where: { productId: product.id, isActive: true }, orderBy: { sortOrder: 'asc' } }),
+    prisma.productFeature.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
+    prisma.productSpec.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
+    prisma.productReview.findMany({ 
+      where: { productId: product.id, approved: true }, 
+      orderBy: { createdAt: 'desc' },
+      include: { customer: true }
+    }),
+    prisma.productQA.findMany({ where: { productId: product.id, status: 'answered' }, orderBy: { createdAt: 'desc' } }),
+    product.categoryId ? prisma.category.findUnique({ where: { id: product.categoryId } }) : null
+  ]);
+
+  return {
+    ...product,
+    images,
+    variants,
+    features,
+    specs,
+    reviews,
+    qa,
+    category
+  };
+});
 
 /**
  * Fetch a product by slug with all relations.
@@ -8,22 +42,7 @@ import prisma from '@/lib/db';
  */
 export async function getProductBySlug(slug) {
   try {
-    const product = await prisma.product.findUnique({
-      where: { slug },
-      include: {
-        images: { orderBy: { sortOrder: 'asc' } },
-        variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
-        features: { orderBy: { sortOrder: 'asc' } },
-        specs: { orderBy: { sortOrder: 'asc' } },
-        reviews: { 
-          where: { approved: true }, 
-          orderBy: { createdAt: 'desc' },
-          include: { customer: true }
-        },
-        qa: { where: { status: 'answered' }, orderBy: { createdAt: 'desc' } },
-        category: true
-      }
-    });
+    const product = await getProductBySlugQuery(slug);
 
     if (!product) return { success: false, error: 'Product not found' };
 
