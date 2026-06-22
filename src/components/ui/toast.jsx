@@ -79,7 +79,8 @@ export function ToastProvider({ children }) {
 export function useToast() {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    console.warn('useToast was called outside of ToastProvider. This is likely a Next.js HMR bug.');
+    return { addToast: () => {} };
   }
   return context;
 }

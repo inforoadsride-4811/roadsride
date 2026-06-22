@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, Package, MapPin, LogOut } from 'lucide-react';
 import { Sheet } from '@/components/ui/sheet';
 import useCartStore from '@/store/cart';
+import { customerLogout } from '@/actions/customer-auth';
+import { createClient } from '@/lib/supabase/client';
 import AnnouncementBar from './announcement-bar';
 import SearchBar from './search-bar';
 import UserMenu from './user-menu';
@@ -15,12 +18,29 @@ const navLinks = [
 ];
 
 export default function Header({ onCartOpen, settings }) {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const itemCount = useCartStore((s) => s.items.length);
+
+  const handleLogout = async () => {
+    try {
+      await customerLogout();
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      sessionStorage.removeItem('last_user_id');
+      setIsLoggedIn(false);
+      setLoggedInUser(null);
+      setMobileMenuOpen(false);
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMounted(true));
@@ -53,12 +73,13 @@ export default function Header({ onCartOpen, settings }) {
               {/* Logo */}
               <Link href="/" className="flex-shrink-0">
                 <Image
-                  src="/rr.webp"
+                  src="/rr.png"
                   alt="RoadsRide"
-                  width={160}
-                  height={40}
+                  width={320}
+                  height={80}
                   className="h-10 w-auto sm:h-14 sm:w-40"
                   priority
+                  unoptimized
                 />
               </Link>
             </div>
@@ -163,6 +184,15 @@ export default function Header({ onCartOpen, settings }) {
               >
                 <MapPin size={18} /> Saved Addresses
               </Link>
+
+              <div className="border-t border-gray-200 my-2" />
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left"
+              >
+                <LogOut size={18} /> Sign Out
+              </button>
             </>
           ) : (
             <>

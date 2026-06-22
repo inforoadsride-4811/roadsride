@@ -110,22 +110,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
     const { name, value } = e.target;
     
     if (name === 'phone') {
-      let formatted = value;
-      // Auto-add +91 if user starts typing digits
-      if (formatted && !formatted.startsWith('+91')) {
-        formatted = '+91' + formatted.replace(/^\+?9?1?/, '');
-      }
-      
-      const prefix = '+91';
-      // If user deleted +91, just clear the field so they can start over
-      if (formatted === '+9' || formatted === '+' || formatted.length < 3) {
-        setFormData({ ...formData, phone: '' });
-        return;
-      }
-      
-      const remainder = formatted.slice(3).replace(/\D/g, ''); // Strip non-digits
-      formatted = prefix + remainder.slice(0, 10); // Max 10 digits
-      
+      const formatted = value.replace(/\D/g, '').slice(0, 10);
       setFormData({ ...formData, phone: formatted });
       if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
       return;
@@ -230,8 +215,13 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
     setLoading(true);
     setErrors({});
 
+    const payloadToValidate = {
+      ...formData,
+      phone: formData.phone.length === 10 ? `+91${formData.phone}` : formData.phone
+    };
+
     // Zod validation
-    const validation = validateForm(checkoutSchema, formData);
+    const validation = validateForm(checkoutSchema, payloadToValidate);
     if (!validation.success) {
       setErrors(validation.errors);
       setLoading(false);
@@ -240,7 +230,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
 
     try {
       const orderData = {
-        ...formData,
+        ...payloadToValidate,
         paymentMethod: isPrepaid ? 'razorpay' : 'cod',
         items: getCartForCheckout(),
         total,
