@@ -100,28 +100,20 @@ export async function getAdminProducts({ page = 1, limit = 10, search = '', stat
 
 export async function getAdminProduct(id) {
   try {
-    const productData = await prisma.product.findUnique({ where: { id } });
-    if (!productData) return { success: false, error: 'Product not found' };
-
-    const [images, variants, features, specs, reviews, category] = await Promise.all([
-      prisma.productImage.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
-      prisma.productVariant.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
-      prisma.productFeature.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
-      prisma.productSpec.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
-      prisma.productReview.findMany({ where: { productId: id }, orderBy: { createdAt: 'desc' } }),
-      productData.categoryId ? prisma.category.findUnique({ where: { id: productData.categoryId } }) : Promise.resolve(null),
-    ]);
-
-    const product = {
-      ...productData,
-      images,
-      variants,
-      features,
-      specs,
-      reviews,
-      category
-    };
+    const product = await prisma.product.findUnique({ 
+      where: { id },
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: { orderBy: { sortOrder: 'asc' } },
+        features: { orderBy: { sortOrder: 'asc' } },
+        specs: { orderBy: { sortOrder: 'asc' } },
+        reviews: { orderBy: { createdAt: 'desc' } },
+        category: true
+      }
+    });
+    
     if (!product) return { success: false, error: 'Product not found' };
+    
     return { success: true, product };
   } catch (error) {
     return { success: false, error: 'Failed to fetch product' };

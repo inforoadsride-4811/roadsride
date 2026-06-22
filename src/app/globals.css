@@ -58,6 +58,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Fix for mobile browser auto-zooming on inputs when font-size is < 16px */
+@media screen and (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Layout utilities — outside @layer to avoid specificity issues with media queries */
 .rr-container {
   width: 100%;

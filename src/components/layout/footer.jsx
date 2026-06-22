@@ -76,7 +76,6 @@ export default function Footer() {
               </div>
             </div>
           </div>
-
           {/* Departments */}
           <div>
             <h3 className="mb-5 text-xl font-bold text-brand-black">Departments</h3>
@@ -93,7 +92,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
           {/* Quick Links */}
           <div>
             <h3 className="mb-5 text-xl font-bold text-brand-black">Quick Links</h3>
@@ -110,7 +108,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
           {/* Newsletter */}
           <div>
             <h3 className="mb-5 text-xl font-bold text-brand-black">Let&apos;s keep in touch</h3>
@@ -152,7 +149,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-
       {/* Copyright */}
       <div className="border-t border-brand-border">
         <div className="px-6 py-5" style={{ maxWidth: '1400px', margin: '0 auto' }}>
