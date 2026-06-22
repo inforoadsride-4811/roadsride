@@ -1,8 +1,29 @@
 'use client';
 
+import { useEffect } from 'react';
+
+function ScrollToTop() {
+  useEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    resetScroll();
+    const t1 = setTimeout(resetScroll, 50);
+    const t2 = setTimeout(resetScroll, 150);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+  return null;
+}
+
 export default function ProductLoading() {
   return (
     <div style={{ background: '#f5f5f5', minHeight: '100vh' }}>
+      <ScrollToTop />
       <div style={{ maxWidth: '1170px', margin: '0 auto', padding: '16px 16px 0' }}>
         {/* Breadcrumb Skeleton */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', padding: '8px 0', marginBottom: '16px' }}>

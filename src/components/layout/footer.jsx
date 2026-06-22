@@ -132,7 +132,7 @@ export default function Footer() {
                 disabled={isSubscribing}
                 variant="danger"
                 size="md"
-                className="h-11 !rounded-xl !bg-red-500 px-6 hover:!bg-red-600 whitespace-nowrap"
+                className="h-11 !rounded-xl !bg-[#ffb600] px-6 hover:!bg-[#eaaa02] whitespace-nowrap"
               >
                 {isSubscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Subscribe'}
               </Button>

@@ -10,6 +10,7 @@ import { updateStoreSettings } from '@/actions/admin-products';
 
 const TABS = [
   { id: 'store', label: 'General Store Details' },
+  { id: 'storefront', label: 'Storefront Display' },
   { id: 'payment', label: 'Payment Integration' },
   { id: 'email', label: 'Email Configuration' },
 ];
@@ -40,6 +41,10 @@ export default function SettingsClient({ initialSettings }) {
     resendSenderEmail: initialSettings.resendSenderEmail || '',
     resendReplyTo: initialSettings.resendReplyTo || '',
     emailsEnabled: initialSettings.emailsEnabled ?? true,
+    // Storefront Display
+    announcementEnabled: initialSettings.announcementEnabled ?? true,
+    announcementText: initialSettings.announcementText || 'Cash on Delivery - 5% Discount on Prepaid Orders',
+    announcementSpeed: initialSettings.announcementSpeed || 30,
   });
 
   const handleChange = (e) => {
@@ -57,6 +62,7 @@ export default function SettingsClient({ initialSettings }) {
     const dataToSave = { ...formData };
     // Ensure numerical values
     dataToSave.prepaidDiscountPercent = parseFloat(dataToSave.prepaidDiscountPercent) || 0;
+    dataToSave.announcementSpeed = parseInt(dataToSave.announcementSpeed, 10) || 30;
 
     const res = await updateStoreSettings(dataToSave);
     if (res.success) {
@@ -149,6 +155,29 @@ export default function SettingsClient({ initialSettings }) {
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow outline-none min-h-[80px]"
                   placeholder="Short description displayed in the footer..."
                 />
+              </div>
+            </div>
+          )}
+
+          {/* STOREFRONT */}
+          {activeTab === 'storefront' && (
+            <div className="space-y-5">
+              <h2 className="text-lg font-bold text-brand-black mb-4 border-b pb-2">Announcement Marquee</h2>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <input type="checkbox" id="announcementEnabled" name="announcementEnabled" checked={formData.announcementEnabled} onChange={handleChange} className="w-4 h-4 text-brand-yellow" />
+                <label htmlFor="announcementEnabled" className="text-sm font-medium text-gray-700 cursor-pointer">Show Announcement Marquee at Top of Site</label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Marquee Text</label>
+                <Input name="announcementText" value={formData.announcementText} onChange={handleChange} placeholder="e.g. Free Shipping on orders above ₹999!" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Animation Speed (Seconds)</label>
+                <Input type="number" name="announcementSpeed" value={formData.announcementSpeed} onChange={handleChange} min="5" max="200" />
+                <p className="text-xs text-gray-500 mt-1">Number of seconds for the text to do one full loop. Lower number = faster.</p>
               </div>
             </div>
           )}

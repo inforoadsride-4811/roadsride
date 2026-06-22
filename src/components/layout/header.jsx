@@ -14,13 +14,13 @@ const navLinks = [
   { name: 'Home', href: '/' },
 ];
 
-export default function Header({ onCartOpen }) {
+export default function Header({ onCartOpen, settings }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState(null);
-  const itemCount = useCartStore((s) => s.getItemCount());
+  const itemCount = useCartStore((s) => s.items.length);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMounted(true));
@@ -34,7 +34,7 @@ export default function Header({ onCartOpen }) {
 
   return (
     <>
-      <AnnouncementBar />
+      <AnnouncementBar settings={settings} />
       <header
         className={`sticky top-0 z-40 bg-white transition-shadow duration-300 border-b border-brand-border`}
       >
@@ -93,13 +93,15 @@ export default function Header({ onCartOpen }) {
               </button>
             </div>
           </div>
-
-          {/* Mobile Search Bar Row (Only visible below LG screens) */}
-          <div className="block lg:hidden pb-4">
-            <SearchBar />
-          </div>
         </div>
       </header>
+
+      {/* Mobile Search Bar Row (Only visible below LG screens, outside sticky header so it scrolls away) */}
+      <div className="block lg:hidden bg-white px-4 pt-2 pb-4 border-b border-brand-border">
+        <div className="w-full max-w-[1170px] mx-auto">
+          <SearchBar />
+        </div>
+      </div>
 
       {/* Mobile Menu Drawer */}
       <Sheet

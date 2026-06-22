@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import TrustBadges from '@/components/layout/trust-badges';
 import Breadcrumb from '@/components/product/breadcrumb';
@@ -8,15 +8,37 @@ import ProductGallery from '@/components/product/product-gallery';
 import ProductInfo from '@/components/product/product-info';
 import ProductDetails from '@/components/product/product-details';
 
+function ScrollToTop() {
+  useEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    resetScroll();
+    const t1 = setTimeout(resetScroll, 50);
+    const t2 = setTimeout(resetScroll, 150);
+    const t3 = setTimeout(resetScroll, 300);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, []);
+  return null;
+}
+
 export default function ProductPageClient({ product }) {
   const [selectedPackIndex, setSelectedPackIndex] = useState(0);
+  const topRef = useRef(null);
 
   const packs = product.packs || product.variants || [];
   const currentPack = packs.length > 0 ? packs[selectedPackIndex] : null;
   const displayImages = currentPack?.images?.length > 0 ? currentPack.images : (product.images || []);
 
   return (
-    <div className="bg-white">
+    <div ref={topRef} className="bg-white">
+      <ScrollToTop />
       {/* bg-[#f5f5f5]  */}
       <div className="pb-[200px] sm:pb-0">
         <div className="bg-[#f5f5f5] pb-10!  ">

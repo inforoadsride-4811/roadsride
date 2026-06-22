@@ -432,7 +432,7 @@ export default function ProductDetails({ product }) {
                                     </div>
                                   </>
                                 ) : (
-                                  <Image src={media} alt="Review" fill style={{ objectFit: 'cover' }} />
+                                  <Image src={media} alt="Review" fill style={{ objectFit: 'cover' }} sizes="112px" />
                                 )}
                               </div>
                             </div>
@@ -441,7 +441,7 @@ export default function ProductDetails({ product }) {
                       </div>
                     ) : review.image && (
                       <div onClick={() => setLightboxMedia(review.image)} style={{ marginBottom: '16px', borderRadius: '8px', overflow: 'hidden', width: '100px', height: '100px', position: 'relative', cursor: 'pointer' }}>
-                        <Image src={review.image} alt="Review Image" fill style={{ objectFit: 'cover' }} />
+                        <Image src={review.image} alt="Review Image" fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 50vw" />
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: '16px', color: '#6b7280', fontSize: '12px', fontWeight: '500' }}>

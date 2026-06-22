@@ -3,19 +3,51 @@ import WhatsAppButton from '@/components/layout/whatsapp-button';
 import ClientLayout from '@/components/layout/client-layout';
 import NextTopLoader from 'nextjs-toploader';
 import Script from 'next/script';
+import { getStoreSettings } from '@/actions/admin-products';
+import { Inter } from 'next/font/google';
 import './globals.css';
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+
 export const metadata = {
-  title: 'RoadsRide 1200 GSM Microfiber Car Cleaning Cloth (40×60 cm) | Scratch-Free & 100% Paint Safe | Absorbs Up to 800ml Water | Ultra Thick, Super Soft, Lint-Free Drying Towel for Car, Bike, SUV & Detailing',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://roadsride.com'),
+  title: {
+    template: '%s | RoadsRide',
+    default: 'RoadsRide | Premium Car and Bike Accessories',
+  },
   description: 'RoadsRide provides premium car and bike accessories, focusing on quality, durability, affordability, and enhancing every ride with smart solutions.',
+  openGraph: {
+    title: 'RoadsRide | Premium Car and Bike Accessories',
+    description: 'RoadsRide provides premium car and bike accessories, focusing on quality, durability, affordability, and enhancing every ride with smart solutions.',
+    url: 'https://roadsride.com',
+    siteName: 'RoadsRide',
+    images: [
+      {
+        url: '/favicon.jpeg',
+        width: 800,
+        height: 600,
+        alt: 'RoadsRide Logo',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RoadsRide | Premium Car and Bike Accessories',
+    description: 'RoadsRide provides premium car and bike accessories, focusing on quality, durability, affordability, and enhancing every ride with smart solutions.',
+    images: ['/favicon.jpeg'],
+  },
   icons: {
     icon: '/favicon.jpeg',
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const { settings } = await getStoreSettings();
+
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
         {/* Google Tag Manager */}
         <Script
@@ -58,7 +90,9 @@ export default function RootLayout({ children }) {
         />
 
         <ToastProvider>
-          <ClientLayout>{children}</ClientLayout>
+          <ClientLayout settings={settings}>
+            {children}
+          </ClientLayout>
         </ToastProvider>
         <WhatsAppButton />
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />

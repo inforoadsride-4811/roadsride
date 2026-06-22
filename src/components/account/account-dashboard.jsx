@@ -195,7 +195,7 @@ export default function AccountDashboard({ customer, orderCount, orders, address
   ];
 
   return (
-    <div className="bg-gray-50 min-h-[70vh] py-8 md:py-12">
+    <div className="bg-gray-50 min-h-[100vh] py-8 md:py-12">
       <div className="w-full px-4 sm:px-6" style={{ maxWidth: '1170px', margin: '0 auto' }}>
 
         {/* ── PROFILE HEADER ── */}
@@ -260,11 +260,10 @@ export default function AccountDashboard({ customer, orderCount, orders, address
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); router.push(`/account${tab.id === 'profile' ? '' : `?tab=${tab.id}`}`, { scroll: false }); }}
-                className={`w-full flex items-center gap-3 p-3 font-medium rounded-lg transition-colors cursor-pointer text-left ${
-                  activeTab === tab.id
-                    ? 'bg-brand-yellow/10 text-brand-black font-semibold border border-brand-yellow'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-brand-black border border-transparent'
-                }`}
+                className={`w-full flex items-center gap-3 p-3 font-medium rounded-lg transition-colors cursor-pointer text-left ${activeTab === tab.id
+                  ? 'bg-brand-yellow/10 text-brand-black font-semibold border border-brand-yellow'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-brand-black border border-transparent'
+                  }`}
               >
                 <tab.icon size={18} />
                 {tab.label}
@@ -286,14 +285,14 @@ export default function AccountDashboard({ customer, orderCount, orders, address
                   <h2 className="text-xl font-bold text-brand-black">Personal Profile</h2>
                   {editing ? (
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setEditing(false)}><X size={14} className="mr-1"/>Cancel</Button>
+                      <Button variant="outline" size="sm" onClick={() => setEditing(false)}><X size={14} className="mr-1" />Cancel</Button>
                       <Button size="sm" onClick={handleSave} disabled={saving} className="bg-brand-yellow text-brand-black hover:bg-brand-yellow-hover">
-                        {saving ? <Loader2 size={14} className="animate-spin mr-1" /> : <Save size={14} className="mr-1"/>}
+                        {saving ? <Loader2 size={14} className="animate-spin mr-1" /> : <Save size={14} className="mr-1" />}
                         Save
                       </Button>
                     </div>
                   ) : (
-                    <Button variant="outline" size="sm" onClick={() => setEditing(true)}><Edit size={14} className="mr-2"/>Edit</Button>
+                    <Button variant="outline" size="sm" onClick={() => setEditing(true)}><Edit size={14} className="mr-2" />Edit</Button>
                   )}
                 </div>
 
@@ -396,16 +395,14 @@ export default function AccountDashboard({ customer, orderCount, orders, address
                                             {index > 0 && (
                                               <div className={`absolute top-5 -left-1/2 w-full h-0.5 -z-10 ${index <= currentIdx ? 'bg-green-500' : 'bg-gray-200'}`} />
                                             )}
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                                              isCompleted
-                                                ? 'bg-green-500 border-green-500 text-white'
-                                                : 'bg-white border-gray-300 text-gray-400'
-                                            } ${isCurrent ? 'ring-4 ring-green-100' : ''}`}>
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted
+                                              ? 'bg-green-500 border-green-500 text-white'
+                                              : 'bg-white border-gray-300 text-gray-400'
+                                              } ${isCurrent ? 'ring-4 ring-green-100' : ''}`}>
                                               <StepIcon size={18} />
                                             </div>
-                                            <p className={`text-xs font-semibold mt-2 text-center ${
-                                              isCurrent ? 'text-brand-black' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                                            }`}>{step.label}</p>
+                                            <p className={`text-xs font-semibold mt-2 text-center ${isCurrent ? 'text-brand-black' : isCompleted ? 'text-green-600' : 'text-gray-400'
+                                              }`}>{step.label}</p>
                                           </div>
                                         );
                                       })}
@@ -413,9 +410,8 @@ export default function AccountDashboard({ customer, orderCount, orders, address
                                   </div>
                                 </div>
                               ) : (
-                                <div className={`rounded-xl p-4 text-center text-sm font-semibold ${
-                                  order.orderStatus === 'cancelled' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-purple-50 text-purple-700 border border-purple-200'
-                                }`}>
+                                <div className={`rounded-xl p-4 text-center text-sm font-semibold ${order.orderStatus === 'cancelled' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-purple-50 text-purple-700 border border-purple-200'
+                                  }`}>
                                   {order.orderStatus === 'cancelled' ? 'This order has been cancelled.' : 'This order has been refunded.'}
                                 </div>
                               )}
@@ -517,9 +513,8 @@ export default function AccountDashboard({ customer, orderCount, orders, address
                           key={label}
                           type="button"
                           onClick={() => setAddressForm(p => ({ ...p, label }))}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                            addressForm.label === label ? 'border-brand-yellow bg-brand-yellow/10 text-brand-black font-semibold' : 'border-gray-200 text-gray-600 hover:bg-gray-100'
-                          }`}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors ${addressForm.label === label ? 'border-brand-yellow bg-brand-yellow/10 text-brand-black font-semibold' : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+                            }`}
                         >
                           {label === 'Home' ? <Home size={14} /> : label === 'Office' ? <Briefcase size={14} /> : <MapPin size={14} />}
                           {label}

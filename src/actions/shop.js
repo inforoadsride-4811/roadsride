@@ -113,42 +113,85 @@ export async function getShopProducts(params = {}) {
         break;
     }
 
-    const [totalCount, products] = await Promise.all([
+    const [totalCount, baseProducts] = await Promise.all([
       prisma.product.count({ where }),
       prisma.product.findMany({
         where,
         skip,
         take: limit,
         orderBy,
-        include: {
-          images: { orderBy: { sortOrder: 'asc' }, take: 2 }, // Take 2 for hover effect
-          reviews: { select: { rating: true } },
-          category: { select: { name: true, slug: true } }
-        }
       })
     ]);
 
-    // Calculate average rating for each product
-    const formattedProducts = products.map(product => {
-      const reviewCount = product.reviews.length;
-      const avgRating = reviewCount > 0
-        ? (product.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount)
-        : 0;
-
+    // Fast return if no products
+    if (!baseProducts.length) {
       return {
-        ...product,
-        reviewCount,
-        avgRating,
+        success: true,
+        products: [],
+        pagination: { total: totalCount, page, limit, totalPages: Math.ceil(totalCount / limit) }
+      };
+    }
+
+    const productIds = baseProducts.map(p => p.id);
+    const categoryIds = [...new Set(baseProducts.map(p => p.categoryId).filter(Boolean))];
+
+    // Parallel fetch related data
+    const [images, reviews, categories] = await Promise.all([
+      prisma.productImage.findMany({
+        where: { productId: { in: productIds } },
+        orderBy: { sortOrder: 'asc' }
+      }),
+      prisma.productReview.groupBy({
+        by: ['productId'],
+        where: { productId: { in: productIds } },
+        _count: { rating: true },
+        _avg: { rating: true }
+      }),
+      categoryIds.length > 0 
+        ? prisma.category.findMany({
+            where: { id: { in: categoryIds } },
+            select: { id: true, name: true, slug: true }
+          })
+        : Promise.resolve([])
+    ]);
+
+    // Grouping
+    const imagesMap = new Map();
+    images.forEach(img => {
+      if (!imagesMap.has(img.productId)) imagesMap.set(img.productId, []);
+      if (imagesMap.get(img.productId).length < 2) {
+        imagesMap.get(img.productId).push(img);
+      }
+    });
+
+    const reviewsMap = new Map();
+    reviews.forEach(rev => {
+      reviewsMap.set(rev.productId, {
+        count: rev._count.rating || 0,
+        avg: rev._avg.rating || 0
+      });
+    });
+
+    const categoriesMap = new Map(categories.map(c => [c.id, c]));
+
+    const products = baseProducts.map(p => {
+      const reviewStats = reviewsMap.get(p.id) || { count: 0, avg: 0 };
+      return {
+        ...p,
+        images: imagesMap.get(p.id) || [],
+        reviewCount: reviewStats.count,
+        avgRating: reviewStats.avg,
+        category: p.categoryId ? categoriesMap.get(p.categoryId) || null : null,
       };
     });
 
     // If rating filter was applied, we need to filter in memory since Prisma `some` 
     // only means "has at least one review >= rating", not "average >= rating".
-    let finalProducts = formattedProducts;
+    let finalProducts = products;
     let finalTotal = totalCount;
 
     if (rating && Number(rating) > 0) {
-      finalProducts = formattedProducts.filter(p => p.avgRating >= Number(rating));
+      finalProducts = products.filter(p => p.avgRating >= Number(rating));
       // Note: In-memory filtering breaks perfect pagination. For a real large-scale app,
       // we'd add an `averageRating` column to the Product model and update it via triggers.
       // But for this scale, it's acceptable, or we just trust the `some` filter as a proxy.

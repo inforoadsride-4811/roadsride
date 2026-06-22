@@ -8,22 +8,36 @@ import prisma from '@/lib/db';
  */
 export async function getProductBySlug(slug) {
   try {
-    const product = await prisma.product.findUnique({
+    const productData = await prisma.product.findUnique({
       where: { slug },
-      include: {
-        images: { orderBy: { sortOrder: 'asc' } },
-        variants: { orderBy: { sortOrder: 'asc' }, where: { isActive: true } },
-        features: { orderBy: { sortOrder: 'asc' } },
-        specs: { orderBy: { sortOrder: 'asc' } },
-        reviews: { 
-          where: { approved: true }, 
-          orderBy: { createdAt: 'desc' },
-          include: { customer: true }
-        },
-        qa: { where: { status: 'answered' }, orderBy: { createdAt: 'desc' } },
-        category: true,
-      },
     });
+
+    if (!productData) return { success: false, error: 'Product not found' };
+
+    const [images, variants, features, specs, reviews, qa, category] = await Promise.all([
+      prisma.productImage.findMany({ where: { productId: productData.id }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productVariant.findMany({ where: { productId: productData.id, isActive: true }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productFeature.findMany({ where: { productId: productData.id }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productSpec.findMany({ where: { productId: productData.id }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productReview.findMany({ 
+        where: { productId: productData.id, approved: true }, 
+        orderBy: { createdAt: 'desc' },
+        include: { customer: true }
+      }),
+      prisma.productQA.findMany({ where: { productId: productData.id, status: 'answered' }, orderBy: { createdAt: 'desc' } }),
+      productData.categoryId ? prisma.category.findUnique({ where: { id: productData.categoryId } }) : Promise.resolve(null),
+    ]);
+
+    const product = {
+      ...productData,
+      images,
+      variants,
+      features,
+      specs,
+      reviews,
+      qa,
+      category
+    };
 
     if (!product) return { success: false, error: 'Product not found' };
 

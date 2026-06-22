@@ -7,7 +7,7 @@ import Footer from './footer';
 import CartDrawer from '../cart/cart-drawer';
 import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
 
-export default function ClientLayout({ children }) {
+export default function ClientLayout({ children, settings }) {
   const [cartOpen, setCartOpen] = useState(false);
   const pathname = usePathname() || '';
   const isAdminRoute = pathname.startsWith('/admin');
@@ -21,7 +21,7 @@ export default function ClientLayout({ children }) {
         options={{ showSpinner: false }}
         shallowRouting
       />
-      {!isAdminRoute && <Header onCartOpen={() => setCartOpen(true)} />}
+      {!isAdminRoute && <Header onCartOpen={() => setCartOpen(true)} settings={settings} />}
       <main className="flex-1">
         {children}
       </main>

@@ -12,7 +12,7 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
         {items.map((item) => (
           <div key={item.id} className="flex gap-4">
             <div className="w-16 h-16 relative rounded-lg border border-brand-border bg-white overflow-hidden flex-shrink-0">
-              <Image src={item.image} alt={item.name} fill className="object-cover" />
+              <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px" />
               <div className="absolute -top-2 -right-2 w-5 h-5 bg-gray-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-10 border-2 border-white">
                 {item.quantity}
               </div>

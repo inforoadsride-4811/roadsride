@@ -111,7 +111,7 @@ export default async function OrderSuccessPage({ searchParams }) {
                 <div key={item.id} className="pt-4 first:pt-0 flex items-center gap-4">
                   {item.image && (
                     <div className="w-16 h-16 relative rounded border border-brand-border bg-white flex-shrink-0">
-                      <Image src={item.image} alt={item.productName} fill className="object-cover rounded" />
+                      <Image src={item.image} alt={item.productName} fill className="object-cover rounded" sizes="64px" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">

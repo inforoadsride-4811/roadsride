@@ -96,7 +96,7 @@ export default function ReviewsClient({ initialData, pagination }) {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg border border-gray-100 overflow-hidden relative flex-shrink-0 bg-white">
                           {review.product?.images?.[0]?.src ? (
-                            <Image src={review.product.images[0].src} alt={review.product.name} fill className="object-cover" />
+                            <Image src={review.product.images[0].src} alt={review.product.name} fill className="object-cover" sizes="40px" />
                           ) : (
                             <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-400">No Img</div>
                           )}
@@ -147,7 +147,7 @@ export default function ReviewsClient({ initialData, pagination }) {
                                     </div>
                                   </>
                                 ) : (
-                                  <Image src={media} alt="Attached" fill className="object-cover" />
+                                  <Image src={media} alt="Attached" fill className="object-cover" sizes="64px" />
                                 )}
                               </div>
                             </a>

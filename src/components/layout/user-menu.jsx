@@ -30,14 +30,20 @@ export default function UserMenu({ onUserChange }) {
         const res = await getSessionCustomer();
         if (cancelled) return;
         if (res?.success && res?.customer) {
-          setUser(res.customer);
-          onUserChangeRef.current?.(res.customer);
-          // Load cart once per browser session
-          if (!sessionStorage.getItem('cart_synced')) {
-            sessionStorage.setItem('cart_synced', '1');
+          const currentUserId = res.customer.id;
+          const prevUserId = sessionStorage.getItem('last_user_id');
+
+          if (prevUserId !== currentUserId) {
+            sessionStorage.setItem('last_user_id', currentUserId);
+            // Force re-sync cart from DB because user changed/logged in
+            useCartStore.setState({ _synced: false });
             useCartStore.getState().loadFromDB();
           }
+
+          setUser(res.customer);
+          onUserChangeRef.current?.(res.customer);
         } else {
+          sessionStorage.removeItem('last_user_id');
           setUser(null);
           onUserChangeRef.current?.(null);
         }
@@ -60,11 +66,19 @@ export default function UserMenu({ onUserChange }) {
       }
     });
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUser();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       cancelled = true;
       subscription?.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []); // Empty deps — runs once
+  }, [pathname]); // Re-run fetchUser whenever the route changes to catch client-side login redirects
 
   const handleMouseEnter = () => {
     if (timerRef.current) clearTimeout(timerRef.current);

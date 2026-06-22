@@ -1,8 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Tiptap Global Styles */
+@import "../components/tiptap-templates/simple/tiptap-variables.scss";
+@import "../components/tiptap-templates/simple/simple-editor.scss";
+@import "../components/tiptap-ui-primitive/toolbar/toolbar.scss";
+@import "../components/tiptap-ui-primitive/separator/separator.scss";
+@import "../components/tiptap-ui-primitive/button/button.scss";
+@import "../components/tiptap-ui-primitive/button/button-group.scss";
+@import "../components/tiptap-ui-primitive/button/button-colors.scss";
+@import "../components/tiptap-ui-primitive/tooltip/tooltip.scss";
+@import "../components/tiptap-ui-primitive/popover/popover.scss";
+@import "../components/tiptap-ui-primitive/dropdown-menu/dropdown-menu.scss";
+@import "../components/tiptap-node/blockquote-node/blockquote-node.scss";
+@import "../components/tiptap-node/code-block-node/code-block-node.scss";
+@import "../components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
+@import "../components/tiptap-node/paragraph-node/paragraph-node.scss";
+@import "../components/tiptap-node/heading-node/heading-node.scss";
+@import "../components/tiptap-node/image-node/image-node.scss";
+@import "../components/tiptap-node/list-node/list-node.scss";
+@import "../components/tiptap-node/image-upload-node/image-upload-node.scss";
 
 @theme {
   /* Brand colors */
@@ -30,7 +51,6 @@
 
 /* Base — don't duplicate what Preflight already does */
 html {
-  scroll-behavior: smooth;
 }
 
 body {
@@ -240,12 +260,121 @@ body {
 /* ── Responsive Description Grids ── */
 /* Force grid containers inside product descriptions to stack on mobile */
 @media (max-width: 767px) {
-  .rr-description div[style*="grid"] {
+  .rr-description div[style*="grid"],
+  .ProseMirror div[data-type="grid-block"] {
     grid-template-columns: 1fr !important;
   }
-  .rr-description iframe {
+  .rr-description iframe,
+  .ProseMirror iframe {
     height: auto !important;
     aspect-ratio: 9 / 16;
     max-height: 500px;
   }
+}
+
+/* ── Rich Text Editor & Storefront Heading Styles ── */
+body {
+  overflow-anchor: none;
+}
+
+/* Set baseline typography for paragraphs/spans without affecting headings */
+.rr-description p, .rr-description span, .rr-description li,
+.ProseMirror p, .ProseMirror span, .ProseMirror li {
+  font-family: var(--font-inter), sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 400;
+}
+
+.rr-description img, .ProseMirror img {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  border-radius: 0.5rem;
+  margin: 1.5rem auto;
+  display: block;
+}
+
+/* Tailwind resets headings to inherit font-size. These rules restore correct sizing for the editor and storefront. */
+.prose h1, .ProseMirror h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  color: var(--color-brand-black);
+}
+
+.prose h2, .ProseMirror h2 {
+  font-size: 1.875rem; /* 30px */
+  font-weight: 700;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-brand-black);
+}
+
+.prose h3, .ProseMirror h3 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+}
+
+.prose h4, .ProseMirror h4 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.prose h5, .ProseMirror h5 {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.prose h6, .ProseMirror h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.prose ul, .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose ol, .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose p, .ProseMirror p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.prose a, .ProseMirror a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.prose img, .ProseMirror img {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: block;
 }

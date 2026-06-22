@@ -433,6 +433,10 @@ model StoreSettings {
   resendSenderName        String?
   resendReplyTo           String?
   emailsEnabled           Boolean  @default(true)
+  // Storefront Announcement Marquee
+  announcementEnabled     Boolean  @default(true)
+  announcementText        String   @default("Cash on Delivery - 5% Discount on Prepaid Orders")
+  announcementSpeed       Int      @default(30) // Seconds to complete one loop
   // Timestamps
   updatedAt               DateTime @updatedAt
 }

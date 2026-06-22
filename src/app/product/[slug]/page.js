@@ -7,17 +7,28 @@ export async function generateMetadata({ params }) {
   const { success, product } = await getProductBySlug(slug);
 
   if (!success || !product) {
-    return { title: 'Product Not Found | RoadsRide' };
+    return { title: 'Product Not Found' };
   }
 
+  const primaryImage = product.ogImage || product.images?.[0]?.src || product.packs?.[0]?.images?.[0]?.src;
+  const title = product.seoTitle || product.name;
+  const description = product.seoDescription || `Buy ${product.name} at RoadsRide. Premium quality, best prices, and secure delivery.`;
+
   return {
-    title: product.seoTitle || `${product.shortName} | RoadsRide`,
-    description: product.seoDescription || '',
+    title,
+    description,
     keywords: product.seoKeywords || '',
     openGraph: {
-      title: product.seoTitle || product.name,
-      description: product.seoDescription || '',
-      images: product.ogImage ? [product.ogImage] : product.packs?.[0]?.images?.[0]?.src ? [product.packs[0].images[0].src] : [],
+      title,
+      description,
+      images: primaryImage ? [primaryImage] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: primaryImage ? [primaryImage] : [],
     },
     ...(product.canonicalUrl && { alternates: { canonical: product.canonicalUrl } }),
   };

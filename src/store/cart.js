@@ -119,7 +119,7 @@ const useCartStore = create(
       },
 
       getItemCount: () => {
-        return get().items.reduce((count, item) => count + item.quantity, 0);
+        return get().items.length;
       },
 
       getSavings: () => {

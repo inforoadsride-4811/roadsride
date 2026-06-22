@@ -20,21 +20,72 @@ export async function getAdminProducts({ page = 1, limit = 10, search = '', stat
       ];
     }
 
-    const [products, total] = await Promise.all([
+    const [baseProducts, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: {
-          images: { orderBy: { sortOrder: 'asc' }, take: 1 },
-          variants: { orderBy: { sortOrder: 'asc' } },
-          category: true,
-          _count: { select: { reviews: true } },
-        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
       prisma.product.count({ where }),
     ]);
+
+    if (!baseProducts.length) {
+      return {
+        success: true,
+        products: [],
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      };
+    }
+
+    const productIds = baseProducts.map((p) => p.id);
+    const categoryIds = [...new Set(baseProducts.map((p) => p.categoryId).filter(Boolean))];
+
+    const [images, variants, categories, reviewsData] = await Promise.all([
+      prisma.productImage.findMany({
+        where: { productId: { in: productIds } },
+        orderBy: { sortOrder: 'asc' },
+      }),
+      prisma.productVariant.findMany({
+        where: { productId: { in: productIds } },
+        orderBy: { sortOrder: 'asc' },
+      }),
+      categoryIds.length > 0
+        ? prisma.category.findMany({
+            where: { id: { in: categoryIds } },
+          })
+        : Promise.resolve([]),
+      prisma.productReview.groupBy({
+        by: ['productId'],
+        where: { productId: { in: productIds } },
+        _count: { rating: true },
+      }),
+    ]);
+
+    const imagesMap = new Map();
+    images.forEach((img) => {
+      if (!imagesMap.has(img.productId)) imagesMap.set(img.productId, []);
+      if (imagesMap.get(img.productId).length < 1) {
+        imagesMap.get(img.productId).push(img);
+      }
+    });
+
+    const variantsMap = new Map();
+    variants.forEach((v) => {
+      if (!variantsMap.has(v.productId)) variantsMap.set(v.productId, []);
+      variantsMap.get(v.productId).push(v);
+    });
+
+    const categoriesMap = new Map(categories.map((c) => [c.id, c]));
+    const reviewsMap = new Map(reviewsData.map((r) => [r.productId, r._count.rating]));
+
+    const products = baseProducts.map((p) => ({
+      ...p,
+      images: imagesMap.get(p.id) || [],
+      variants: variantsMap.get(p.id) || [],
+      category: p.categoryId ? categoriesMap.get(p.categoryId) || null : null,
+      _count: { reviews: reviewsMap.get(p.id) || 0 },
+    }));
 
     return {
       success: true,
@@ -49,17 +100,27 @@ export async function getAdminProducts({ page = 1, limit = 10, search = '', stat
 
 export async function getAdminProduct(id) {
   try {
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        images: { orderBy: { sortOrder: 'asc' } },
-        variants: { orderBy: { sortOrder: 'asc' } },
-        features: { orderBy: { sortOrder: 'asc' } },
-        specs: { orderBy: { sortOrder: 'asc' } },
-        reviews: { orderBy: { createdAt: 'desc' } },
-        category: true,
-      },
-    });
+    const productData = await prisma.product.findUnique({ where: { id } });
+    if (!productData) return { success: false, error: 'Product not found' };
+
+    const [images, variants, features, specs, reviews, category] = await Promise.all([
+      prisma.productImage.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productVariant.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productFeature.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productSpec.findMany({ where: { productId: id }, orderBy: { sortOrder: 'asc' } }),
+      prisma.productReview.findMany({ where: { productId: id }, orderBy: { createdAt: 'desc' } }),
+      productData.categoryId ? prisma.category.findUnique({ where: { id: productData.categoryId } }) : Promise.resolve(null),
+    ]);
+
+    const product = {
+      ...productData,
+      images,
+      variants,
+      features,
+      specs,
+      reviews,
+      category
+    };
     if (!product) return { success: false, error: 'Product not found' };
     return { success: true, product };
   } catch (error) {
@@ -218,21 +279,19 @@ export async function saveProductVariants(productId, variants) {
     await prisma.productVariant.deleteMany({ where: { productId } });
 
     // Create new variants
-    for (let i = 0; i < variants.length; i++) {
-      const v = variants[i];
-      await prisma.productVariant.create({
-        data: {
-          productId,
-          name: v.name,
-          price: parseFloat(v.price),
-          originalPrice: parseFloat(v.originalPrice || v.price),
-          stock: parseInt(v.stock) || 0,
-          isBestSeller: v.isBestSeller || false,
-          sortOrder: i,
-          isActive: v.isActive !== false,
-          images: v.images || null,
-        },
-      });
+    if (variants && variants.length > 0) {
+      const variantsData = variants.map((v, i) => ({
+        productId,
+        name: v.name,
+        price: parseFloat(v.price),
+        originalPrice: parseFloat(v.originalPrice || v.price),
+        stock: parseInt(v.stock) || 0,
+        isBestSeller: v.isBestSeller || false,
+        sortOrder: i,
+        isActive: v.isActive !== false,
+        images: v.images || null,
+      }));
+      await prisma.productVariant.createMany({ data: variantsData });
     }
 
     return { success: true };
@@ -248,15 +307,14 @@ export async function saveProductVariants(productId, variants) {
 export async function saveProductFeatures(productId, features) {
   try {
     await prisma.productFeature.deleteMany({ where: { productId } });
-    for (let i = 0; i < features.length; i++) {
-      await prisma.productFeature.create({
-        data: {
-          productId,
-          bold: features[i].bold,
-          text: features[i].text,
-          sortOrder: i,
-        },
-      });
+    if (features && features.length > 0) {
+      const featuresData = features.map((f, i) => ({
+        productId,
+        bold: f.bold,
+        text: f.text,
+        sortOrder: i,
+      }));
+      await prisma.productFeature.createMany({ data: featuresData });
     }
     return { success: true };
   } catch (error) {
@@ -271,15 +329,14 @@ export async function saveProductFeatures(productId, features) {
 export async function saveProductSpecs(productId, specs) {
   try {
     await prisma.productSpec.deleteMany({ where: { productId } });
-    for (let i = 0; i < specs.length; i++) {
-      await prisma.productSpec.create({
-        data: {
-          productId,
-          label: specs[i].label,
-          value: specs[i].value,
-          sortOrder: i,
-        },
-      });
+    if (specs && specs.length > 0) {
+      const specsData = specs.map((s, i) => ({
+        productId,
+        label: s.label,
+        value: s.value,
+        sortOrder: i,
+      }));
+      await prisma.productSpec.createMany({ data: specsData });
     }
     return { success: true };
   } catch (error) {
@@ -294,15 +351,14 @@ export async function saveProductSpecs(productId, specs) {
 export async function saveProductImages(productId, images) {
   try {
     await prisma.productImage.deleteMany({ where: { productId } });
-    for (let i = 0; i < images.length; i++) {
-      await prisma.productImage.create({
-        data: {
-          productId,
-          src: images[i].src,
-          sortOrder: i,
-          isFeatured: i === 0,
-        },
-      });
+    if (images && images.length > 0) {
+      const imagesData = images.map((img, i) => ({
+        productId,
+        src: img.src,
+        sortOrder: i,
+        isFeatured: i === 0,
+      }));
+      await prisma.productImage.createMany({ data: imagesData });
     }
     return { success: true };
   } catch (error) {

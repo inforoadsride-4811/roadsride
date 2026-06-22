@@ -87,7 +87,7 @@ export default function CartPageContent() {
                 <div key={item.id} className="p-4 md:p-6 flex flex-col md:grid md:grid-cols-12 gap-4 items-start md:items-center">
                   <div className="col-span-6 flex gap-4 w-full">
                     <div className="w-20 md:w-24 h-20 md:h-24 relative rounded-lg border border-brand-border bg-gray-50 overflow-hidden flex-shrink-0">
-                      <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      <Image src={item.image} alt={item.name} fill className="object-cover" sizes="96px" />
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <h3 className="text-sm md:text-base font-semibold text-brand-black line-clamp-2">
