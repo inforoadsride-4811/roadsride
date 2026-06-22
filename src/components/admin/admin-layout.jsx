@@ -7,6 +7,7 @@ import { adminLogout } from '@/actions/auth';
 import { getPendingQACount } from '@/actions/qa';
 import { useToast } from '@/components/ui/toast';
 import { useEffect, useState } from 'react';
+import useAdminStore from '@/store/admin';
 
 const navItems = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -26,6 +27,8 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }) {
   const router = useRouter();
   const { addToast } = useToast();
   const [pendingQA, setPendingQA] = useState(0);
+  const isDirty = useAdminStore((state) => state.isDirty);
+  const setDirty = useAdminStore((state) => state.setDirty);
 
   useEffect(() => {
     // Fetch pending QA count on mount and every 30s
@@ -63,7 +66,17 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }) {
             <Link
               key={item.name}
               href={item.href}
-              onClick={() => setMobileOpen?.(false)}
+              onClick={(e) => {
+                if (isDirty) {
+                  if (!window.confirm('You have unsaved changes. Are you sure you want to leave without saving?')) {
+                    e.preventDefault();
+                    return;
+                  } else {
+                    setDirty(false);
+                  }
+                }
+                setMobileOpen?.(false);
+              }}
               className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive 
                   ? 'admin-nav-active' 

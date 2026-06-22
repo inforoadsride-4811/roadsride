@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import prisma from '@/lib/db';
 import { generateOrderNumber, SHIPPING_COST } from '@/lib/product';
 import { sendOrderConfirmationEmail } from './email';
@@ -74,8 +75,14 @@ export async function processOrder(orderData) {
       include: { items: true }, // Include items so we can pass the full order to email
     });
 
-    // Fire-and-forget email — don't block the response
-    sendOrderConfirmationEmail(null, order).catch(err => console.error('Email sending failed:', err));
+    // Fire-and-forget email safely using after() to guarantee execution without blocking
+    after(async () => {
+      try {
+        await sendOrderConfirmationEmail(null, order);
+      } catch (err) {
+        console.error('Email sending failed:', err);
+      }
+    });
 
     return { success: true, orderId: order.id };
   } catch (error) {

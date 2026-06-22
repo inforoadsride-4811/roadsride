@@ -17,7 +17,7 @@ export default async function ProductsGrid({ section }) {
       include: {
         images: { orderBy: { sortOrder: 'asc' }, take: 1 },
         reviews: { select: { rating: true } },
-        variants: { select: { stock: true }, where: { isActive: true } },
+        variants: { select: { stock: true, price: true, originalPrice: true }, where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -31,7 +31,7 @@ export default async function ProductsGrid({ section }) {
       include: {
         images: { orderBy: { sortOrder: 'asc' }, take: 1 },
         reviews: { select: { rating: true } },
-        variants: { select: { stock: true }, where: { isActive: true } },
+        variants: { select: { stock: true, price: true, originalPrice: true }, where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -59,8 +59,12 @@ export default async function ProductsGrid({ section }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product) => {
           const mainImage = product.images?.[0]?.src || '/placeholder-product.png';
-          const discountPercent = product.originalPrice > product.price 
-            ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
+          
+          const displayPrice = product.variants?.length > 0 && product.variants[0].price ? product.variants[0].price : product.price;
+          const displayOriginalPrice = product.variants?.length > 0 && product.variants[0].originalPrice ? product.variants[0].originalPrice : product.originalPrice;
+          
+          const discountPercent = displayOriginalPrice > displayPrice 
+            ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100) 
             : 0;
                       const reviewCount = product.reviews?.length || 0;
           const avgRating = reviewCount > 0 
@@ -117,9 +121,9 @@ export default async function ProductsGrid({ section }) {
                 </h3>
                 
                 <div className="flex items-baseline gap-2 mb-4 mt-auto">
-                  <span className="text-xl font-bold text-brand-black">{formatPrice(product.price)}</span>
-                  {product.originalPrice > product.price && (
-                    <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+                  <span className="text-xl font-bold text-brand-black">{formatPrice(displayPrice)}</span>
+                  {displayOriginalPrice > displayPrice && (
+                    <span className="text-sm text-gray-500 line-through">{formatPrice(displayOriginalPrice)}</span>
                   )}
                 </div>
               </div>

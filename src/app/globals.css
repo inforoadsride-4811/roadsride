@@ -5,6 +5,10 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+:root {
+  color-scheme: light;
+}
+
 /* Tiptap Global Styles */
 @import "../components/tiptap-templates/simple/tiptap-variables.scss";
 @import "../components/tiptap-templates/simple/simple-editor.scss";

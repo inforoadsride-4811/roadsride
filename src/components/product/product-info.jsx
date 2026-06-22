@@ -199,6 +199,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
             <div className="flex h-14 w-full items-center rounded-xl border border-brand-border sm:w-[150px]">
               <button
                 onClick={() => handleQuantityChange('dec')}
+                aria-label="Decrease quantity"
                 className="flex h-full w-14 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-50 cursor-pointer"
               >
                 <Minus size={16} />
@@ -208,6 +209,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
               </div>
               <button
                 onClick={() => handleQuantityChange('inc')}
+                aria-label="Increase quantity"
                 className="flex h-full w-14 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-50 cursor-pointer"
               >
                 <Plus size={16} />
@@ -242,13 +244,13 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <div className="flex h-10 w-24 items-center rounded-xl border border-brand-border bg-gray-50/50 flex-shrink-0">
-              <button onClick={() => handleQuantityChange('dec')} className="flex h-full w-7 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+              <button aria-label="Decrease quantity" onClick={() => handleQuantityChange('dec')} className="flex h-full w-7 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
                 <Minus size={14} />
               </button>
               <div className="flex h-full flex-1 items-center justify-center border-x border-brand-border text-sm font-semibold text-brand-black">
                 {quantity}
               </div>
-              <button onClick={() => handleQuantityChange('inc')} className="flex h-full w-7 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+              <button aria-label="Increase quantity" onClick={() => handleQuantityChange('inc')} className="flex h-full w-7 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
                 <Plus size={14} />
               </button>
             </div>

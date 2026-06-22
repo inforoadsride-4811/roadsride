@@ -228,10 +228,23 @@ export default function ProductDetails({ product }) {
     {
       label: 'Description',
       content: product.description ? (
-        <div style={col} className="rr-description prose max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: product.description }} />
+        <div 
+          style={col} 
+          className="rr-description prose max-w-none text-gray-700" 
+          dangerouslySetInnerHTML={{ 
+            __html: product.description.replace(/<img([^>]*)src="([^"]+)"([^>]*)>/gi, (match, before, src, after) => {
+              // Only optimize local images, ignore external ones just in case
+              if (src.startsWith('/')) {
+                const optimizedSrc = `/_next/image?url=${encodeURIComponent(src)}&w=1200&q=75`;
+                return `<img${before}src="${optimizedSrc}" loading="lazy" decoding="async"${after}>`;
+              }
+              return `<img${before}src="${src}" loading="lazy" decoding="async"${after}>`;
+            }) 
+          }} 
+        />
       ) : (
         <div style={col}>
-          <p style={{ fontSize: '15px', color: '#9ca3af', textAlign: 'center', padding: '40px 0' }}>
+          <p style={{ fontSize: '15px', color: '#6b7280', textAlign: 'center', padding: '40px 0' }}>
             No description available for this product.
           </p>
         </div>
@@ -242,7 +255,7 @@ export default function ProductDetails({ product }) {
       label: 'Additional information',
       content: (
         <div style={col}>
-          <p style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '20px', marginTop: 0 }}>
+          <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '20px', marginTop: 0 }}>
             Technical specifications and packaging details.
           </p>
           <div style={{ borderRadius: '10px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>

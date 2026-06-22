@@ -115,6 +115,7 @@ export default function ProductGallery({ images, discount }) {
           {/* Zoom Icon */}
           <button
             onClick={() => setLightboxOpen(true)}
+            aria-label="Zoom Image"
             className="absolute top-4  right-4 z-10 p-2! bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-colors cursor-pointer shadow-sm"
           >
             <ZoomIn size={18} />
@@ -123,12 +124,14 @@ export default function ProductGallery({ images, discount }) {
           {/* Navigation Arrows */}
           <button
             onClick={() => goTo('prev')}
+            aria-label="Previous Image"
             className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors cursor-pointer shadow-sm"
           >
             <ChevronLeft size={20} />
           </button>
           <button
             onClick={() => goTo('next')}
+            aria-label="Next Image"
             className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors cursor-pointer shadow-sm"
           >
             <ChevronRight size={20} />

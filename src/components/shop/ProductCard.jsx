@@ -15,11 +15,14 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
   const mainImage = product.images?.[0]?.src || '/placeholder-product.png';
   const hoverImage = product.images?.[1]?.src || mainImage;
   
-  const discountPercent = product.originalPrice > product.price 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
+  const displayPrice = product.variants?.length > 0 ? product.variants[0].price : product.price;
+  const displayOriginalPrice = product.variants?.length > 0 ? product.variants[0].originalPrice : product.originalPrice;
+  
+  const discountPercent = displayOriginalPrice > displayPrice 
+    ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100) 
     : 0;
   
-  const savings = product.originalPrice - product.price;
+  const savings = displayOriginalPrice - displayPrice;
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -28,8 +31,8 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
-      originalPrice: product.originalPrice,
+      price: displayPrice,
+      originalPrice: displayOriginalPrice,
       image: mainImage,
       slug: product.slug,
       stock: product.stock,
@@ -87,10 +90,10 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
           <p className="text-sm text-gray-500 mb-4 line-clamp-2">{product.description?.replace(/<[^>]+>/g, '') || 'Premium quality automotive accessory.'}</p>
           
           <div className="flex items-end gap-3 mb-4">
-            <span className="text-2xl font-bold text-brand-black">{formatPrice(product.price)}</span>
-            {product.originalPrice > product.price && (
+            <span className="text-2xl font-bold text-brand-black">{formatPrice(displayPrice)}</span>
+            {displayOriginalPrice > displayPrice && (
               <>
-                <span className="text-sm text-gray-400 line-through mb-1">{formatPrice(product.originalPrice)}</span>
+                <span className="text-sm text-gray-400 line-through mb-1">{formatPrice(displayOriginalPrice)}</span>
                 <span className="text-xs text-green-600 font-semibold mb-1">Save {formatPrice(savings)}</span>
               </>
             )}
@@ -159,9 +162,9 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
         </h3>
         
         <div className="flex items-baseline gap-2 mb-4 mt-auto">
-          <span className="text-xl font-bold text-brand-black">{formatPrice(product.price)}</span>
-          {product.originalPrice > product.price && (
-            <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+          <span className="text-xl font-bold text-brand-black">{formatPrice(displayPrice)}</span>
+          {displayOriginalPrice > displayPrice && (
+            <span className="text-sm text-gray-500 line-through">{formatPrice(displayOriginalPrice)}</span>
           )}
         </div>
       </div>

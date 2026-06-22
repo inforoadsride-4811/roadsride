@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/toast';
 import { createProduct, updateProduct, deleteProduct, saveProductVariants, saveProductFeatures, saveProductSpecs, saveProductImages } from '@/actions/admin-products';
 import { uploadFile, deleteFile, BUCKETS } from '@/lib/storage';
 import RichTextEditor from './rich-text-editor';
+import useAdminStore from '@/store/admin';
 
 const TABS = [
   { id: 'general', label: 'General' },
@@ -56,8 +57,10 @@ export default function ProductForm({ initialData = null, categories = [] }) {
   const [savedDataString, setSavedDataString] = useState(JSON.stringify(getInitialFormState()));
 
   const isDirty = JSON.stringify(formData) !== savedDataString;
+  const setDirty = useAdminStore((state) => state.setDirty);
 
   useEffect(() => {
+    setDirty(isDirty);
     const handleBeforeUnload = (e) => {
       if (isDirty) {
         e.preventDefault();
@@ -65,8 +68,11 @@ export default function ProductForm({ initialData = null, categories = [] }) {
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      setDirty(false); // Cleanup on unmount
+    };
+  }, [isDirty, setDirty]);
 
   // Slug generation helper
   const generateSlug = (name) => {
