@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Script from 'next/script';
 import { ChevronLeft } from 'lucide-react';
 import useCartStore from '@/store/cart';
 import CheckoutForm from '@/components/checkout/checkout-form';
@@ -81,6 +82,7 @@ export default function CheckoutPage() {
 
   return (
     <div ref={topRef} className="min-h-screen bg-white">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <ScrollToTop />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">

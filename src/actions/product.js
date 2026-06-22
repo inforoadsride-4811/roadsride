@@ -1,9 +1,11 @@
 'use server';
 
 import prisma from '@/lib/db';
-import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
-const getProductBySlugQuery = cache(async (slug) => {
+const getProductBySlugQuery = async (slug) => {
+  return unstable_cache(
+    async () => {
   const product = await prisma.product.findUnique({
     where: { slug }
   });
@@ -32,9 +34,16 @@ const getProductBySlugQuery = cache(async (slug) => {
     specs,
     reviews,
     qa,
-    category
-  };
-});
+      category
+    };
+  },
+  [`product-${slug}`],
+  {
+    revalidate: 60,
+    tags: [`product-${slug}`, 'product']
+  }
+  )();
+};
 
 /**
  * Fetch a product by slug with all relations.
@@ -88,7 +97,7 @@ export async function getProductBySlug(slug) {
         question: q.question,
         answer: q.answer,
         author: q.author,
-        date: q.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        date: new Date(q.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       })),
       breadcrumb: product.breadcrumb || [
         { name: 'Home', href: '/' },
@@ -102,7 +111,7 @@ export async function getProductBySlug(slug) {
         images: r.images,
         avatar: r.customer?.avatar || null,
         verified: r.verified,
-        date: r.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        date: new Date(r.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       })),
       additionalInfo: product.additionalInfo || {},
       description: product.description || '',
