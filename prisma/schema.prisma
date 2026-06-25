@@ -554,9 +554,11 @@ model CheckoutDraft {
   subtotal  Float
   shipping  Float
   total     Float
-  status    String   @default("draft") // "draft" | "completed"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status           String   @default("draft") // "draft" | "completed" | "pending" | "contacted" | "rejected"
+  paymentMode      String?  // "upi" | "cash" | null
+  amountCollected  Float?   // amount collected via UPI or Cash
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([email])
   @@index([phone])

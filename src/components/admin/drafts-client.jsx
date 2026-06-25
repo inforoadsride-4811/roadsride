@@ -204,6 +204,18 @@ export default function DraftsClient({ initialData, pagination }) {
                       <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded text-xs font-semibold border border-green-200">
                         <CheckCircle2 size={12} /> Completed
                       </span>
+                    ) : draft.status === 'pending' ? (
+                      <span className="inline-flex items-center gap-1 text-blue-700 bg-blue-50 px-2 py-1 rounded text-xs font-semibold border border-blue-200">
+                        <Clock size={12} /> Pending
+                      </span>
+                    ) : draft.status === 'contacted' ? (
+                      <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2 py-1 rounded text-xs font-semibold border border-purple-200">
+                        <Clock size={12} /> Contacted
+                      </span>
+                    ) : draft.status === 'rejected' ? (
+                      <span className="inline-flex items-center gap-1 text-red-700 bg-red-50 px-2 py-1 rounded text-xs font-semibold border border-red-200">
+                        <Clock size={12} /> Rejected
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-orange-700 bg-orange-50 px-2 py-1 rounded text-xs font-semibold border border-orange-200">
                         <Clock size={12} /> Draft

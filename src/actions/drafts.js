@@ -79,6 +79,39 @@ export async function completeCheckoutDraft(id) {
   }
 }
 
+// Admin: Update draft details
+export async function adminUpdateDraft(id, data) {
+  try {
+    if (!id) return { success: false, error: 'No ID provided' };
+
+    const { email, phone, firstName, lastName, address, apartment, city, state, pincode, status, paymentMode, amountCollected } = data;
+
+    await prisma.checkoutDraft.update({
+      where: { id },
+      data: {
+        email,
+        phone,
+        firstName,
+        lastName,
+        address,
+        apartment,
+        city,
+        state,
+        pincode,
+        status,
+        paymentMode: paymentMode || null,
+        amountCollected: amountCollected ? parseFloat(amountCollected) : null,
+        updatedAt: new Date()
+      }
+    });
+    revalidatePath('/admin/drafts');
+    return { success: true };
+  } catch (error) {
+    console.error('Admin update draft error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // Admin: Get all drafts
 export async function getAllDrafts(options = {}) {
   try {
