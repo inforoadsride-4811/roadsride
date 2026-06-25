@@ -134,6 +134,38 @@ export async function updatePaymentStatus(orderId, status) {
   }
 }
 
+export async function updateOrderDetails(orderId, data) {
+  try {
+    const { 
+      customerName, email, phone, address, apartment, city, state, pincode, 
+      orderStatus, paymentStatus, paymentMode, amountCollected 
+    } = data;
+    
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        customerName,
+        email,
+        phone,
+        address,
+        apartment,
+        city,
+        state,
+        pincode,
+        orderStatus,
+        paymentStatus,
+        paymentMode: paymentMode || null,
+        amountCollected: amountCollected ? parseFloat(amountCollected) : null,
+        updatedAt: new Date()
+      }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update order details:', error);
+    return { success: false, error: 'Failed to update order details' };
+  }
+}
+
 // ==========================================
 // BULK DELETE ACTIONS (Max 10)
 // ==========================================
