@@ -203,7 +203,7 @@ export async function deleteQA(qaId) {
     return { success: false, error: 'Failed to delete Q&A' };
   }
 }
-
+//hereh
 /**
  * Admin: Create a dummy/seeded Q&A directly
  */
