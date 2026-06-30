@@ -196,7 +196,7 @@ export async function deleteQA(qaId) {
 
     revalidatePath(`/product/${qa.product.slug}`);
     revalidatePath('/admin/qa');
-
+    //hehe
     return { success: true };
   } catch (error) {
     console.error('deleteQA error:', error);
