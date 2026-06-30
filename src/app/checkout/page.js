@@ -12,6 +12,7 @@ import OrderSummary from '@/components/checkout/order-summary';
 import PrepaidBanner from '@/components/checkout/prepaid-banner';
 import AnnouncementBar from '@/components/layout/announcement-bar';
 import { calculatePrepaidDiscount, SHIPPING_COST } from '@/lib/product';
+import { getProducts } from '@/actions/product';
 
 function ScrollToTop() {
   useEffect(() => {
@@ -40,11 +41,22 @@ export default function CheckoutPage() {
   const [isPrepaid, setIsPrepaid] = useState(true);
   const topRef = useRef(null);
 
+  const [recommendations, setRecommendations] = useState([]);
+
   useEffect(() => {
     setMounted(true);
     if (window.location.search.includes('payment=cod')) {
       setIsPrepaid(false);
     }
+    
+    // Fetch recommendations
+    const fetchRecs = async () => {
+      const res = await getProducts({ limit: 10 });
+      if (res.success) {
+        setRecommendations(res.products);
+      }
+    };
+    fetchRecs();
   }, []);
 
   if (!mounted) {
@@ -105,6 +117,7 @@ export default function CheckoutPage() {
                 discount={prepaidDiscount}
                 total={total}
                 isPrepaid={isPrepaid}
+                recommendations={recommendations}
               />
             </div>
           </div>

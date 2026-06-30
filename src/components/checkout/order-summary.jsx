@@ -1,9 +1,35 @@
 'use client';
 
+import { useMemo } from 'react';
 import Image from 'next/image';
 import { formatPrice } from '@/lib/product';
+import useCartStore from '@/store/cart';
+import { useToast } from '@/components/ui/toast';
+import { Plus } from 'lucide-react';
 
-export default function OrderSummary({ items, subtotal, shipping, discount, total, isPrepaid }) {
+export default function OrderSummary({ items, subtotal, shipping, discount, total, isPrepaid, recommendations = [] }) {
+  const addItem = useCartStore((s) => s.addItem);
+  const { addToast } = useToast();
+
+  const suggestedProducts = useMemo(() => {
+    if (!recommendations || recommendations.length === 0) return [];
+    // Filter out items already in cart
+    const inCartIds = new Set(items.map(i => i.id));
+    const available = recommendations.filter(p => !inCartIds.has(p.id) && p.stock > 0);
+    // Shuffle and pick 3
+    const shuffled = [...available].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 3);
+  }, [recommendations, items]);
+
+  const handleAddSuggestion = (product) => {
+    addItem(product, 1);
+    addToast({
+      title: 'Added to cart',
+      message: `${product.name} added to your order.`,
+      type: 'success',
+    });
+  };
+
   return (
     <div className="bg-gray-50 p-6 border border-brand-border rounded-xl">
       <h3 className="text-lg font-bold text-brand-black mb-6">Order Summary</h3>
@@ -74,7 +100,35 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
         </div>
       )}
 
-      <div className="border-t border-brand-border mt-4 pt-4">
+      {suggestedProducts.length > 0 && (
+        <div className="mt-6 border-t border-brand-border pt-6">
+          <h4 className="text-sm font-bold text-brand-black mb-3">You might also like</h4>
+          <div className="space-y-3">
+            {suggestedProducts.map(product => (
+              <div key={product.id} className="flex gap-3 items-center border border-gray-100 bg-white p-2 rounded-lg shadow-sm">
+                <div className="w-12 h-12 relative rounded bg-gray-50 flex-shrink-0">
+                  {product.images?.[0]?.src && (
+                    <Image src={product.images[0].src} alt={product.name} fill className="object-cover rounded" sizes="48px" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h5 className="text-xs font-medium text-brand-black truncate">{product.name}</h5>
+                  <p className="text-xs font-bold text-brand-black mt-0.5">{formatPrice(product.price)}</p>
+                </div>
+                <button 
+                  onClick={() => handleAddSuggestion(product)}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-yellow text-brand-black hover:bg-yellow-400 transition-colors flex-shrink-0"
+                  aria-label="Add to cart"
+                >
+                  <Plus size={16} strokeWidth={2.5} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="border-t border-brand-border mt-6 pt-4">
         <div className="flex justify-between items-center">
           <span className="text-base font-bold text-brand-black">Total</span>
           <div className="text-right">

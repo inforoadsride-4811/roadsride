@@ -84,6 +84,7 @@ export async function getProductBySlug(slug) {
         price: v.price,
         originalPrice: v.originalPrice,
         isBestSeller: v.isBestSeller,
+        stock: v.stock,
         images: v.images || product.images.map((img) => ({ id: img.id, src: img.src, alt: img.alt })),
       })),
       features: product.features.map((f) => ({
