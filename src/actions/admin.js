@@ -226,6 +226,27 @@ export async function bulkDeleteReviews(ids) {
   }
 }
 
+export async function bulkUpdateReviewStatus(ids, action) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (ids.length > 10) return { success: false, error: 'Maximum 10 records at once' };
+
+    const data = {};
+    if (action === 'approve') data.approved = true;
+    if (action === 'reject') data.approved = false;
+
+    await prisma.productReview.updateMany({
+      where: { id: { in: ids } },
+      data,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Bulk update review status error:', error);
+    return { success: false, error: 'Failed to update reviews' };
+  }
+}
+
 export async function bulkDeleteCustomers(ids) {
   try {
     if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };

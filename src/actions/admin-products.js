@@ -4,6 +4,7 @@ import prisma from '@/lib/db';
 import { generateSlug } from '@/lib/product';
 import { logAdminActivity } from '@/actions/admin';
 import { getSessionAdmin } from '@/actions/auth';
+import { revalidatePath } from 'next/cache';
 
 // ==========================================
 // PRODUCT CRUD
@@ -172,6 +173,7 @@ export async function createProduct(data) {
       });
     }
 
+    revalidatePath('/', 'layout');
     return { success: true, product };
   } catch (error) {
     console.error('createProduct error:', error);
@@ -230,6 +232,7 @@ export async function updateProduct(id, data) {
       });
     }
 
+    revalidatePath('/', 'layout');
     return { success: true, product };
   } catch (error) {
     console.error('updateProduct error:', error);
@@ -255,6 +258,7 @@ export async function deleteProduct(id) {
       });
     }
 
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to delete product' };
@@ -286,6 +290,7 @@ export async function saveProductVariants(productId, variants) {
       await prisma.productVariant.createMany({ data: variantsData });
     }
 
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to save variants' };
@@ -308,6 +313,7 @@ export async function saveProductFeatures(productId, features) {
       }));
       await prisma.productFeature.createMany({ data: featuresData });
     }
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to save features' };
@@ -330,6 +336,7 @@ export async function saveProductSpecs(productId, specs) {
       }));
       await prisma.productSpec.createMany({ data: specsData });
     }
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to save specs' };
@@ -352,6 +359,7 @@ export async function saveProductImages(productId, images) {
       }));
       await prisma.productImage.createMany({ data: imagesData });
     }
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to save images' };

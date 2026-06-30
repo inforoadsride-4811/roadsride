@@ -20,6 +20,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
   const currentPack = packs.length > 0 ? packs[selectedPackIndex] : null;
   const displayPrice = currentPack?.price || product.price;
   const displayOriginalPrice = currentPack?.originalPrice || product.originalPrice;
+  const effectiveStock = currentPack ? (currentPack.stock || 0) : (product.variants?.length > 0 ? product.variants.reduce((sum, v) => sum + (v.stock || 0), 0) : product.stock);
   const displayImages = currentPack?.images?.length > 0 ? currentPack.images : (product.images || []);
   const store = product.store || { name: 'RoadsRide' };
 
@@ -104,8 +105,16 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
           </button>
 
           <div className="flex items-center gap-1.5 text-brand-black">
-            <CheckCircle2 size={16} />
-            <span className="text-sm font-bold">In stock</span>
+            {effectiveStock > 0 ? (
+              <>
+                <CheckCircle2 size={16} className="text-green-600" />
+                <span className="text-sm font-bold text-green-700">In stock</span>
+              </>
+            ) : (
+              <>
+                <span className="text-sm font-bold text-red-600">Out of stock</span>
+              </>
+            )}
           </div>
         </div>
 

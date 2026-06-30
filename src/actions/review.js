@@ -124,6 +124,8 @@ export async function getProductReviews(productId, { page = 1, limit = 5 } = {})
       verified: r.verified,
       helpfulCount: r.helpfulCount,
       isFeatured: r.isFeatured,
+      adminReply: r.adminReply || null,
+      adminReplyAt: r.adminReplyAt ? r.adminReplyAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : null,
       isPending,
       isOwnReview: r.customerId === currentCustomerId,
       date: r.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -226,5 +228,43 @@ export async function updateReviewStatus(id, action) {
   } catch (error) {
     console.error('Update review error:', error);
     return { success: false, error: 'Failed to update review status.' };
+  }
+}
+
+// Admin Action: Edit Review (title, content, rating)
+export async function editReview(id, { title, content, rating }) {
+  try {
+    const data = {};
+    if (title !== undefined) data.title = title;
+    if (content !== undefined) data.content = content;
+    if (rating !== undefined) data.rating = parseInt(rating);
+
+    await prisma.productReview.update({
+      where: { id },
+      data,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Edit review error:', error);
+    return { success: false, error: 'Failed to edit review.' };
+  }
+}
+
+// Admin Action: Reply to Review
+export async function replyToReview(id, reply) {
+  try {
+    await prisma.productReview.update({
+      where: { id },
+      data: {
+        adminReply: reply || null,
+        adminReplyAt: reply ? new Date() : null,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Reply to review error:', error);
+    return { success: false, error: 'Failed to reply to review.' };
   }
 }

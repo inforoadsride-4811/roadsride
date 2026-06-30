@@ -259,6 +259,16 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
     const validation = validateForm(checkoutSchema, payloadToValidate);
     if (!validation.success) {
       setErrors(validation.errors);
+      
+      // Get the first error message to show in toast
+      const firstError = Object.values(validation.errors)[0];
+      addToast({ title: 'Missing Information', message: firstError, type: 'error' });
+      
+      // If we are using a saved address but it has errors, expand the form so the user can fix it
+      if (!useNewAddress) {
+        setUseNewAddress(true);
+      }
+      
       setLoading(false);
       return;
     }

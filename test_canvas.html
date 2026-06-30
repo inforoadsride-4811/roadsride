@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c"></canvas>
+<script>
+  const canvas = document.getElementById('c');
+  canvas.width = 1000;
+  canvas.height = 1500;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'red';
+  ctx.fillRect(0, 0, 1000, 1500);
+  canvas.toBlob(blob => {
+    console.log("Size:", blob.size);
+    document.body.innerHTML += "<br>Size: " + blob.size + " B";
+  }, 'image/webp', 0.6);
+</script>
+</body>
+</html>

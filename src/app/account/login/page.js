@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,9 @@ import { useToast } from '@/components/ui/toast';
 import { customerLogin } from '@/actions/customer-auth';
 import { loginSchema, validateForm } from '@/lib/validations';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -44,7 +45,13 @@ export default function LoginPage() {
 
     if (result.success) {
       addToast({ title: 'Welcome back!', type: 'success' });
-      router.push('/account');
+      
+      const redirectUrl = searchParams.get('redirecturlback');
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push('/account');
+      }
       router.refresh();
     } else if (result.errors) {
       setErrors(result.errors);
@@ -146,5 +153,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[70vh] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-yellow" /></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -32,6 +32,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
   const [loading, setLoading] = useState(false);
   const [isNew] = useState(!initialData);
   const [showFaqModal, setShowFaqModal] = useState(false);
+  const [dragOverItem, setDragOverItem] = useState(null);
 
   // Form State
   const getInitialFormState = () => ({
@@ -172,6 +173,79 @@ export default function ProductForm({ initialData = null, categories = [] }) {
     if (img.src) await deleteFile(img.src, BUCKETS.PRODUCTS);
     newVariants[variantIndex].images.splice(imageIndex, 1);
     setFormData({ ...formData, variants: newVariants });
+  };
+
+  // Drag and Drop for Variant Images
+  const handleDragStart = (e, variantIndex, imageIndex) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ variantIndex, imageIndex }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDrop = (e, targetVariantIndex, targetImageIndex) => {
+    e.preventDefault();
+    setDragOverItem(null);
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.variantIndex !== targetVariantIndex) return; // Only allow reordering within the same variant
+      if (data.imageIndex === targetImageIndex) return;
+      
+      const newVariants = [...formData.variants];
+      const variantImages = [...newVariants[targetVariantIndex].images];
+      
+      const [draggedItem] = variantImages.splice(data.imageIndex, 1);
+      variantImages.splice(targetImageIndex, 0, draggedItem);
+      
+      newVariants[targetVariantIndex].images = variantImages;
+      setFormData({ ...formData, variants: newVariants });
+    } catch (err) {}
+  };
+
+  const handleDragOver = (e, targetVariantIndex, targetImageIndex) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!dragOverItem || dragOverItem.variantIndex !== targetVariantIndex || dragOverItem.imageIndex !== targetImageIndex) {
+      setDragOverItem({ variantIndex: targetVariantIndex, imageIndex: targetImageIndex });
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragOverItem(null);
+  };
+
+  // Drag and Drop for Base Images
+  const handleBaseDragStart = (e, index) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ baseImageIndex: index }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleBaseDrop = (e, targetIndex) => {
+    e.preventDefault();
+    setDragOverItem(null);
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.baseImageIndex === undefined || data.baseImageIndex === targetIndex) return;
+      
+      const newImages = [...formData.images];
+      const [draggedItem] = newImages.splice(data.baseImageIndex, 1);
+      newImages.splice(targetIndex, 0, draggedItem);
+      
+      // Update sort orders and featured status
+      newImages.forEach((img, idx) => {
+        img.sortOrder = idx;
+        img.isFeatured = idx === 0;
+      });
+      
+      setFormData({ ...formData, images: newImages });
+    } catch (err) {}
+  };
+
+  const handleBaseDragOver = (e, targetIndex) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!dragOverItem || dragOverItem.baseImageIndex !== targetIndex) {
+      setDragOverItem({ baseImageIndex: targetIndex });
+    }
   };
 
   // Dynamic Array Handlers (Variants, Features, Specs)
@@ -478,7 +552,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">SEO Description</label>
-                <textarea name="seoDescription" value={formData.seoDescription} onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none h-24" placeholder="Keep under 160 characters" />
+                <textarea name="seoDescription" value={formData.seoDescription} onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none h-24 text-gray-900 bg-white" placeholder="Keep under 160 characters" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">SEO Keywords</label>
@@ -505,9 +579,21 @@ export default function ProductForm({ initialData = null, categories = [] }) {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {formData.images.map((img, idx) => (
-                  <div key={idx} className="relative aspect-square border border-brand-border rounded-lg overflow-hidden group">
+                  <div 
+                    key={idx} 
+                    draggable
+                    onDragStart={(e) => handleBaseDragStart(e, idx)}
+                    onDrop={(e) => handleBaseDrop(e, idx)}
+                    onDragOver={(e) => handleBaseDragOver(e, idx)}
+                    onDragLeave={handleDragLeave}
+                    className={`relative aspect-square border rounded-lg overflow-hidden group cursor-grab active:cursor-grabbing transition-all ${
+                      dragOverItem?.baseImageIndex === idx 
+                        ? 'border-brand-yellow border-2 scale-105 shadow-md' 
+                        : 'border-brand-border'
+                    }`}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.src} alt="" className="w-full h-full object-cover" />
+                    <img src={img.src} alt="" className="w-full h-full object-cover pointer-events-none" />
                     <button type="button" onClick={() => removeImage(idx)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 size={14} />
                     </button>
@@ -523,7 +609,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Primary Category</label>
-                <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none">
+                <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none text-gray-900 bg-white">
                   <option value="">Select Category</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
@@ -548,11 +634,20 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                   <div className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
                     <GripVertical size={16} className="text-gray-400 cursor-move" />
                     <Input placeholder="Name (e.g. Pack of 1)" value={v.name} onChange={(e) => updateArrayItem('variants', i, 'name', e.target.value)} className="flex-1 min-w-[120px]" />
-                    <div className="flex gap-2">
-                      <Input type="number" placeholder="Selling" value={v.price} onChange={(e) => updateArrayItem('variants', i, 'price', parseFloat(e.target.value))} className="w-24" />
-                      <Input type="number" placeholder="MRP" value={v.originalPrice} onChange={(e) => updateArrayItem('variants', i, 'originalPrice', parseFloat(e.target.value))} className="w-24" />
-                      <Input type="number" placeholder="Stock" value={v.stock} onChange={(e) => updateArrayItem('variants', i, 'stock', parseInt(e.target.value, 10))} className="w-20" />
-                      <div className="flex items-center gap-2 ml-2 mr-2">
+                    <div className="flex gap-2 items-end">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider pl-1">Selling</span>
+                        <Input type="number" placeholder="Selling" value={v.price === 0 ? '' : v.price} onChange={(e) => updateArrayItem('variants', i, 'price', parseFloat(e.target.value) || 0)} className="w-24" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider pl-1">MRP</span>
+                        <Input type="number" placeholder="MRP" value={v.originalPrice === 0 ? '' : v.originalPrice} onChange={(e) => updateArrayItem('variants', i, 'originalPrice', parseFloat(e.target.value) || 0)} className="w-24" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider pl-1">Stock</span>
+                        <Input type="number" placeholder="Stock" value={v.stock === 0 ? '' : v.stock} onChange={(e) => updateArrayItem('variants', i, 'stock', parseInt(e.target.value, 10) || 0)} className="w-20" />
+                      </div>
+                      <div className="flex items-center gap-2 ml-2 mr-2 mb-3">
                         <input 
                           type="checkbox" 
                           id={`bestSeller-${i}`}
@@ -564,7 +659,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                           Best Seller Tag
                         </label>
                       </div>
-                      <button type="button" onClick={() => handleRemoveVariant(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
+                      <button type="button" onClick={() => handleRemoveVariant(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg mb-1"><Trash2 size={16}/></button>
                     </div>
                   </div>
                   <div className="pl-6 flex flex-col gap-2">
@@ -581,8 +676,20 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                     {v.images && v.images.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
                         {v.images.map((img, imgIdx) => (
-                          <div key={imgIdx} className="relative w-16 h-16 border border-brand-border rounded overflow-hidden group">
-                            <img src={img.src} alt="" className="w-full h-full object-cover" />
+                          <div 
+                            key={imgIdx} 
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, i, imgIdx)}
+                            onDrop={(e) => handleDrop(e, i, imgIdx)}
+                            onDragOver={(e) => handleDragOver(e, i, imgIdx)}
+                            onDragLeave={handleDragLeave}
+                            className={`relative w-16 h-16 border rounded overflow-hidden group cursor-grab active:cursor-grabbing transition-all ${
+                              dragOverItem?.variantIndex === i && dragOverItem?.imageIndex === imgIdx 
+                                ? 'border-brand-yellow border-2 scale-105 shadow-md' 
+                                : 'border-brand-border'
+                            }`}
+                          >
+                            <img src={img.src} alt="" className="w-full h-full object-cover pointer-events-none" />
                             <button type="button" onClick={() => removeVariantImage(i, imgIdx)} className="absolute top-1 right-1 p-0.5 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity">
                               <Trash2 size={12} />
                             </button>
@@ -641,7 +748,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
             <div className="space-y-6 max-w-sm">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Publication Status</label>
-                <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none">
+                <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none text-gray-900 bg-white">
                   <option value="active">Active (Published)</option>
                   <option value="draft">Draft (Hidden)</option>
                   <option value="archived">Archived</option>

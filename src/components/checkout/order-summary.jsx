@@ -7,7 +7,7 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
   return (
     <div className="bg-gray-50 p-6 border border-brand-border rounded-xl">
       <h3 className="text-lg font-bold text-brand-black mb-6">Order Summary</h3>
-      
+
       <div className="space-y-4 mb-6">
         {items.map((item) => (
           <div key={item.id} className="flex gap-4">
@@ -43,7 +43,7 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
             {shipping === 0 ? 'Free' : formatPrice(shipping)}
           </span>
         </div>
-        
+
         {isPrepaid && discount > 0 && (
           <div className="flex justify-between text-brand-success font-medium">
             <span>Prepaid Discount (5%)</span>
@@ -54,7 +54,7 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
 
       {!isPrepaid && (
         <div className="mt-4 bg-orange-50/50 border border-orange-100 text-[#ea580c] text-[13px] font-medium px-3 py-2.5 rounded-lg flex items-start gap-1.5">
-          <span>🚚</span> 
+          <span>🚚</span>
           <p>Please order only if you are ready to receive the parcel.</p>
         </div>
       )}

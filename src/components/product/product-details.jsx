@@ -7,11 +7,12 @@ import AskQuestionModal from './ask-question-modal';
 import WriteReviewModal from './write-review-modal';
 import { toggleReviewHelpful } from '@/actions/review';
 import { useToast } from '@/components/ui/toast';
+import { useRouter } from 'next/navigation';
 
 // ─── Helpful Button with optimistic toggle + debounce ──────────────────────
 function HelpfulButton({ reviewId, initialCount }) {
   const STORAGE_KEY = 'rr_liked_reviews';
-  
+
   // Read initial liked state from localStorage
   const getInitialLiked = () => {
     if (typeof window === 'undefined') return false;
@@ -41,7 +42,7 @@ function HelpfulButton({ reviewId, initialCount }) {
         if (idx > -1) arr.splice(idx, 1);
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    } catch {}
+    } catch { }
   };
 
   const handleToggle = useCallback(() => {
@@ -216,6 +217,7 @@ function Callout({ children }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 export default function ProductDetails({ product }) {
+  const router = useRouter();
   const { addToast } = useToast();
   const [activeImage, setActiveImage] = useState(0);
   const [selectedPack, setSelectedPack] = useState(0);
@@ -223,15 +225,39 @@ export default function ProductDetails({ product }) {
   const [showAskModal, setShowAskModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [lightboxMedia, setLightboxMedia] = useState(null);
+  const [reviewPage, setReviewPage] = useState(1);
+  const hasAutoOpenedReview = useRef(false);
+
+  const REVIEWS_PER_PAGE = 5;
+  const totalReviews = product.reviews ? product.reviews.length : 0;
+  const totalReviewPages = Math.ceil(totalReviews / REVIEWS_PER_PAGE);
+  const currentReviews = product.reviews ? product.reviews.slice((reviewPage - 1) * REVIEWS_PER_PAGE, reviewPage * REVIEWS_PER_PAGE) : [];
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !hasAutoOpenedReview.current) {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('review') === 'true') {
+        setShowReviewModal(true);
+        hasAutoOpenedReview.current = true;
+        // Scroll to reviews section
+        setTimeout(() => {
+          const element = document.getElementById('reviews-section');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 500);
+      }
+    }
+  }, []);
 
   const tabs = [
     {
       label: 'Description',
       content: product.description ? (
-        <div 
-          style={col} 
-          className="rr-description prose max-w-none text-gray-700" 
-          dangerouslySetInnerHTML={{ 
+        <div
+          style={col}
+          className="rr-description prose max-w-none text-gray-700"
+          dangerouslySetInnerHTML={{
             __html: product.description.replace(/<img([^>]*)src="([^"]+)"([^>]*)>/gi, (match, before, src, after) => {
               // Only optimize local images, ignore external ones just in case
               if (src.startsWith('/')) {
@@ -239,8 +265,8 @@ export default function ProductDetails({ product }) {
                 return `<img${before}src="${optimizedSrc}" loading="lazy" decoding="async"${after}>`;
               }
               return `<img${before}src="${src}" loading="lazy" decoding="async"${after}>`;
-            }) 
-          }} 
+            })
+          }}
         />
       ) : (
         <div style={col}>
@@ -324,8 +350,8 @@ export default function ProductDetails({ product }) {
           {product.faqs && product.faqs.length > 0 ? (
             <div className="space-y-4">
               {product.faqs.map((faq) => (
-                <details 
-                  key={faq.id} 
+                <details
+                  key={faq.id}
                   className="group border border-gray-200 rounded-lg bg-white overflow-hidden [&_summary::-webkit-details-marker]:hidden"
                 >
                   <summary className="flex cursor-pointer items-center justify-between gap-1.5 p-4 text-gray-900 font-semibold bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -370,7 +396,7 @@ export default function ProductDetails({ product }) {
             <div className="space-y-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-900">Customer Questions</h3>
-                <button 
+                <button
                   onClick={() => setShowAskModal(true)}
                   className="bg-brand-black text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors"
                 >
@@ -398,7 +424,7 @@ export default function ProductDetails({ product }) {
                           </p>
                         </div>
                         <h4 className="font-bold text-gray-900 text-base mb-3">{qa.question}</h4>
-                        
+
                         {qa.answer ? (
                           <div className="bg-gray-50 rounded-lg p-4 mt-3">
                             <p className="text-sm text-gray-700 whitespace-pre-wrap"><span className="font-bold text-brand-black">A:</span> {qa.answer}</p>
@@ -419,7 +445,7 @@ export default function ProductDetails({ product }) {
               <p style={{ fontSize: '28px', margin: '0 0 10px' }}>💬</p>
               <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '600', color: '#111827' }}>No questions yet</p>
               <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#9ca3af' }}>Have something to ask? We'll get back to you.</p>
-              <button 
+              <button
                 onClick={() => setShowAskModal(true)}
                 style={{ background: '#111827', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
               >
@@ -440,9 +466,9 @@ export default function ProductDetails({ product }) {
       <div id="reviews-section" style={{ marginTop: '40px', paddingTop: '40px', borderTop: '1px solid #e5e7eb' }}>
         <H2>Customer Reviews</H2>
         <div style={col}>
-          {product.reviews && product.reviews.length > 0 ? (
+          {totalReviews > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-              {product.reviews.map((review) => (
+              {currentReviews.map((review) => (
                 <div key={review.id} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '24px' }}>
                   <div style={{ color: '#d1d5db', marginTop: '4px' }}>
                     {review.avatar ? (
@@ -505,9 +531,58 @@ export default function ProductDetails({ product }) {
                     <div style={{ display: 'flex', gap: '16px', color: '#6b7280', fontSize: '12px', fontWeight: '500' }}>
                       <HelpfulButton reviewId={review.id} initialCount={review.helpfulCount || 0} />
                     </div>
+                    {review.adminReply && (
+                      <div style={{ marginTop: '16px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '10px', padding: '14px 16px' }}>
+                        <p style={{ fontSize: '12px', fontWeight: '700', color: '#0369a1', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MessageSquare size={13} /> RoadsRide Response
+                          {review.adminReplyAt && <span style={{ fontWeight: '400', color: '#7dd3fc' }}>· {review.adminReplyAt}</span>}
+                        </p>
+                        <p style={{ fontSize: '13px', color: '#0c4a6e', lineHeight: '1.6', margin: 0 }}>{review.adminReply}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
+              
+              {totalReviewPages > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '16px' }}>
+                  <button
+                    disabled={reviewPage === 1}
+                    onClick={() => {
+                      setReviewPage(prev => Math.max(1, prev - 1));
+                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    style={{
+                      padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',
+                      background: reviewPage === 1 ? '#f3f4f6' : '#fff',
+                      color: reviewPage === 1 ? '#9ca3af' : '#374151',
+                      border: '1px solid', borderColor: reviewPage === 1 ? '#e5e7eb' : '#d1d5db',
+                      cursor: reviewPage === 1 ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    Previous
+                  </button>
+                  <span style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>
+                    Page {reviewPage} of {totalReviewPages}
+                  </span>
+                  <button
+                    disabled={reviewPage === totalReviewPages}
+                    onClick={() => {
+                      setReviewPage(prev => Math.min(totalReviewPages, prev + 1));
+                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    style={{
+                      padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',
+                      background: reviewPage === totalReviewPages ? '#f3f4f6' : '#fff',
+                      color: reviewPage === totalReviewPages ? '#9ca3af' : '#374151',
+                      border: '1px solid', borderColor: reviewPage === totalReviewPages ? '#e5e7eb' : '#d1d5db',
+                      cursor: reviewPage === totalReviewPages ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -541,7 +616,7 @@ export default function ProductDetails({ product }) {
                 <p style={{ fontSize: '28px', margin: '0 0 10px' }}>✍️</p>
                 <p style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '600', color: '#111827' }}>No reviews yet</p>
                 <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#9ca3af' }}>Be the first to share your experience.</p>
-                <button 
+                <button
                   onClick={() => setShowReviewModal(true)}
                   style={{ background: '#F5C400', color: '#111', border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
                 >
@@ -550,10 +625,10 @@ export default function ProductDetails({ product }) {
               </div>
             </>
           )}
-          
+
           {product.reviews && product.reviews.length > 0 && (
             <div style={{ marginTop: '24px', textAlign: 'center' }}>
-              <button 
+              <button
                 onClick={() => setShowReviewModal(true)}
                 style={{ background: '#111827', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
               >
@@ -563,18 +638,18 @@ export default function ProductDetails({ product }) {
           )}
         </div>
       </div>
-      
+
       {showAskModal && (
-        <AskQuestionModal 
-          productId={product.id} 
+        <AskQuestionModal
+          productId={product.id}
           onClose={() => setShowAskModal(false)}
           onSuccess={() => setShowAskModal(false)}
         />
       )}
 
       {showReviewModal && (
-        <WriteReviewModal 
-          productId={product.id} 
+        <WriteReviewModal
+          productId={product.id}
           onClose={() => setShowReviewModal(false)}
           onSuccess={() => {
             setShowReviewModal(false);
@@ -584,17 +659,17 @@ export default function ProductDetails({ product }) {
       )}
 
       {lightboxMedia && (
-        <div 
+        <div
           style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
           onClick={() => setLightboxMedia(null)}
         >
-          <button 
+          <button
             onClick={() => setLightboxMedia(null)}
             style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer' }}
           >
             ×
           </button>
-          
+
           <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: '900px', height: '100%', maxHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {typeof lightboxMedia === 'string' && lightboxMedia.match(/\.(mp4|webm|mov)(\?|$)/i) ? (
               <video src={lightboxMedia} controls autoPlay style={{ maxWidth: '100%', maxHeight: '100%', outline: 'none' }} />

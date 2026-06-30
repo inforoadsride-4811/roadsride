@@ -129,6 +129,29 @@ export default async function OrderSuccessPage({ searchParams }) {
             </div>
           </div>
 
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-left mb-8 shadow-sm">
+            <h2 className="text-xl font-bold text-green-800 mb-2">
+              🚗 Join Our Exclusive WhatsApp Channel
+            </h2>
+            <p className="text-green-900 mb-4">Our customers receive exclusive updates before everyone else:</p>
+            <ul className="space-y-2 mb-6 text-green-800 font-medium">
+              <li>✅ Car Care Tips & Tricks</li>
+              <li>✅ Exclusive Deals & Discounts</li>
+              <li>✅ New Product Launches</li>
+              <li>✅ Early Access to Offers</li>
+              <li>✅ Giveaway & Free Gift Updates</li>
+            </ul>
+            <p className="font-bold text-green-900 mb-4">👉 Join Now & Never Miss an Update</p>
+            <a 
+              href="https://whatsapp.com/channel/0029VbDb1nF1SWt0n4ul0V0l" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-block bg-[#25D366] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#20bd5a] transition-colors shadow-sm"
+            >
+              Join WhatsApp Channel
+            </a>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/track-order">
               <Button variant="outline" size="lg" className="w-full sm:w-auto">

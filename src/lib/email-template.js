@@ -69,6 +69,20 @@ export const generateOrderConfirmationHTML = (order) => `
       <a href="${process.env.NEXT_PUBLIC_APP_URL}/track-order" class="button">Track Your Order</a>
     </div>
 
+    <div style="margin-top: 30px; background-color: #E8F5E9; border: 1px solid #C8E6C9; border-radius: 8px; padding: 20px; text-align: left;">
+      <h3 style="color: #2E7D32; margin-top: 0;">🚗 Join Our Exclusive WhatsApp Channel</h3>
+      <p style="margin-bottom: 10px;">Our customers receive exclusive updates before everyone else:</p>
+      <ul style="list-style-type: none; padding-left: 0; margin-bottom: 15px;">
+        <li style="margin-bottom: 5px;">✅ Car Care Tips & Tricks</li>
+        <li style="margin-bottom: 5px;">✅ Exclusive Deals & Discounts</li>
+        <li style="margin-bottom: 5px;">✅ New Product Launches</li>
+        <li style="margin-bottom: 5px;">✅ Early Access to Offers</li>
+        <li style="margin-bottom: 5px;">✅ Giveaway & Free Gift Updates</li>
+      </ul>
+      <p style="margin-bottom: 15px; font-weight: bold;">👉 Join Now & Never Miss an Update</p>
+      <a href="https://whatsapp.com/channel/0029VbDb1nF1SWt0n4ul0V0l" style="display: inline-block; padding: 10px 20px; background-color: #25D366; color: #FFFFFF; text-decoration: none; border-radius: 5px; font-weight: bold;">Join WhatsApp Channel</a>
+    </div>
+
     <div class="footer">
       <p>If you have any questions, reply to this email or contact us at info.roadsride@gmail.com</p>
       <p>RoadsRide © 2026. All rights reserved.</p>
