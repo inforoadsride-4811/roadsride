@@ -14,7 +14,7 @@ export async function getProductQA(productId) {
     try {
       const { customer } = await getSessionCustomer();
       if (customer) currentCustomerEmail = customer.email;
-    } catch {}
+    } catch { }
 
     // Get answered Q&As
     const answeredQAs = await prisma.productQA.findMany({
@@ -75,7 +75,7 @@ export async function askQuestion(productId, data) {
     });
 
     revalidatePath(`/admin/qa`);
-    
+
     return { success: true, qa: newQA };
   } catch (error) {
     console.error('askQuestion error:', error);
@@ -224,7 +224,7 @@ export async function createDummyQA(productId, data) {
       },
       include: { product: { select: { slug: true } } }
     });
-
+    //hehe
     revalidatePath(`/product/${qa.product.slug}`);
     revalidatePath('/admin/qa');
 
