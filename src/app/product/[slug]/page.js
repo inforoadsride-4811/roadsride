@@ -1,4 +1,4 @@
-import { getProductBySlug } from '@/actions/product';
+import { getProductBySlug, getProducts } from '@/actions/product';
 import { notFound } from 'next/navigation';
 import ProductPageClient from '@/components/product/product-page-client';
 
@@ -44,5 +44,11 @@ export default async function SlugProductPage({ params }) {
     notFound();
   }
 
-  return <ProductPageClient product={product} />;
+  // Fetch 4 latest products to use as recommendations (exclude current)
+  const { products: latestProducts = [] } = await getProducts({ limit: 4 });
+  const recommendations = latestProducts
+    .filter(p => p.id !== product.id)
+    .slice(0, 3);
+
+  return <ProductPageClient product={product} recommendations={recommendations} />;
 }

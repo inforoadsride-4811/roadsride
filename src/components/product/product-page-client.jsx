@@ -7,6 +7,7 @@ import Breadcrumb from '@/components/product/breadcrumb';
 import ProductGallery from '@/components/product/product-gallery';
 import ProductInfo from '@/components/product/product-info';
 import ProductDetails from '@/components/product/product-details';
+import ProductCard from '@/components/shop/ProductCard';
 
 function ScrollToTop() {
   useEffect(() => {
@@ -28,7 +29,7 @@ function ScrollToTop() {
   return null;
 }
 
-export default function ProductPageClient({ product }) {
+export default function ProductPageClient({ product, recommendations = [] }) {
   const [selectedPackIndex, setSelectedPackIndex] = useState(0);
   const topRef = useRef(null);
 
@@ -63,6 +64,20 @@ export default function ProductPageClient({ product }) {
           </div>
         </div>
         <ProductDetails product={product} />
+
+        {/* Recommended Products */}
+        {recommendations.length > 0 && (
+          <div className="w-full px-4 sm:px-6 mt-16 mb-24" style={{ maxWidth: '1170px', margin: '64px auto' }}>
+            <h2 className="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">
+              You May Also Like
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {recommendations.map(rec => (
+                <ProductCard key={rec.id} product={rec} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
