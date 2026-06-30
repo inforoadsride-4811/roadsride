@@ -204,7 +204,7 @@ export async function deleteQA(qaId) {
   }
 }
 //hereh
-/**
+/**s
  * Admin: Create a dummy/seeded Q&A directly
  */
 export async function createDummyQA(productId, data) {
