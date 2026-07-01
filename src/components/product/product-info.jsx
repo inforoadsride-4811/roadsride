@@ -194,29 +194,8 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
           <div className="flex flex-col gap-2">
             <p className="text-sm font-bold text-brand-black uppercase">Number of Items</p>
             
-            {/* Mobile: Simple Buttons (hidden on md) */}
-            <div className="grid grid-cols-2 gap-3 md:hidden">
-              {packs.map((pack, index) => (
-                <button
-                  key={`mobile-${pack.id}`}
-                  onClick={() => onPackSelect(index)}
-                  className={`relative rounded-md border px-4 py-3 text-base font-medium transition-all ${index === selectedPackIndex
-                    ? 'border-brand-black bg-gray-50 text-brand-black border-2'
-                    : 'border-brand-border bg-gray-50 text-brand-black hover:border-gray-400'
-                    }`}
-                >
-                  {pack.name}
-                  {pack.isBestSeller && (
-                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm uppercase whitespace-nowrap">
-                      BEST SELLER
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Desktop: Rich Cards (hidden on mobile) */}
-            <div className="hidden md:flex md:flex-col md:space-y-4 mt-2">
+            {/* All Devices: Rich Cards */}
+            <div className="flex flex-col space-y-4 mt-2">
               {packs.map((pack, index) => {
                 const isSelected = index === selectedPackIndex;
                 let borderColor = isSelected ? 'border-brand-black' : 'border-gray-300';
