@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function ShopPage({ searchParams }) {
   const resolvedParams = await searchParams;
-  
+
   // Extract all query params
   const {
     page,
@@ -58,7 +58,7 @@ export default async function ShopPage({ searchParams }) {
   };
 
   return (
-    <ShopPageClient 
+    <ShopPageClient
       initialProducts={productsRes.products}
       pagination={productsRes.pagination}
       filterMetadata={{

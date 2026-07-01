@@ -5,7 +5,7 @@ import prisma from '@/lib/db';
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
-  
+
   const category = await prisma.category.findUnique({
     where: { slug }
   });
@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 export default async function CategoryPage({ params, searchParams }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
-  
+
   const categorySlug = resolvedParams.slug;
 
   const {
@@ -67,7 +67,7 @@ export default async function CategoryPage({ params, searchParams }) {
   };
 
   return (
-    <ShopPageClient 
+    <ShopPageClient
       initialProducts={productsRes.products}
       pagination={productsRes.pagination}
       filterMetadata={{

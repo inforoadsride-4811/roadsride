@@ -20,7 +20,17 @@ export default function ProductGallery({ images, discount }) {
   }, []);
   const thumbnailsRef = useRef(null);
 
-  const selected = images[selectedIndex];
+  useEffect(() => {
+    if (images && images.length > 0 && selectedIndex >= images.length) {
+      setSelectedIndex(0);
+    }
+  }, [images, selectedIndex]);
+
+  const selected = images?.[selectedIndex] || images?.[0];
+
+  if (!selected) {
+    return <div className="aspect-square w-full bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400">No Image Available</div>;
+  }
 
   const ZOOM_LEVEL = 2.5;
   const lensSize = 100 / ZOOM_LEVEL;

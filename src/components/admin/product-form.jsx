@@ -160,6 +160,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
     
     if (newImages.length > 0) {
       const newVariants = [...formData.variants];
+      newVariants[variantIndex] = { ...newVariants[variantIndex] };
       newVariants[variantIndex].images = [...(newVariants[variantIndex].images || []), ...newImages];
       setFormData({ ...formData, variants: newVariants });
       addToast({ title: 'Images uploaded', type: 'success' });
@@ -169,9 +170,12 @@ export default function ProductForm({ initialData = null, categories = [] }) {
 
   const removeVariantImage = async (variantIndex, imageIndex) => {
     const newVariants = [...formData.variants];
-    const img = newVariants[variantIndex].images[imageIndex];
+    newVariants[variantIndex] = { ...newVariants[variantIndex] };
+    const newImages = [...(newVariants[variantIndex].images || [])];
+    const img = newImages[imageIndex];
     if (img.src) await deleteFile(img.src, BUCKETS.PRODUCTS);
-    newVariants[variantIndex].images.splice(imageIndex, 1);
+    newImages.splice(imageIndex, 1);
+    newVariants[variantIndex].images = newImages;
     setFormData({ ...formData, variants: newVariants });
   };
 
@@ -190,7 +194,8 @@ export default function ProductForm({ initialData = null, categories = [] }) {
       if (data.imageIndex === targetImageIndex) return;
       
       const newVariants = [...formData.variants];
-      const variantImages = [...newVariants[targetVariantIndex].images];
+      newVariants[targetVariantIndex] = { ...newVariants[targetVariantIndex] };
+      const variantImages = [...(newVariants[targetVariantIndex].images || [])];
       
       const [draggedItem] = variantImages.splice(data.imageIndex, 1);
       variantImages.splice(targetImageIndex, 0, draggedItem);
@@ -625,7 +630,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                   <h3 className="font-semibold text-brand-black">Product Variants (e.g. Pack sizes)</h3>
                   <p className="text-xs text-gray-500 mt-1">Configure pricing, stock, and specific images for each option.</p>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => addArrayItem('variants', { name: '', price: 0, originalPrice: 0, stock: 0, isBestSeller: false, images: [] })}>
+                <Button type="button" variant="outline" size="sm" onClick={() => addArrayItem('variants', { name: '', price: 0, originalPrice: 0, stock: 0, isBestSeller: false, images: [], badgeText: '', savingsText: '', keyPoints: [] })}>
                   <Plus size={14} className="mr-1" /> Add Variant
                 </Button>
               </div>
@@ -672,6 +677,30 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                         {uploadingImage ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Plus size={14} className="mr-1" />} Upload Variant Images
                         <input type="file" multiple accept="image/*" onChange={(e) => handleVariantImageUpload(e, i)} className="absolute inset-0 opacity-0 cursor-pointer" disabled={uploadingImage} />
                       </Button>
+                    </div>
+
+                    <div className="bg-white p-4 rounded border border-gray-200 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-gray-700">Badge Text (Optional)</label>
+                          <Input placeholder="e.g. 🔥 MOST POPULAR | FLAT ₹249 SAVINGS" value={v.badgeText || ''} onChange={(e) => updateArrayItem('variants', i, 'badgeText', e.target.value)} className="text-sm" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-gray-700">Savings Text (Optional)</label>
+                          <Input placeholder="e.g. Save Flat ₹599" value={v.savingsText || ''} onChange={(e) => updateArrayItem('variants', i, 'savingsText', e.target.value)} className="text-sm" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold text-gray-700">Key Points / Free Gifts</label>
+                        <p className="text-[10px] text-gray-500 mb-1">Enter one point per line. You can use emojis (e.g. 🎁 FREE GIFT: 1x Mirror).</p>
+                        <textarea 
+                          rows={4}
+                          value={v.keyPoints?.join('\n') || ''} 
+                          onChange={(e) => updateArrayItem('variants', i, 'keyPoints', e.target.value.split('\n'))} 
+                          className="w-full text-sm border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none bg-white text-gray-900"
+                          placeholder="1 Piece Premium Microfiber (1200 GSM)&#10;🎁 FREE GIFT: 1x Car Blind Spot Mirror"
+                        />
+                      </div>
                     </div>
                     {v.images && v.images.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">

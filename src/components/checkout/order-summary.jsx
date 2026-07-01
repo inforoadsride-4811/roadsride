@@ -35,27 +35,63 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
       <h3 className="text-lg font-bold text-brand-black mb-6">Order Summary</h3>
 
       <div className="space-y-4 mb-6">
-        {items.map((item) => (
-          <div key={item.id} className="flex gap-4">
-            <div className="w-16 h-16 relative rounded-lg border border-brand-border bg-white overflow-hidden flex-shrink-0">
-              <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px" />
-              <div className="absolute -top-2 -right-2 w-5 h-5 bg-gray-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-10 border-2 border-white">
-                {item.quantity}
-              </div>
-            </div>
-            <div className="flex-1 flex flex-col justify-center min-w-0">
-              <h4 className="text-sm font-medium text-brand-black line-clamp-2 leading-snug">
-                {item.name}
-              </h4>
-              {item.packName && (
-                <p className="text-xs text-gray-500 mt-0.5">Number of Items: {item.packName}</p>
+        {items.map((item) => {
+          let borderColor = 'border-brand-black';
+          let bgColor = 'bg-green-50/30';
+          let badgeBg = 'bg-gray-100 text-gray-700';
+          
+          if (item.packIndex === 1) { borderColor = 'border-green-600'; badgeBg = 'bg-green-100 text-green-800'; }
+          if (item.packIndex === 2) { borderColor = 'border-blue-600'; badgeBg = 'bg-blue-100 text-blue-800'; }
+          if (item.packIndex === 3) { borderColor = 'border-orange-600'; badgeBg = 'bg-orange-100 text-orange-800'; }
+
+          return (
+            <div key={item.id} className={`relative flex flex-col rounded-xl border-2 ${borderColor} ${bgColor} overflow-hidden shadow-sm`}>
+              {item.badgeText && (
+                <div className={`w-full py-1.5 px-3 text-center text-[11px] font-black tracking-wide uppercase ${badgeBg}`}>
+                  {item.badgeText}
+                </div>
               )}
-              <div className="text-sm font-bold text-brand-black mt-1">
-                {formatPrice(item.price * item.quantity)}
+              <div className="p-4 flex gap-4">
+                <div className="w-16 h-16 relative rounded-lg border border-gray-200 bg-white overflow-hidden flex-shrink-0">
+                  <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px" />
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gray-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-10 border-2 border-white shadow-sm">
+                    {item.quantity}
+                  </div>
+                </div>
+                <div className="flex-1 flex flex-col justify-center min-w-0">
+                  <h4 className="text-[13px] font-bold text-brand-black leading-tight mb-1">
+                    {item.name}
+                  </h4>
+                  {item.packName && (
+                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Number of Items: {item.packName}</p>
+                  )}
+                  {item.keyPoints && item.keyPoints.length > 0 && (
+                    <ul className="mb-2 space-y-1">
+                      {item.keyPoints.map((point, i) => (
+                        <li key={i} className="text-[11px] font-semibold text-gray-800 flex items-start leading-tight">
+                          <span className="mr-1 shrink-0">
+                            {point.includes('GIFT') || point.includes('🎁') ? '🎁' : (point.includes('❌') ? '❌' : '•')}
+                          </span>
+                          <span className="pt-[1px]">{point.replace(/^(🎁|❌|•|\s)+/, '')}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex justify-between items-end mt-auto pt-1 border-t border-black/5">
+                    <div>
+                      {item.savingsText && (
+                        <p className="text-[10px] text-gray-500 font-bold">{item.savingsText}</p>
+                      )}
+                    </div>
+                    <div className="text-[15px] font-black text-brand-black leading-none">
+                      {formatPrice(item.price * item.quantity)}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="border-t border-brand-border pt-4 space-y-3 text-sm">

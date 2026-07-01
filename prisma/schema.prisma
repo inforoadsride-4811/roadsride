@@ -115,6 +115,9 @@ model ProductVariant {
   isActive      Boolean @default(true)
   // Variant-specific images (JSON array of { src, alt } objects)
   images        Json?
+  badgeText     String? // e.g. "🔥 MOST POPULAR | FLAT ₹249 SAVINGS"
+  savingsText   String? // e.g. "Save Flat ₹599"
+  keyPoints     Json?   // JSON Array of strings
 
   @@index([productId])
 }

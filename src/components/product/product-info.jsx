@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Star, StarHalf, Minus, Plus, Truck, ShieldCheck, RotateCcw, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Star, StarHalf, Minus, Plus, Truck, ShieldCheck, RotateCcw, MessageCircle, Loader2, CheckCircle2, ChevronUp, X, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import useCartStore from '@/store/cart';
@@ -12,9 +12,11 @@ import SalesBadge from './sales-badge';
 export default function ProductInfo({ product, selectedPackIndex = 0, onPackSelect = () => { } }) {
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
+  const clearCart = useCartStore((s) => s.clearCart);
   const { addToast } = useToast();
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const packs = product.packs || product.variants || [];
   const currentPack = packs.length > 0 ? packs[selectedPackIndex] : null;
@@ -47,6 +49,10 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
     price: displayPrice,
     originalPrice: displayOriginalPrice,
     images: displayImages,
+    keyPoints: currentPack?.keyPoints || product.keyPoints || [],
+    badgeText: currentPack?.badgeText || '',
+    savingsText: currentPack?.savingsText || '',
+    packIndex: selectedPackIndex
   });
 
   const handleAddToCart = () => {
@@ -61,6 +67,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
   const handleOrderNow = () => {
     setIsNavigating(true);
+    clearCart(); // Clear the cart so only this item is checked out
     addItem(getPackProduct(), quantity);
     router.push('/checkout?payment=Cash On Delivery');
   };
@@ -186,24 +193,91 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         {packs.length > 0 && (
           <div className="flex flex-col gap-2">
             <p className="text-sm font-bold text-brand-black uppercase">Number of Items</p>
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-2">
+            
+            {/* Mobile: Simple Buttons (hidden on md) */}
+            <div className="grid grid-cols-2 gap-3 md:hidden">
               {packs.map((pack, index) => (
                 <button
-                  key={pack.id}
+                  key={`mobile-${pack.id}`}
                   onClick={() => onPackSelect(index)}
-                  className={`relative rounded-md border px-4 py-3 sm:py-2 text-base sm:text-sm font-medium transition-all ${index === selectedPackIndex
+                  className={`relative rounded-md border px-4 py-3 text-base font-medium transition-all ${index === selectedPackIndex
                     ? 'border-brand-black bg-gray-50 text-brand-black border-2'
                     : 'border-brand-border bg-gray-50 text-brand-black hover:border-gray-400'
                     }`}
                 >
                   {pack.name}
                   {pack.isBestSeller && (
-                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 sm:left-auto sm:right-[-5px] sm:translate-x-0 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm uppercase whitespace-nowrap">
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm uppercase whitespace-nowrap">
                       BEST SELLER
                     </span>
                   )}
                 </button>
               ))}
+            </div>
+
+            {/* Desktop: Rich Cards (hidden on mobile) */}
+            <div className="hidden md:flex md:flex-col md:space-y-4 mt-2">
+              {packs.map((pack, index) => {
+                const isSelected = index === selectedPackIndex;
+                let borderColor = isSelected ? 'border-brand-black' : 'border-gray-300';
+                let bgColor = isSelected ? 'bg-green-50/30' : 'bg-white';
+                let badgeBg = 'bg-gray-100 text-gray-700';
+
+                if (index === 1) { borderColor = isSelected ? 'border-green-600' : 'border-green-300'; badgeBg = 'bg-green-100 text-green-800'; }
+                if (index === 2) { borderColor = isSelected ? 'border-blue-600' : 'border-blue-300'; badgeBg = 'bg-blue-100 text-blue-800'; }
+                if (index === 3) { borderColor = isSelected ? 'border-orange-600' : 'border-orange-300'; badgeBg = 'bg-orange-100 text-orange-800'; }
+
+                return (
+                  <div 
+                    key={`desktop-${pack.id}`} 
+                    onClick={() => onPackSelect(index)}
+                    className={`relative flex flex-col rounded-xl border-2 ${borderColor} ${bgColor} overflow-hidden cursor-pointer transition-colors shadow-sm`}
+                  >
+                    {pack.badgeText && (
+                      <div className={`w-full py-1.5 px-3 text-center text-[11px] font-black tracking-wide uppercase ${badgeBg}`}>
+                        {pack.badgeText}
+                      </div>
+                    )}
+                    
+                    <div className="p-4 flex gap-3">
+                      <div className="pt-1">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-green-600' : 'border-gray-300'}`}>
+                          {isSelected && <div className="w-2.5 h-2.5 bg-green-600 rounded-full" />}
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-brand-black text-base leading-tight">
+                            {pack.name}
+                          </h4>
+                          <div className="text-right">
+                            {pack.savingsText && (
+                              <p className="text-[10px] text-gray-500 font-semibold">{pack.savingsText}</p>
+                            )}
+                            <p className="font-black text-lg text-brand-black leading-none">
+                              {product.currency}{pack.price}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {pack.keyPoints && pack.keyPoints.length > 0 && (
+                          <ul className="mt-2 space-y-1.5">
+                            {pack.keyPoints.map((point, i) => (
+                              <li key={i} className="text-xs font-semibold text-gray-800 flex items-start leading-tight">
+                                <span className="mr-1.5 shrink-0">
+                                  {point.includes('GIFT') || point.includes('🎁') ? '🎁' : (point.includes('❌') ? '❌' : '•')}
+                                </span>
+                                <span>{point.replace(/🎁|❌/, '').trim()}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -257,46 +331,141 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
       </div>
 
       {/* Mobile Sticky Actions */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-brand-border p-2.5 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-safe">
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <div className="flex h-10 w-24 items-center rounded-xl border border-brand-border bg-gray-50/50 flex-shrink-0">
-              <button aria-label="Decrease quantity" onClick={() => handleQuantityChange('dec')} className="flex h-full w-7 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
-                <Minus size={14} />
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-brand-border p-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-safe">
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3 justify-between items-center">
+            {packs.length > 0 ? (
+              <button
+                onClick={() => setIsDrawerOpen(true)}
+                className="flex flex-1 h-11 items-center justify-between rounded-xl border-2 border-brand-black bg-white px-4 text-sm font-bold text-brand-black"
+              >
+                <span className="truncate mr-2">{currentPack?.name || 'Choose Pack'}</span>
+                <ChevronUp size={18} />
               </button>
-              <div className="flex h-full flex-1 items-center justify-center border-x border-brand-border text-sm font-semibold text-brand-black">
+            ) : (
+              <div className="flex-1" />
+            )}
+            
+            <div className="flex h-11 w-[120px] items-center rounded-xl border border-brand-border bg-gray-50 flex-shrink-0">
+              <button aria-label="Decrease quantity" onClick={() => handleQuantityChange('dec')} className="flex h-full w-10 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+                <Minus size={16} />
+              </button>
+              <div className="flex h-full flex-1 items-center justify-center border-x border-brand-border text-base font-bold text-brand-black">
                 {quantity}
               </div>
-              <button aria-label="Increase quantity" onClick={() => handleQuantityChange('inc')} className="flex h-full w-7 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
-                <Plus size={14} />
+              <button aria-label="Increase quantity" onClick={() => handleQuantityChange('inc')} className="flex h-full w-10 items-center justify-center rounded-r-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
+                <Plus size={16} />
               </button>
             </div>
-            <div className="flex flex-1 overflow-x-auto gap-2 items-center py-1 [&::-webkit-scrollbar]:hidden" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-              {packs.map((pack, index) => (
-                <button
-                  key={pack.id}
-                  onClick={() => onPackSelect(index)}
-                  className={`relative flex-shrink-0 h-9 flex items-center justify-center rounded-lg border px-3 text-[11px] font-medium transition-all ${index === selectedPackIndex
-                    ? 'border-brand-black bg-gray-50 text-brand-black border-2'
-                    : 'border-brand-border bg-gray-50 text-brand-black'
-                    }`}
-                >
-                  {pack.name}
-                  {pack.isBestSeller && (
-                    <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 rounded bg-red-500 px-1 py-[2px] text-[7px] font-bold text-white shadow-sm uppercase whitespace-nowrap z-10">
-                      BEST SELLER
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
           </div>
-          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" className="font-poppins font-bold h-10 w-full rounded-full text-xs uppercase tracking-wide whitespace-nowrap">
+          
+          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" className="font-poppins font-bold h-12 w-full rounded-full text-[13px] uppercase tracking-wide">
             {isNavigating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(displayPrice * quantity).toFixed(2)} (Cash On Delivery)`}
           </Button>
         </div>
       </div>
+
+      {/* Full-Screen Pack Selection Drawer */}
+      {isDrawerOpen && packs.length > 0 && (
+        <div className="fixed inset-0 z-[200] flex flex-col bg-white overflow-hidden sm:hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-brand-border bg-white shrink-0 sticky top-0 z-10">
+            <h2 className="text-lg font-bold text-brand-black">Choose Your Pack</h2>
+            <button onClick={() => setIsDrawerOpen(false)} className="p-2 -mr-2 text-gray-500">
+              <X size={24} />
+            </button>
+          </div>
+          
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4 pb-32">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-black text-brand-black uppercase leading-tight">
+                Choose Your Pack &<br/>Secure Big Savings 👇
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 italic">
+                (Cash on Delivery (COD) & FREE Delivery Available on All Orders) 🚚
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {packs.map((pack, index) => {
+                const isSelected = index === selectedPackIndex;
+                let borderColor = isSelected ? 'border-brand-black' : 'border-gray-300';
+                let bgColor = isSelected ? 'bg-green-50/30' : 'bg-white';
+                let badgeBg = 'bg-gray-100 text-gray-700';
+
+                // Basic logic for colors based on index if not explicitly styled
+                if (index === 1) { borderColor = isSelected ? 'border-green-600' : 'border-green-300'; badgeBg = 'bg-green-100 text-green-800'; }
+                if (index === 2) { borderColor = isSelected ? 'border-blue-600' : 'border-blue-300'; badgeBg = 'bg-blue-100 text-blue-800'; }
+                if (index === 3) { borderColor = isSelected ? 'border-orange-600' : 'border-orange-300'; badgeBg = 'bg-orange-100 text-orange-800'; }
+
+                return (
+                  <div 
+                    key={pack.id} 
+                    onClick={() => { onPackSelect(index); setIsDrawerOpen(false); }}
+                    className={`relative flex flex-col rounded-xl border-2 ${borderColor} ${bgColor} overflow-hidden cursor-pointer transition-colors shadow-sm`}
+                  >
+                    {pack.badgeText && (
+                      <div className={`w-full py-1.5 px-3 text-center text-[11px] font-black tracking-wide uppercase ${badgeBg}`}>
+                        {pack.badgeText}
+                      </div>
+                    )}
+                    
+                    <div className="p-4 flex gap-3">
+                      <div className="pt-1">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-green-600' : 'border-gray-300'}`}>
+                          {isSelected && <div className="w-2.5 h-2.5 bg-green-600 rounded-full" />}
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-brand-black text-base leading-tight">
+                            {pack.name}
+                          </h4>
+                          <div className="text-right">
+                            {pack.savingsText && (
+                              <p className="text-[10px] text-gray-500 font-semibold">{pack.savingsText}</p>
+                            )}
+                            <p className="font-black text-lg text-brand-black leading-none">
+                              {product.currency}{pack.price}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {pack.keyPoints && pack.keyPoints.length > 0 && (
+                          <ul className="mt-2 space-y-1.5">
+                            {pack.keyPoints.map((point, i) => (
+                              <li key={i} className="text-xs font-semibold text-gray-800 flex items-start leading-tight">
+                                <span className="mr-1.5 shrink-0">
+                                  {point.includes('GIFT') || point.includes('🎁') ? '🎁' : (point.includes('❌') ? '❌' : '•')}
+                                </span>
+                                <span className="pt-[1px]">{point.replace(/^(🎁|❌|•|\s)+/, '')}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Footer Action */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shrink-0 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+            <Button onClick={() => { setIsDrawerOpen(false); handleOrderNow(); }} disabled={isNavigating} variant="secondary" className="w-full h-14 bg-[#2e8b3b] hover:bg-[#257330] text-white rounded-lg font-black text-sm uppercase shadow-[0_4px_14px_rgba(46,139,59,0.4)] border-none">
+              {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
+              {isNavigating ? 'Processing...' : `BUY NOW - ${product.currency}${currentPack?.price} (FREE GIFT UNLOCKED!) 🎁`}
+            </Button>
+            <p className="text-center text-[10px] font-bold text-gray-500 mt-3 uppercase tracking-wide">
+              CLICK NOW → Check out Form (No Extra Step)
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 }

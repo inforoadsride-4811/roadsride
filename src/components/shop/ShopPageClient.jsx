@@ -21,7 +21,7 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
   // Update filters in URL
   const updateFilter = useCallback((key, value) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     if (value) {
       params.set(key, value);
     } else {
@@ -73,13 +73,13 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
   return (
     <div className="bg-[#f8f8f8] min-h-screen pt-6 pb-20">
       <div className="max-w-[1440px] mx-auto px-5 md:px-16">
-        
+
         {/* Breadcrumb / Title */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-extrabold text-brand-black tracking-tight mb-2">
-            {initialFilters.categorySlug 
+            {initialFilters.categorySlug
               ? filterMetadata.categories.find(c => c.slug === initialFilters.categorySlug)?.name || 'Products'
-              : initialFilters.q 
+              : initialFilters.q
                 ? `Search results for "${initialFilters.q}"`
                 : 'All Products'}
           </h1>
@@ -87,13 +87,13 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-72 shrink-0">
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm sticky top-24">
-              <FilterSidebar 
-                filters={initialFilters} 
-                updateFilter={updateFilter} 
+              <FilterSidebar
+                filters={initialFilters}
+                updateFilter={updateFilter}
                 clearFilters={clearFilters}
                 filterMetadata={filterMetadata}
               />
@@ -102,7 +102,7 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            <TopToolbar 
+            <TopToolbar
               pagination={pagination}
               filters={initialFilters}
               updateFilter={updateFilter}
@@ -125,7 +125,7 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
             ) : (
               <>
                 <div className={
-                  viewMode === 'grid' 
+                  viewMode === 'grid'
                     ? "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                     : "flex flex-col gap-6"
                 }>
@@ -137,7 +137,6 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
                     ))
                   )}
                 </div>
-
                 <Pagination pagination={pagination} updateFilter={updateFilter} />
               </>
             )}
@@ -158,11 +157,11 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto bg-gray-50/50">
-              <FilterSidebar 
-                filters={initialFilters} 
-                updateFilter={updateFilter} 
+              <FilterSidebar
+                filters={initialFilters}
+                updateFilter={updateFilter}
                 clearFilters={clearFilters}
                 filterMetadata={filterMetadata}
                 isMobile={true}
@@ -185,8 +184,8 @@ function ProductSkeleton({ viewMode }) {
           <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
           <div className="h-6 bg-gray-200 rounded w-1/4 mb-auto"></div>
           <div className="mt-4 pt-4 border-t flex justify-between items-center">
-             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-             <div className="h-10 bg-gray-200 rounded w-32"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-10 bg-gray-200 rounded w-32"></div>
           </div>
         </div>
       </div>

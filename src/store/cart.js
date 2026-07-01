@@ -44,6 +44,7 @@ const useCartStore = create(
                 price: product.price,
                 originalPrice: product.originalPrice,
                 image: product.images?.[0]?.src || product.image,
+                keyPoints: product.keyPoints || [],
                 quantity,
               },
             ];
@@ -140,6 +141,7 @@ const useCartStore = create(
           price: item.price,
           originalPrice: item.originalPrice,
           image: item.image,
+          keyPoints: item.keyPoints,
         }));
       },
     }),

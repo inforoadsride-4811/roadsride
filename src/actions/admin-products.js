@@ -4,7 +4,7 @@ import prisma from '@/lib/db';
 import { generateSlug } from '@/lib/product';
 import { logAdminActivity } from '@/actions/admin';
 import { getSessionAdmin } from '@/actions/auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 // ==========================================
 // PRODUCT CRUD
@@ -174,6 +174,8 @@ export async function createProduct(data) {
     }
 
     revalidatePath('/', 'layout');
+    revalidateTag('product');
+    if (product?.slug) revalidateTag(`product-${product.slug}`);
     return { success: true, product };
   } catch (error) {
     console.error('createProduct error:', error);
@@ -233,6 +235,8 @@ export async function updateProduct(id, data) {
     }
 
     revalidatePath('/', 'layout');
+    revalidateTag('product');
+    if (product?.slug) revalidateTag(`product-${product.slug}`);
     return { success: true, product };
   } catch (error) {
     console.error('updateProduct error:', error);
@@ -259,6 +263,8 @@ export async function deleteProduct(id) {
     }
 
     revalidatePath('/', 'layout');
+    revalidateTag('product');
+    if (product?.slug) revalidateTag(`product-${product.slug}`);
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to delete product' };
@@ -275,6 +281,7 @@ export async function saveProductVariants(productId, variants) {
     await prisma.productVariant.deleteMany({ where: { productId } });
 
     // Create new variants
+    require('fs').writeFileSync('/Users/manshajami/Desktop/roadsride/roadride_ecom/variants-dump.json', JSON.stringify(variants, null, 2));
     if (variants && variants.length > 0) {
       const variantsData = variants.map((v, i) => ({
         productId,
@@ -286,13 +293,18 @@ export async function saveProductVariants(productId, variants) {
         sortOrder: i,
         isActive: v.isActive !== false,
         images: v.images || null,
+        badgeText: v.badgeText || null,
+        savingsText: v.savingsText || null,
+        keyPoints: v.keyPoints ? v.keyPoints.filter(Boolean) : null,
       }));
       await prisma.productVariant.createMany({ data: variantsData });
     }
 
     revalidatePath('/', 'layout');
+    revalidateTag('product');
     return { success: true };
   } catch (error) {
+    require('fs').writeFileSync('/Users/manshajami/Desktop/roadsride/roadride_ecom/save-error.log', String(error) + '\n' + error.stack);
     return { success: false, error: 'Failed to save variants' };
   }
 }
@@ -314,6 +326,7 @@ export async function saveProductFeatures(productId, features) {
       await prisma.productFeature.createMany({ data: featuresData });
     }
     revalidatePath('/', 'layout');
+    revalidateTag('product');
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to save features' };
