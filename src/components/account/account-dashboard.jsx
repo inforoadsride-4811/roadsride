@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Camera, Package, User, LogOut, MapPin, Edit, Save, X, Calendar,
   ShieldCheck, Loader2, Mail, Phone, ChevronDown, ChevronUp,
@@ -39,20 +39,26 @@ const TRACKING_STEPS = [
 
 export default function AccountDashboard({ customer, orderCount, orders, addresses: initialAddresses, initialTab }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { addToast } = useToast();
   const avatarInputRef = useRef(null);
 
   // Active tab — synced with URL ?tab= param
   const [activeTab, setActiveTab] = useState(initialTab || 'profile');
 
-  // Sync tab when URL changes (e.g. header link click)
+  // Sync tab when URL changes (e.g. browser back/forward)
   useEffect(() => {
-    const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl && ['profile', 'orders', 'addresses'].includes(tabFromUrl)) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [searchParams]);
+    const syncTab = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tabFromUrl = params.get('tab');
+      if (tabFromUrl && ['profile', 'orders', 'addresses'].includes(tabFromUrl)) {
+        setActiveTab(tabFromUrl);
+      } else if (!tabFromUrl) {
+        setActiveTab('profile');
+      }
+    };
+    window.addEventListener('popstate', syncTab);
+    return () => window.removeEventListener('popstate', syncTab);
+  }, []);
 
   // Profile state
   const [editing, setEditing] = useState(false);

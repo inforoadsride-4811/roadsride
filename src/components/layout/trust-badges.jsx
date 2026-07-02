@@ -30,7 +30,7 @@ export default function TrustBadges() {
   return (
     <section className="border-y border-brand-border ">
       <div className="px-6 py-4" style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {badges.map((badge, index) => (
             <motion.div
               key={badge.title}
@@ -38,12 +38,14 @@ export default function TrustBadges() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, duration: 0.4 }}
-              className="flex min-h-28 items-center gap-5 rounded-xl bg-white p-5"
+              className="flex flex-col sm:flex-row min-h-[110px] sm:min-h-28 items-center sm:items-start text-center sm:text-left gap-2 sm:gap-5 rounded-xl bg-white p-3 sm:p-5"
             >
-              <div className="text-brand-black flex-shrink-0">{badge.icon}</div>
+              <div className="text-brand-black flex-shrink-0">
+                <div className="scale-75 sm:scale-100 -mb-1 sm:mb-0">{badge.icon}</div>
+              </div>
               <div>
-                <h3 className="text-base font-bold text-brand-black">{badge.title}</h3>
-                <p className="text-sm text-gray-500 mt-1 leading-relaxed">{badge.description}</p>
+                <h3 className="text-[12px] sm:text-base font-bold text-brand-black leading-tight">{badge.title}</h3>
+                <p className="text-[10px] sm:text-sm text-gray-500 mt-1 sm:mt-1 leading-snug">{badge.description}</p>
               </div>
             </motion.div>
           ))}

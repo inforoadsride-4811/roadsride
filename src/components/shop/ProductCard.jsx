@@ -76,7 +76,7 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
         <div className="p-6 flex flex-col flex-grow justify-center">
           <div className="flex items-center gap-1 mb-2">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} size={14} className={i < Math.round(product.avgRating || 5) ? "fill-brand-yellow text-brand-yellow" : "fill-gray-200 text-gray-200"} />
+              <Star key={i} size={12} className={`sm:w-3.5 sm:h-3.5 ${i < Math.round(product.avgRating || 5) ? "fill-brand-yellow text-brand-yellow" : "fill-gray-200 text-gray-200"}`} />
             ))}
             <span className="text-xs text-gray-500 ml-1">({product.reviewCount || 'New'})</span>
           </div>
@@ -150,21 +150,21 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
       <div className="p-4 flex flex-col flex-grow">
         <div className="flex items-center gap-1 mb-2">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} size={14} className={i < Math.round(product.avgRating || 5) ? "fill-brand-yellow text-brand-yellow" : "fill-gray-200 text-gray-200"} />
+            <Star key={i} size={12} className={`sm:w-3.5 sm:h-3.5 ${i < Math.round(product.avgRating || 5) ? "fill-brand-yellow text-brand-yellow" : "fill-gray-200 text-gray-200"}`} />
           ))}
-          <span className="text-xs text-gray-500 ml-1">({product.reviewCount || 'New'})</span>
+          <span className="text-[10px] sm:text-xs text-gray-500 ml-1">({product.reviewCount || 'New'})</span>
         </div>
         
-        <h3 className="font-medium text-brand-black mb-1 line-clamp-2 min-h-[40px]">
+        <h3 className="font-medium text-brand-black mb-1 line-clamp-2 min-h-[40px] text-xs sm:text-sm md:text-base">
           <Link href={`/product/${product.slug}`} className="hover:text-brand-yellow transition-colors">
             {product.name}
           </Link>
         </h3>
         
         <div className="flex items-baseline gap-2 mb-4 mt-auto">
-          <span className="text-xl font-bold text-brand-black">{formatPrice(displayPrice)}</span>
+          <span className="text-sm sm:text-base md:text-xl font-bold text-brand-black">{formatPrice(displayPrice)}</span>
           {displayOriginalPrice > displayPrice && (
-            <span className="text-sm text-gray-500 line-through">{formatPrice(displayOriginalPrice)}</span>
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-500 line-through">{formatPrice(displayOriginalPrice)}</span>
           )}
         </div>
       </div>

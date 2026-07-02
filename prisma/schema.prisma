@@ -572,3 +572,42 @@ model CheckoutDraft {
   @@index([status])
   @@index([createdAt])
 }
+
+// ==========================================
+// BLOG POSTS
+// ==========================================
+
+model BlogPost {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  excerpt         String?
+  content         String   @db.Text
+  coverImage      String?
+  status          String   @default("draft") // "draft" | "published"
+  author          String?
+  seoTitle        String?
+  seoDescription  String?
+  seoKeywords     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([slug])
+}
+
+// ==========================================
+// ABOUT PAGE
+// ==========================================
+
+model AboutPageData {
+  id              String   @id @default("default")
+  title           String   @default("Upgrade Your Ride, Drive Smart")
+  introText       String   @db.Text
+  heroImage       String?
+  secondaryImage  String?
+  // Arrays of JSON objects
+  teamMembers     Json?    // [{ name, role, image }]
+  features        Json?    // [{ title, description, icon }]
+  updatedAt       DateTime @updatedAt
+}

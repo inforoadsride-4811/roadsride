@@ -11,17 +11,19 @@ import { subscribeNewsletter } from '@/actions/subscriber';
 import TrustBadges from './trust-badges';
 
 const departments = [
+  { name: 'Who Are We', href: '/about-us' },
   { name: 'Home', href: '/' },
-  { name: 'Shop', href: '/' },
-  { name: 'About Us', href: '/about-us' },
+  { name: 'Blog', href: '/blog' },
+  { name: 'Shop', href: '/shop' },
   { name: 'Contact Us', href: '/contact-us' },
+  { name: 'My account', href: '/account' },
   { name: 'Track Order', href: '/track-order' },
 ];
 
 const quickLinks = [
   { name: 'Terms & Conditions', href: '/terms-conditions' },
+  { name: 'Refunds & Cancellations Policy', href: '/refund-policy' },
   { name: 'Privacy Policy', href: '/privacy-policy' },
-  { name: 'Refund Policy & Cancellation Policy', href: '/refund-policy' },
 ];
 
 export default function Footer() {

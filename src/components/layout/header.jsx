@@ -15,6 +15,10 @@ import UserMenu from './user-menu';
 
 const navLinks = [
   { name: 'Home', href: '/' },
+  { name: 'Shop', href: '/shop' },
+  { name: 'Blog', href: '/blog' },
+  { name: 'About Us', href: '/about-us' },
+  { name: 'Contact Us', href: '/contact-us' },
 ];
 
 export default function Header({ onCartOpen, settings }) {

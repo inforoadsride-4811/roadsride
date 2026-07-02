@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ZoomIn, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+const isVideo = (src) => src?.match(/\.(mp4|webm)$/i);
+
 export default function ProductGallery({ images, discount }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -91,15 +93,19 @@ export default function ProductGallery({ images, discount }) {
                   : 'border-brand-border hover:border-gray-300'
                   }`}
               >
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                  unoptimized={true}
-                  loading="lazy"
-                />
+                {isVideo(img.src) ? (
+                  <video src={img.src} className="object-cover w-full h-full" autoPlay loop muted playsInline />
+                ) : (
+                  <Image
+                    src={img.src}
+                    alt={img.alt || 'Thumbnail'}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                    unoptimized={true}
+                    loading="lazy"
+                  />
+                )}
               </button>
             ))}
           </div>
@@ -124,14 +130,16 @@ export default function ProductGallery({ images, discount }) {
             </div>
           )}
 
-          {/* Zoom Icon */}
-          <button
-            onClick={() => setLightboxOpen(true)}
-            aria-label="Zoom Image"
-            className="absolute top-4  right-4 z-10 p-2! bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-colors cursor-pointer shadow-sm"
-          >
-            <ZoomIn size={18} />
-          </button>
+          {/* Zoom Icon (Hide for video) */}
+          {!isVideo(selected.src) && (
+            <button
+              onClick={() => setLightboxOpen(true)}
+              aria-label="Zoom Image"
+              className="absolute top-4 right-4 z-10 p-2! bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-colors cursor-pointer shadow-sm"
+            >
+              <ZoomIn size={18} />
+            </button>
+          )}
 
           {/* Navigation Arrows */}
           <button
@@ -149,12 +157,12 @@ export default function ProductGallery({ images, discount }) {
             <ChevronRight size={20} />
           </button>
 
-          {/* Image */}
+          {/* Image/Video */}
           <div
             ref={imageRef}
             className="relative aspect-square w-full rounded-2xl overflow-hidden bg-white cursor-crosshair p-0!"
             style={{ maxWidth: '470px' }}
-            onMouseEnter={() => setIsZooming(true)}
+            onMouseEnter={() => setIsZooming(!isVideo(selected.src))}
             onMouseLeave={() => setIsZooming(false)}
             onMouseMove={handleMouseMove}
             onClick={() => setLightboxOpen(true)}
@@ -168,15 +176,19 @@ export default function ProductGallery({ images, discount }) {
                 transition={{ duration: 0.2 }}
                 className="relative w-full h-full rounded-2xl"
               >
-                <Image
-                  src={selected.src}
-                  alt={selected.alt}
-                  fill
-                  className="object-contain rounded-2xl"
-                  sizes="(max-width: 768px) 100vw, 470px"
-                  priority={selectedIndex === 0}
-                  unoptimized={true}
-                />
+                {isVideo(selected.src) ? (
+                  <video src={selected.src} className="object-contain w-full h-full rounded-2xl" autoPlay loop muted playsInline />
+                ) : (
+                  <Image
+                    src={selected.src}
+                    alt={selected.alt || 'Product Image'}
+                    fill
+                    className="object-contain rounded-2xl"
+                    sizes="(max-width: 768px) 100vw, 470px"
+                    priority={selectedIndex === 0}
+                    unoptimized={true}
+                  />
+                )}
               </motion.div>
             </AnimatePresence>
 
@@ -235,15 +247,19 @@ export default function ProductGallery({ images, discount }) {
                   : 'border-brand-border'
                   }`}
               >
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  className="object-cover"
-                  sizes="56px"
-                  unoptimized={true}
-                  loading="lazy"
-                />
+                {isVideo(img.src) ? (
+                  <video src={img.src} className="object-cover w-full h-full" autoPlay loop muted playsInline />
+                ) : (
+                  <Image
+                    src={img.src}
+                    alt={img.alt || 'Thumbnail'}
+                    fill
+                    className="object-cover"
+                    sizes="56px"
+                    unoptimized={true}
+                    loading="lazy"
+                  />
+                )}
               </button>
             ))}
           </div>
@@ -283,14 +299,18 @@ export default function ProductGallery({ images, discount }) {
                 className="relative max-w-4xl max-h-[85vh] w-full aspect-square"
                 onClick={(e) => e.stopPropagation()}
               >
-                <Image
-                  src={selected.src}
-                  alt={selected.alt}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 1024px) 100vw, 80vw"
-                  unoptimized={true}
-                />
+                {isVideo(selected.src) ? (
+                  <video src={selected.src} className="object-contain w-full h-full" autoPlay loop playsInline controls />
+                ) : (
+                  <Image
+                    src={selected.src}
+                    alt={selected.alt || 'Product Image'}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 1024px) 100vw, 80vw"
+                    unoptimized={true}
+                  />
+                )}
               </motion.div>
 
               <button

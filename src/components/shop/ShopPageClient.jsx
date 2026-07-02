@@ -126,7 +126,7 @@ export default function ShopPageClient({ initialProducts, pagination, filterMeta
               <>
                 <div className={
                   viewMode === 'grid'
-                    ? "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+                    ? "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"
                     : "flex flex-col gap-6"
                 }>
                   {isPending ? (

@@ -18,6 +18,10 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
   const [isNavigating, setIsNavigating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  const handlePackSelect = (index) => {
+    onPackSelect(index);
+  };
+
   const packs = product.packs || product.variants || [];
   const currentPack = packs.length > 0 ? packs[selectedPackIndex] : null;
   const displayPrice = currentPack?.price || product.price;
@@ -91,7 +95,11 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
-              document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' });
+              const el = document.getElementById('reviews-section');
+              if (el) {
+                const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+              }
               window.dispatchEvent(new CustomEvent('open-reviews-tab'));
             }}
             className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
@@ -164,7 +172,16 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                 <StarHalf size={16} className="text-brand-yellow absolute inset-0" fill="currentColor" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-500 mt-1">
+            <p 
+              className="text-xs font-medium text-gray-500 mt-1 cursor-pointer hover:underline"
+              onClick={() => {
+                const el = document.getElementById('reviews-section');
+                if (el) {
+                  const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                  window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+              }}
+            >
               4.7 rating (114 reviews)
             </p>
           </div>
@@ -192,7 +209,14 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         {/* Packs Variation */}
         {packs.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-bold text-brand-black uppercase">Number of Items</p>
+            <div className="text-center mb-4 mt-2">
+              <h3 className="text-xl font-black text-brand-black uppercase leading-tight">
+                Choose Your Pack &<br/>Secure Big Savings 👇
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 italic">
+                (Cash on Delivery (COD) & FREE Delivery Available on All Orders) 🚚
+              </p>
+            </div>
             
             {/* All Devices: Rich Cards */}
             <div className="flex flex-col space-y-4 mt-2">
@@ -209,7 +233,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                 return (
                   <div 
                     key={`desktop-${pack.id}`} 
-                    onClick={() => onPackSelect(index)}
+                    onClick={() => handlePackSelect(index)}
                     className={`relative flex flex-col rounded-xl border-2 ${borderColor} ${bgColor} overflow-hidden cursor-pointer transition-colors shadow-sm`}
                   >
                     {pack.badgeText && (
@@ -288,14 +312,14 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
             {/* Buttons */}
             <div className="flex flex-1">
-              <Button onClick={handleAddToCart} size="lg" className="font-poppins font-bold h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap">
-                Add To Cart
+              <Button onClick={handleAddToCart} disabled={packs.length > 0 && selectedPackIndex === null} size="lg" className="font-poppins font-bold h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap">
+                {packs.length > 0 && selectedPackIndex === null ? 'Choose Pack First' : 'Add To Cart'}
               </Button>
             </div>
           </div>
-          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" size="lg" className="font-poppins font-bold h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap ">
+          <Button onClick={handleOrderNow} disabled={isNavigating || (packs.length > 0 && selectedPackIndex === null)} variant="secondary" size="lg" className="font-poppins font-bold h-14 w-full rounded-full text-sm uppercase tracking-wide whitespace-nowrap ">
             {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(displayPrice * quantity).toFixed(2)} (Cash On Delivery)`}
+            {isNavigating ? 'Processing...' : (packs.length > 0 && selectedPackIndex === null ? 'Choose Pack First' : `Order Now - ${product.currency}${(displayPrice * quantity).toFixed(2)} (Cash On Delivery)`)}
           </Button>
 
           <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
@@ -310,22 +334,22 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
       </div>
 
       {/* Mobile Sticky Actions */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-brand-border p-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-safe">
-        <div className="flex flex-col gap-3">
-          <div className="flex gap-3 justify-between items-center">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-brand-border p-2.5 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] pb-safe">
+        <div className="flex flex-col gap-2.5">
+          <div className="flex gap-2.5 justify-between items-center">
             {packs.length > 0 ? (
               <button
                 onClick={() => setIsDrawerOpen(true)}
-                className="flex flex-1 h-11 items-center justify-between rounded-xl border-2 border-brand-black bg-white px-4 text-sm font-bold text-brand-black"
+                className="flex flex-1 h-10 items-center justify-between rounded-xl border-2 border-brand-black bg-white px-3 text-[13px] font-bold text-brand-black"
               >
-                <span className="truncate mr-2">{currentPack?.name || 'Choose Pack'}</span>
+                <span className="truncate mr-2">{selectedPackIndex !== null ? (currentPack?.name || 'Choose Pack') : 'Choose Your Pack'}</span>
                 <ChevronUp size={18} />
               </button>
             ) : (
               <div className="flex-1" />
             )}
             
-            <div className="flex h-11 w-[120px] items-center rounded-xl border border-brand-border bg-gray-50 flex-shrink-0">
+            <div className="flex h-10 w-[110px] items-center rounded-xl border border-brand-border bg-gray-50 flex-shrink-0">
               <button aria-label="Decrease quantity" onClick={() => handleQuantityChange('dec')} className="flex h-full w-10 items-center justify-center rounded-l-xl text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200">
                 <Minus size={16} />
               </button>
@@ -338,26 +362,38 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
             </div>
           </div>
           
-          <Button onClick={handleOrderNow} disabled={isNavigating} variant="secondary" className="font-poppins font-bold h-12 w-full rounded-full text-[13px] uppercase tracking-wide">
+          <Button 
+            onClick={() => {
+              if (selectedPackIndex === null) {
+                setIsDrawerOpen(true);
+              } else {
+                handleOrderNow();
+              }
+            }} 
+            disabled={isNavigating || (packs.length > 0 && selectedPackIndex === null)} 
+            variant="secondary" 
+            className="font-poppins font-bold h-11 w-full rounded-full text-[12px] uppercase tracking-wide"
+          >
             {isNavigating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {isNavigating ? 'Processing...' : `Order Now - ${product.currency}${(displayPrice * quantity).toFixed(2)} (Cash On Delivery)`}
+            {isNavigating ? 'Processing...' : (packs.length > 0 && selectedPackIndex === null ? 'Choose Pack First' : `Order Now - ${product.currency}${(displayPrice * quantity).toFixed(2)} (Cash On Delivery)`)}
           </Button>
         </div>
       </div>
 
       {/* Full-Screen Pack Selection Drawer */}
       {isDrawerOpen && packs.length > 0 && (
-        <div className="fixed inset-0 z-[200] flex flex-col bg-white overflow-hidden sm:hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-brand-border bg-white shrink-0 sticky top-0 z-10">
-            <h2 className="text-lg font-bold text-brand-black">Choose Your Pack</h2>
-            <button onClick={() => setIsDrawerOpen(false)} className="p-2 -mr-2 text-gray-500">
-              <X size={24} />
-            </button>
-          </div>
-          
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4 pb-32">
+        <div className="fixed inset-0 z-[200] flex flex-col justify-end bg-black/60 p-4 sm:hidden backdrop-blur-sm pb-safe">
+          <div className="bg-white rounded-2xl overflow-hidden max-h-[85vh] flex flex-col shadow-2xl relative">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-brand-border bg-white shrink-0 sticky top-0 z-10">
+              <h2 className="text-lg font-bold text-brand-black">Choose Your Pack</h2>
+              <button onClick={() => setIsDrawerOpen(false)} className="p-2 -mr-2 text-gray-500">
+                <X size={24} />
+              </button>
+            </div>
+            
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
             <div className="text-center mb-6">
               <h3 className="text-xl font-black text-brand-black uppercase leading-tight">
                 Choose Your Pack &<br/>Secure Big Savings 👇
@@ -382,7 +418,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
                 return (
                   <div 
                     key={pack.id} 
-                    onClick={() => { onPackSelect(index); setIsDrawerOpen(false); }}
+                    onClick={() => { handlePackSelect(index); setIsDrawerOpen(false); }}
                     className={`relative flex flex-col rounded-xl border-2 ${borderColor} ${bgColor} overflow-hidden cursor-pointer transition-colors shadow-sm`}
                   >
                     {pack.badgeText && (
@@ -434,14 +470,15 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
           </div>
           
           {/* Footer Action */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shrink-0 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
-            <Button onClick={() => { setIsDrawerOpen(false); handleOrderNow(); }} disabled={isNavigating} variant="secondary" className="w-full h-14 bg-[#2e8b3b] hover:bg-[#257330] text-white rounded-lg font-black text-sm uppercase shadow-[0_4px_14px_rgba(46,139,59,0.4)] border-none">
-              {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
-              {isNavigating ? 'Processing...' : `BUY NOW - ${product.currency}${currentPack?.price} (FREE GIFT UNLOCKED!) 🎁`}
+          <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+            <Button onClick={() => { setIsDrawerOpen(false); handleOrderNow(); }} disabled={isNavigating || selectedPackIndex === null} variant="secondary" className="w-full h-12 bg-[#2e8b3b] hover:bg-[#257330] text-white rounded-lg font-black text-sm uppercase shadow-[0_4px_14px_rgba(46,139,59,0.4)] border-none">
+              {isNavigating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (selectedPackIndex === null ? null : <CheckCircle2 className="mr-2 h-5 w-5" />)}
+              {isNavigating ? 'Processing...' : (selectedPackIndex !== null ? `BUY NOW - ${product.currency}${currentPack?.price} (FREE GIFT UNLOCKED!) 🎁` : 'CHOOSE YOUR PACK TO BUY NOW')}
             </Button>
             <p className="text-center text-[10px] font-bold text-gray-500 mt-3 uppercase tracking-wide">
               CLICK NOW → Check out Form (No Extra Step)
             </p>
+          </div>
           </div>
         </div>
       )}

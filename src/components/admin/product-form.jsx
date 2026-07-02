@@ -12,6 +12,8 @@ import RichTextEditor from './rich-text-editor';
 import useAdminStore from '@/store/admin';
 import { ProductFaqModal } from './product-faq-modal';
 
+const isVideo = (src) => src?.match(/\.(mp4|webm|mov)$/i);
+
 const TABS = [
   { id: 'general', label: 'General' },
   { id: 'pricing', label: 'Pricing' },
@@ -449,7 +451,11 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                 <div className="flex gap-4 items-start mt-2">
                   {formData.images.length > 0 ? (
                     <div className="relative group w-32 h-32 rounded-lg border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shrink-0">
+                    {isVideo(formData.images[0].src) ? (
+                      <video src={formData.images[0].src} className="max-w-full max-h-full object-contain" autoPlay loop muted playsInline />
+                    ) : (
                       <img src={formData.images[0].src} alt="Thumbnail" className="max-w-full max-h-full object-contain" />
+                    )}
                       <button type="button" onClick={() => removeImage(0)} className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                         <Trash2 size={14} />
                       </button>
@@ -597,8 +603,11 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                         : 'border-brand-border'
                     }`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.src} alt="" className="w-full h-full object-cover pointer-events-none" />
+                    {isVideo(img.src) ? (
+                      <video src={img.src} className="w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline />
+                    ) : (
+                      <img src={img.src} alt="" className="w-full h-full object-cover pointer-events-none" />
+                    )}
                     <button type="button" onClick={() => removeImage(idx)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 size={14} />
                     </button>
@@ -718,7 +727,11 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                                 : 'border-brand-border'
                             }`}
                           >
-                            <img src={img.src} alt="" className="w-full h-full object-cover pointer-events-none" />
+                            {isVideo(img.src) ? (
+                              <video src={img.src} className="w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline />
+                            ) : (
+                              <img src={img.src} alt="" className="w-full h-full object-cover pointer-events-none" />
+                            )}
                             <button type="button" onClick={() => removeVariantImage(i, imgIdx)} className="absolute top-1 right-1 p-0.5 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity">
                               <Trash2 size={12} />
                             </button>

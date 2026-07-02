@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { getShopProducts, getShopFilters } from '@/actions/shop';
 import ShopPageClient from '@/components/shop/ShopPageClient';
 
@@ -7,6 +8,14 @@ export const metadata = {
 };
 
 export const dynamic = 'force-dynamic';
+
+function ShopSkeleton() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-yellow"></div>
+    </div>
+  );
+}
 
 export default async function ShopPage({ searchParams }) {
   const resolvedParams = await searchParams;
@@ -58,14 +67,16 @@ export default async function ShopPage({ searchParams }) {
   };
 
   return (
-    <ShopPageClient
-      initialProducts={productsRes.products}
-      pagination={productsRes.pagination}
-      filterMetadata={{
-        categories: filtersRes.categories,
-        maxPrice: filtersRes.maxPrice
-      }}
-      initialFilters={initialFilters}
-    />
+    <Suspense fallback={<ShopSkeleton />}>
+      <ShopPageClient
+        initialProducts={productsRes.products}
+        pagination={productsRes.pagination}
+        filterMetadata={{
+          categories: filtersRes.categories,
+          maxPrice: filtersRes.maxPrice
+        }}
+        initialFilters={initialFilters}
+      />
+    </Suspense>
   );
 }

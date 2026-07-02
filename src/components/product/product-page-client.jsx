@@ -30,11 +30,11 @@ function ScrollToTop() {
 }
 
 export default function ProductPageClient({ product, recommendations = [] }) {
-  const [selectedPackIndex, setSelectedPackIndex] = useState(0);
+  const [selectedPackIndex, setSelectedPackIndex] = useState(null);
   const topRef = useRef(null);
 
   const packs = product.packs || product.variants || [];
-  const currentPack = packs.length > 0 ? packs[selectedPackIndex] : null;
+  const currentPack = (packs.length > 0 && selectedPackIndex !== null) ? packs[selectedPackIndex] : null;
   const displayImages = currentPack?.images?.length > 0 ? currentPack.images : (product.images || []);
 
   return (
@@ -71,7 +71,7 @@ export default function ProductPageClient({ product, recommendations = [] }) {
             <h2 className="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">
               You May Also Like
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
               {recommendations.map(rec => (
                 <ProductCard key={rec.id} product={rec} />
               ))}

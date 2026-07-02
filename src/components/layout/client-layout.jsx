@@ -25,15 +25,8 @@ export default function ClientLayout({ children, settings }) {
       <main className="flex-1">
         {children}
       </main>
-      {!isAdminRoute && !isAccountRoute && (
-        <>
-          <Footer />
-          <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-        </>
-      )}
-      {(isAccountRoute) && (
-        <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-      )}
+      {!isAdminRoute && !isAccountRoute && <Footer />}
+      {!isAdminRoute && <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />}
     </div>
   );
 }
