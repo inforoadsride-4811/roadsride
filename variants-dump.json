@@ -1,6 +1,6 @@
 [
   {
-    "id": "cmr1wgwxj0004kmjv53kxri8q",
+    "id": "cmr6nfvst000080shi4314jk8",
     "productId": "cmqnxo7720002ubtwrzbyp10j",
     "name": "Pack of 1 (Standard Pack)",
     "price": 599,
@@ -43,7 +43,7 @@
     ]
   },
   {
-    "id": "cmr1wgwxk0005kmjv23wnpaq1",
+    "id": "cmr6nfvsw000180shuxsv73am",
     "productId": "cmqnxo7720002ubtwrzbyp10j",
     "name": "Pack of 2 (Value Bundle)",
     "price": 949,
@@ -86,7 +86,7 @@
     ]
   },
   {
-    "id": "cmr1wgwxk0006kmjvdvdxuqks",
+    "id": "cmr6nfvsw000280shhu6bbg28",
     "productId": "cmqnxo7720002ubtwrzbyp10j",
     "name": "Pack of 3 (Super Saver)",
     "price": 1249,
@@ -142,7 +142,7 @@
     ]
   },
   {
-    "id": "cmr1wgwxk0007kmjvmrhl3dxh",
+    "id": "cmr6nfvsw000380sh9e6ne5u9",
     "productId": "cmqnxo7720002ubtwrzbyp10j",
     "name": "Pack of 4 (Mega Bundle)",
     "price": 1549,
@@ -193,5 +193,16 @@
       "🎁 FREE GIFT 1: 1x Car Blind Spot Mirror",
       "🔥 FREE GIFT 2: 2x Extra 500 GSM Cloths"
     ]
+  },
+  {
+    "name": "pack 6",
+    "price": 0,
+    "originalPrice": 0,
+    "stock": 0,
+    "isBestSeller": false,
+    "images": [],
+    "badgeText": "",
+    "savingsText": "",
+    "keyPoints": []
   }
 ]

@@ -158,7 +158,7 @@ export default function WriteReviewModal({ productId, onClose, onSuccess }) {
 
     const processedFiles = await Promise.all(validFiles.map(async (file) => {
       const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
-      if (isImage) {
+      if (isImage && file.type !== 'image/gif') {
         try {
           return await compressImage(file);
         } catch (err) {

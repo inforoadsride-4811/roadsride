@@ -14,11 +14,12 @@ function EditReviewModal({ review, onClose, onSave }) {
   const [title, setTitle] = useState(review.title || '');
   const [content, setContent] = useState(review.content || '');
   const [rating, setRating] = useState(review.rating);
+  const [images, setImages] = useState(review.images || (review.image ? [review.image] : []));
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    const result = await onSave(review.id, { title, content, rating });
+    const result = await onSave(review.id, { title, content, rating, images });
     setSaving(false);
     if (result) onClose();
   };
@@ -77,6 +78,22 @@ function EditReviewModal({ review, onClose, onSave }) {
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow text-sm resize-none"
               placeholder="Review content..."
             />
+          </div>
+
+          {/* GIF / Image URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image / GIF URL (Optional)</label>
+            <input
+              type="text"
+              value={images?.[0] || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setImages(val ? [val] : []);
+              }}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow text-sm"
+              placeholder="https://media.giphy.com/media/.../giphy.gif"
+            />
+            <p className="text-xs text-gray-500 mt-1">Paste a URL to a GIF or image to embed it in the review.</p>
           </div>
 
           {/* Author info (read-only) */}

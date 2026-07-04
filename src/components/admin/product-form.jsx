@@ -314,26 +314,21 @@ export default function ProductForm({ initialData = null, categories = [] }) {
     if (result.success) {
       const productId = result.product.id;
       // Only save arrays if they were actually changed
-      const tasks = [];
-      
       const arraysEqual = (a1, a2) => JSON.stringify(a1 || []) === JSON.stringify(a2 || []);
 
       if (!arraysEqual(initialData?.variants, formData.variants)) {
-        tasks.push(saveProductVariants(productId, formData.variants));
+        await saveProductVariants(productId, formData.variants);
       }
       if (!arraysEqual(initialData?.features, formData.features)) {
-        tasks.push(saveProductFeatures(productId, formData.features));
+        await saveProductFeatures(productId, formData.features);
       }
       if (!arraysEqual(initialData?.specs, formData.specs)) {
-        tasks.push(saveProductSpecs(productId, formData.specs));
+        await saveProductSpecs(productId, formData.specs);
       }
       if (!arraysEqual(initialData?.images, formData.images)) {
-        tasks.push(saveProductImages(productId, formData.images));
+        await saveProductImages(productId, formData.images);
       }
 
-      if (tasks.length > 0) {
-        await Promise.all(tasks);
-      }
       setSavedDataString(JSON.stringify(formData)); // Reset dirty state
       addToast({ title: 'Success', message: 'Product saved successfully', type: 'success' });
       if (isNew) router.push(`/admin/products/${productId}/edit`);

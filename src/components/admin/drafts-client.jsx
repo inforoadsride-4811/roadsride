@@ -256,10 +256,10 @@ export default function DraftsClient({ initialData, pagination }) {
         </table>
       </div>
 
-      {pagination.totalPages > 1 && (
+      {pagination.pages > 1 && (
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm">
           <p className="text-gray-500">
-            Showing Page <span className="font-semibold text-gray-900">{pagination.page}</span> of <span className="font-semibold text-gray-900">{pagination.totalPages}</span>
+            Showing Page <span className="font-semibold text-gray-900">{pagination.page}</span> of <span className="font-semibold text-gray-900">{pagination.pages}</span>
           </p>
           <div className="flex gap-1">
             <button
@@ -270,7 +270,7 @@ export default function DraftsClient({ initialData, pagination }) {
               Prev
             </button>
             <button
-              disabled={pagination.page >= pagination.totalPages}
+              disabled={pagination.page >= pagination.pages}
               onClick={() => router.push(`/admin/drafts?page=${pagination.page + 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
               className="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-700"
             >

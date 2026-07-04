@@ -6,6 +6,9 @@ export const metadata = {
   title: 'Edit Product | Admin',
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function EditProductPage({ params }) {
   const { id } = await params;
   

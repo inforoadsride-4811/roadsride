@@ -232,12 +232,13 @@ export async function updateReviewStatus(id, action) {
 }
 
 // Admin Action: Edit Review (title, content, rating)
-export async function editReview(id, { title, content, rating }) {
+export async function editReview(id, { title, content, rating, images }) {
   try {
     const data = {};
     if (title !== undefined) data.title = title;
     if (content !== undefined) data.content = content;
     if (rating !== undefined) data.rating = parseInt(rating);
+    if (images !== undefined) data.images = images;
 
     await prisma.productReview.update({
       where: { id },
