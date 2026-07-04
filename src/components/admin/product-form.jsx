@@ -6,7 +6,7 @@ import { Save, Copy, Eye, Loader2, Trash2, Plus, GripVertical, HelpCircle } from
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
-import { createProduct, updateProduct, deleteProduct, saveProductVariants, saveProductFeatures, saveProductSpecs, saveProductImages } from '@/actions/admin-products';
+import { createProduct, updateProduct, deleteProduct, saveProductVariants, saveProductFeatures, saveProductSpecs, saveProductImages, deleteProductVariant } from '@/actions/admin-products';
 import { uploadFile, deleteFile, BUCKETS } from '@/lib/storage';
 import RichTextEditor from './rich-text-editor';
 import useAdminStore from '@/store/admin';
@@ -264,22 +264,43 @@ export default function ProductForm({ initialData = null, categories = [] }) {
   };
   const removeArrayItem = (key, index) => setFormData({ ...formData, [key]: formData[key].filter((_, i) => i !== index) });
 
+  const [deletingVariantIndex, setDeletingVariantIndex] = useState(null);
+
   const handleRemoveVariant = async (index) => {
-    if (!window.confirm('Are you sure you want to delete this variant? Any uploaded images for this variant will be permanently deleted.')) {
+    if (!window.confirm('Are you sure you want to permanently delete this variant?')) {
       return;
     }
     
+    setDeletingVariantIndex(index);
     const variant = formData.variants[index];
+    
+    // Delete images from storage first
     if (variant.images && variant.images.length > 0) {
-      setUploadingImage(true);
       for (const img of variant.images) {
         if (img.src) await deleteFile(img.src, BUCKETS.PRODUCTS);
       }
-      setUploadingImage(false);
     }
     
+    // Delete directly from database if it exists
+    if (variant.id) {
+      const res = await deleteProductVariant(variant.id);
+      if (!res.success) {
+        addToast({ title: 'Error', message: 'Failed to delete from database.', type: 'error' });
+        setDeletingVariantIndex(null);
+        return; // Stop if db delete failed
+      }
+    }
+    
+    // Remove from UI state
     const newVariants = formData.variants.filter((_, i) => i !== index);
     setFormData({ ...formData, variants: newVariants });
+    // Also update initialData so arraysEqual knows it's actually removed from db
+    if (initialData?.variants) {
+      initialData.variants = initialData.variants.filter((_, i) => i !== index);
+    }
+    
+    setDeletingVariantIndex(null);
+    addToast({ title: 'Deleted', message: 'Variant deleted permanently.', type: 'success' });
   };
 
   const handleSave = async (e) => {
@@ -668,7 +689,14 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                           Best Seller Tag
                         </label>
                       </div>
-                      <button type="button" onClick={() => handleRemoveVariant(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg mb-1"><Trash2 size={16}/></button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveVariant(i)} 
+                        disabled={deletingVariantIndex === i}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg mb-1 disabled:opacity-50"
+                      >
+                        {deletingVariantIndex === i ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16}/>}
+                      </button>
                     </div>
                   </div>
                   <div className="pl-6 flex flex-col gap-2">

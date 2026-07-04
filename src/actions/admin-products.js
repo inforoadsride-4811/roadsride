@@ -275,36 +275,68 @@ export async function deleteProduct(id) {
 // PRODUCT VARIANTS
 // ==========================================
 
+export async function deleteProductVariant(variantId) {
+  try {
+    if (!variantId) return { success: false, error: 'Variant ID is required' };
+    await prisma.productVariant.delete({ where: { id: variantId } });
+    revalidatePath('/', 'layout');
+    revalidateTag('product');
+    return { success: true };
+  } catch (error) {
+    console.error('deleteProductVariant error:', error);
+    return { success: false, error: 'Failed to delete variant' };
+  }
+}
+
 export async function saveProductVariants(productId, variants) {
   try {
-    // Delete existing variants
-    await prisma.productVariant.deleteMany({ where: { productId } });
+    await prisma.$transaction(async (tx) => {
+      // 1. Fetch existing variants from DB
+      const existingDbVariants = await tx.productVariant.findMany({ where: { productId }, select: { id: true } });
+      const existingDbIds = existingDbVariants.map(v => v.id);
 
-    // Create new variants
-    require('fs').writeFileSync('/Users/manshajami/Desktop/roadsride/roadride_ecom/variants-dump.json', JSON.stringify(variants, null, 2));
-    if (variants && variants.length > 0) {
-      const variantsData = variants.map((v, i) => ({
-        productId,
-        name: v.name,
-        price: parseFloat(v.price),
-        originalPrice: parseFloat(v.originalPrice || v.price),
-        stock: parseInt(v.stock) || 0,
-        isBestSeller: v.isBestSeller || false,
-        sortOrder: i,
-        isActive: v.isActive !== false,
-        images: v.images || null,
-        badgeText: v.badgeText || null,
-        savingsText: v.savingsText || null,
-        keyPoints: v.keyPoints ? v.keyPoints.filter(Boolean) : null,
+      // 2. Identify incoming IDs
+      const incomingVariants = variants || [];
+      const incomingIds = incomingVariants.map(v => v.id).filter(Boolean);
+
+      // 3. Delete variants that are in DB but not in the incoming list
+      const idsToDelete = existingDbIds.filter(id => !incomingIds.includes(id));
+      if (idsToDelete.length > 0) {
+        await tx.productVariant.deleteMany({ where: { id: { in: idsToDelete } } });
+      }
+
+      // 4. Update or Create variants (in parallel for speed)
+      await Promise.all(incomingVariants.map((v, i) => {
+        const data = {
+          name: v.name,
+          price: parseFloat(v.price),
+          originalPrice: parseFloat(v.originalPrice || v.price),
+          stock: parseInt(v.stock) || 0,
+          isBestSeller: v.isBestSeller || false,
+          sortOrder: i,
+          isActive: v.isActive !== false,
+          images: v.images || null,
+          badgeText: v.badgeText || null,
+          savingsText: v.savingsText || null,
+          keyPoints: v.keyPoints ? v.keyPoints.filter(Boolean) : null,
+        };
+
+        if (v.id) {
+          return tx.productVariant.update({ where: { id: v.id }, data });
+        } else {
+          return tx.productVariant.create({ data: { ...data, productId } });
+        }
       }));
-      await prisma.productVariant.createMany({ data: variantsData });
-    }
+    }, {
+      maxWait: 10000,
+      timeout: 30000
+    });
 
     revalidatePath('/', 'layout');
     revalidateTag('product');
     return { success: true };
   } catch (error) {
-    require('fs').writeFileSync('/Users/manshajami/Desktop/roadsride/roadride_ecom/save-error.log', String(error) + '\n' + error.stack);
+    console.error('saveProductVariants error:', error);
     return { success: false, error: 'Failed to save variants' };
   }
 }
@@ -315,20 +347,40 @@ export async function saveProductVariants(productId, variants) {
 
 export async function saveProductFeatures(productId, features) {
   try {
-    await prisma.productFeature.deleteMany({ where: { productId } });
-    if (features && features.length > 0) {
-      const featuresData = features.map((f, i) => ({
-        productId,
-        bold: f.bold,
-        text: f.text,
-        sortOrder: i,
+    await prisma.$transaction(async (tx) => {
+      const existingDbFeatures = await tx.productFeature.findMany({ where: { productId }, select: { id: true } });
+      const existingDbIds = existingDbFeatures.map(f => f.id);
+      
+      const incomingFeatures = features || [];
+      const incomingIds = incomingFeatures.map(f => f.id).filter(Boolean);
+
+      const idsToDelete = existingDbIds.filter(id => !incomingIds.includes(id));
+      if (idsToDelete.length > 0) {
+        await tx.productFeature.deleteMany({ where: { id: { in: idsToDelete } } });
+      }
+
+      await Promise.all(incomingFeatures.map((f, i) => {
+        const data = {
+          bold: f.bold,
+          text: f.text,
+          sortOrder: i,
+        };
+
+        if (f.id) {
+          return tx.productFeature.update({ where: { id: f.id }, data });
+        } else {
+          return tx.productFeature.create({ data: { ...data, productId } });
+        }
       }));
-      await prisma.productFeature.createMany({ data: featuresData });
-    }
+    }, {
+      maxWait: 10000,
+      timeout: 30000
+    });
     revalidatePath('/', 'layout');
     revalidateTag('product');
     return { success: true };
   } catch (error) {
+    console.error('saveProductFeatures error:', error);
     return { success: false, error: 'Failed to save features' };
   }
 }
@@ -339,19 +391,39 @@ export async function saveProductFeatures(productId, features) {
 
 export async function saveProductSpecs(productId, specs) {
   try {
-    await prisma.productSpec.deleteMany({ where: { productId } });
-    if (specs && specs.length > 0) {
-      const specsData = specs.map((s, i) => ({
-        productId,
-        label: s.label,
-        value: s.value,
-        sortOrder: i,
+    await prisma.$transaction(async (tx) => {
+      const existingDbSpecs = await tx.productSpec.findMany({ where: { productId }, select: { id: true } });
+      const existingDbIds = existingDbSpecs.map(s => s.id);
+
+      const incomingSpecs = specs || [];
+      const incomingIds = incomingSpecs.map(s => s.id).filter(Boolean);
+
+      const idsToDelete = existingDbIds.filter(id => !incomingIds.includes(id));
+      if (idsToDelete.length > 0) {
+        await tx.productSpec.deleteMany({ where: { id: { in: idsToDelete } } });
+      }
+
+      await Promise.all(incomingSpecs.map((s, i) => {
+        const data = {
+          label: s.label,
+          value: s.value,
+          sortOrder: i,
+        };
+
+        if (s.id) {
+          return tx.productSpec.update({ where: { id: s.id }, data });
+        } else {
+          return tx.productSpec.create({ data: { ...data, productId } });
+        }
       }));
-      await prisma.productSpec.createMany({ data: specsData });
-    }
+    }, {
+      maxWait: 10000,
+      timeout: 30000
+    });
     revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
+    console.error('saveProductSpecs error:', error);
     return { success: false, error: 'Failed to save specs' };
   }
 }
@@ -362,19 +434,25 @@ export async function saveProductSpecs(productId, specs) {
 
 export async function saveProductImages(productId, images) {
   try {
-    await prisma.productImage.deleteMany({ where: { productId } });
-    if (images && images.length > 0) {
-      const imagesData = images.map((img, i) => ({
-        productId,
-        src: img.src,
-        sortOrder: i,
-        isFeatured: i === 0,
-      }));
-      await prisma.productImage.createMany({ data: imagesData });
-    }
+    await prisma.$transaction(async (tx) => {
+      await tx.productImage.deleteMany({ where: { productId } });
+      if (images && images.length > 0) {
+        const imagesData = images.map((img, i) => ({
+          productId,
+          src: img.src,
+          sortOrder: i,
+          isFeatured: i === 0,
+        }));
+        await tx.productImage.createMany({ data: imagesData });
+      }
+    }, {
+      maxWait: 10000,
+      timeout: 30000
+    });
     revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
+    console.error('saveProductImages error:', error);
     return { success: false, error: 'Failed to save images' };
   }
 }

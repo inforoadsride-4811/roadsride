@@ -1,0 +1,59 @@
+import { mergeAttributes, Node } from '@tiptap/core'
+import { ReactNodeViewRenderer } from '@tiptap/react'
+import { YoutubeGridComponent } from './youtube-grid-component'
+
+export const YoutubeGrid = Node.create({
+  name: 'youtubeGrid',
+  group: 'block',
+  atom: true,
+
+  addAttributes() {
+    return {
+      urls: {
+        default: ['', '', ''],
+      },
+    }
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-youtube-grid]',
+      },
+    ]
+  },
+
+  renderHTML({ node, HTMLAttributes }) {
+    const urls = node.attrs.urls || ['', '', '']
+    
+    const getYoutubeId = (url: string) => {
+      if (!url) return null
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|\/shorts\/)([^#&?]*).*/
+      const match = url.match(regExp)
+      return (match && match[2].length === 11) ? match[2] : null
+    }
+
+    const gridContent = urls.map((u: string) => {
+      const yId = getYoutubeId(u)
+      if (!yId) return ['div', { class: 'aspect-[9/16] bg-gray-100 rounded-lg border border-gray-200' }]
+      
+      return ['div', { class: 'aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 relative', style: 'padding-bottom: 177.77%; height: 0;' },
+        ['iframe', {
+          src: `https://www.youtube.com/embed/${yId}`,
+          style: 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;',
+          allowfullscreen: 'true',
+          allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+        }]
+      ]
+    })
+
+    return ['div', mergeAttributes(HTMLAttributes, { 
+      'data-youtube-grid': '', 
+      class: 'grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 my-8' 
+    }), ...gridContent]
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(YoutubeGridComponent)
+  },
+})

@@ -53,6 +53,7 @@ import {
 import { MarkButton } from "@/components/tiptap-ui/mark-button"
 import { TextAlignButton } from "@/components/tiptap-ui/text-align-button"
 import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button"
+import { YoutubeGridButton } from "@/components/tiptap-ui/youtube-grid-button"
 
 // --- Icons ---
 import { ArrowLeftIcon } from "@/components/tiptap-icons/arrow-left-icon"
@@ -66,6 +67,7 @@ import { useCursorVisibility } from "@/hooks/use-cursor-visibility"
 
 // --- Components ---
 import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle"
+import { YoutubeGrid } from "@/components/tiptap-node/youtube-grid-node/youtube-grid-extension"
 
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
@@ -138,7 +140,8 @@ const MainToolbarContent = ({
       <ToolbarSeparator />
 
       <ToolbarGroup>
-        <ImageUploadButton text="Add" />
+        <ImageUploadButton text="Add Image" />
+        <YoutubeGridButton />
       </ToolbarGroup>
 
       <Spacer />
@@ -220,6 +223,7 @@ export function SimpleEditor({ value, onChange }: { value: string; onChange: (ht
       Superscript,
       Subscript,
       Selection,
+      YoutubeGrid,
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
