@@ -11,6 +11,21 @@ export const YoutubeGrid = Node.create({
     return {
       urls: {
         default: ['', '', ''],
+        parseHTML: element => {
+          const urlsStr = element.getAttribute('data-urls')
+          if (urlsStr) {
+            try {
+              return JSON.parse(urlsStr)
+            } catch (e) {
+              return ['', '', '']
+            }
+          }
+          return ['', '', '']
+        },
+        renderHTML: attributes => {
+          if (!attributes.urls) return {}
+          return { 'data-urls': JSON.stringify(attributes.urls) }
+        },
       },
     }
   },
@@ -24,7 +39,8 @@ export const YoutubeGrid = Node.create({
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    const urls = node.attrs.urls || ['', '', '']
+    let urls = node.attrs.urls
+    if (!Array.isArray(urls)) urls = ['', '', '']
     
     const getYoutubeId = (url: string) => {
       if (!url) return null

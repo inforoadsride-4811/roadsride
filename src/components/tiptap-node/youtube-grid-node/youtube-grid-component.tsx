@@ -3,7 +3,9 @@ import React, { useState } from 'react'
 
 export const YoutubeGridComponent = (props: any) => {
   const { node, updateAttributes } = props
-  const urls = node.attrs.urls || ['', '', '']
+  let urls = node.attrs.urls
+  if (!Array.isArray(urls)) urls = ['', '', '']
+  
   const [editing, setEditing] = useState(urls.every((u: string) => !u))
 
   const handleUrlChange = (index: number, val: string) => {
