@@ -148,7 +148,7 @@ function Tabs({ tabs, defaultTab = 0 }) {
           </button>
         ))}
       </div>
-      <div style={{ paddingTop: '40px', paddingBottom: '72px' }}>
+      <div style={{ paddingTop: '40px', paddingBottom: '24px' }}>
         {tabs[active].content}
       </div>
     </div>

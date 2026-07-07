@@ -53,10 +53,10 @@ export const YoutubeGrid = Node.create({
       const yId = getYoutubeId(u)
       if (!yId) return ['div', { class: 'aspect-[9/16] bg-gray-100 rounded-lg border border-gray-200' }]
       
-      return ['div', { class: 'aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 relative', style: 'padding-bottom: 177.77%; height: 0;' },
+      return ['div', { class: 'aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden border border-gray-200' },
         ['iframe', {
           src: `https://www.youtube.com/embed/${yId}`,
-          style: 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;',
+          style: 'width: 100%; height: 100%; border: 0;',
           allowfullscreen: 'true',
           allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
         }]

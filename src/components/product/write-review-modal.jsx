@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { submitReview } from '@/actions/review';
+import { getSessionCustomer } from '@/actions/customer-auth';
 import { createClient } from '@/lib/supabase/client';
 import { uploadFile, BUCKETS } from '@/lib/storage';
 import { useToast } from '@/components/ui/toast';
@@ -35,15 +36,14 @@ export default function WriteReviewModal({ productId, onClose, onSuccess }) {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        // Use server action for reliable auth check — client-side Supabase can cache stale sessions
+        const { success, customer: sessionCustomer } = await getSessionCustomer();
 
-        if (session?.user) {
-          const user = session.user;
+        if (success && sessionCustomer) {
           setCustomer({
-            id: user.id,
-            name: user.user_metadata?.full_name || 'User',
-            avatar: user.user_metadata?.avatar_url || null,
+            id: sessionCustomer.id,
+            name: sessionCustomer.name || 'User',
+            avatar: sessionCustomer.avatar || null,
           });
         }
       } catch (error) {

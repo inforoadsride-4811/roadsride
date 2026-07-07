@@ -67,11 +67,11 @@ export default function ProductPageClient({ product, recommendations = [] }) {
 
         {/* Recommended Products */}
         {recommendations.length > 0 && (
-          <div className="w-full px-4 sm:px-6 mt-16 mb-24" style={{ maxWidth: '1170px', margin: '64px auto' }}>
+          <div className="w-full px-4 sm:px-6 mt-16 mb-24" style={{ maxWidth: '1400px', margin: '64px auto' }}>
             <h2 className="text-2xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">
               You May Also Like
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5">
               {recommendations.map(rec => (
                 <ProductCard key={rec.id} product={rec} />
               ))}

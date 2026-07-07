@@ -268,6 +268,21 @@ body {
   animation: marquee 120s linear infinite;
 }
 
+/* ── Fix legacy YouTube grid padding-bottom hack (applies to all screen sizes) ── */
+/* Old saved descriptions may still have inline style="padding-bottom: 177.77%; height: 0;" */
+.rr-description div[data-youtube-grid] > div[style*="padding-bottom"],
+.rr-description div[style*="padding-bottom"][class*="aspect-"] {
+  padding-bottom: 0 !important;
+  height: auto !important;
+}
+
+.rr-description div[data-youtube-grid] > div > iframe[style*="position: absolute"],
+.rr-description div[style*="padding-bottom"] > iframe {
+  position: static !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* ── Responsive Description Grids ── */
 /* Force grid containers inside product descriptions to stack on mobile */
 @media (max-width: 767px) {
@@ -275,9 +290,21 @@ body {
   .ProseMirror div[data-type="grid-block"] {
     grid-template-columns: 1fr !important;
   }
+
+  /* Fix YouTube video containers on mobile — kill grey bg + oversized height */
+  .rr-description div[class*="aspect-"],
+  .rr-description div[data-youtube-grid] > div {
+    background: transparent !important;
+    padding-bottom: 0 !important;
+    height: 82% !important;
+    width: 100% !important;
+    aspect-ratio: unset !important;
+  }
+
   .rr-description iframe,
   .ProseMirror iframe {
-    height: auto !important;
+    width: 100% !important;
+    height: 82% !important;
     aspect-ratio: 9 / 16;
     max-height: 500px;
   }

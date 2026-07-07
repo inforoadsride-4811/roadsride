@@ -11,7 +11,7 @@ export default async function AdminAboutPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">About Page Content</h1>
+        <h1 className="text-2xl font-bo ld tracking-tight">About Page Content</h1>
       </div>
 
       <div className="bg-white rounded-lg shadow border border-gray-200">
