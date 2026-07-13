@@ -6,9 +6,10 @@ export const metadata = {
 };
 
 export default async function AdminBlogsPage({ searchParams }) {
-  const page = parseInt(searchParams.page || '1');
-  const search = searchParams.search || '';
-  const status = searchParams.status || '';
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || '1');
+  const search = resolvedSearchParams.search || '';
+  const status = resolvedSearchParams.status || '';
 
   const response = await getAdminBlogs({ page, limit: 20, search, status });
 

@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function EditBlogPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   const { success, blog } = await getAdminBlog(id);
 
   if (!success || !blog) {

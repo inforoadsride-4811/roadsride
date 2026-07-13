@@ -3,6 +3,7 @@ import HeroSection from '@/components/homepage/HeroSection';
 import CategoriesGrid from '@/components/homepage/CategoriesGrid';
 import ProductsGrid from '@/components/homepage/ProductsGrid';
 import PromoBento from '@/components/homepage/PromoBento';
+import BlogSection from '@/components/homepage/BlogSection';
 import CtaSection from '@/components/homepage/CtaSection';
 
 export const metadata = {
@@ -55,6 +56,7 @@ export default async function HomePage() {
             return null;
         }
       })}
+      <BlogSection />
     </div>
   );
 }
