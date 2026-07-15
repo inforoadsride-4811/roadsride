@@ -66,11 +66,11 @@ export default function DraftDetailModal({ draft, open, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     const res = await adminUpdateDraft(draft.id, formData);
-    
+
     setLoading(false);
-    
+
     if (res.success) {
       addToast({ title: 'Success', message: 'Draft updated successfully', type: 'success' });
       onClose();
@@ -88,7 +88,7 @@ export default function DraftDetailModal({ draft, open, onClose }) {
   return (
     <Dialog open={open} onClose={onClose} title="Draft Details" maxWidth="max-w-5xl">
       <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[85vh]">
-        
+
         {/* Top Info Bar - Read-only overview */}
         <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
           <div className="flex flex-wrap gap-6 items-start">
@@ -143,14 +143,14 @@ export default function DraftDetailModal({ draft, open, onClose }) {
 
         <div className="p-6">
           <div className="flex flex-col lg:flex-row gap-8">
-            
+
             {/* Left Col: Editable form fields */}
             <div className="flex-1 space-y-7">
-              
+
               {/* Status */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Status</h3>
-                <select 
+                <select
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
@@ -252,7 +252,7 @@ export default function DraftDetailModal({ draft, open, onClose }) {
               </div>
 
             </div>
-            
+
             {/* Right Col: Order Summary */}
             <div className="w-full lg:w-[380px]">
               <div className="sticky top-0 space-y-6">
@@ -283,7 +283,7 @@ export default function DraftDetailModal({ draft, open, onClose }) {
                     )) : (
                       <p className="text-sm text-gray-500">No items found</p>
                     )}
-                    
+
                     <div className="border-t border-gray-200 pt-3 mt-3 space-y-2 text-sm">
                       <div className="flex justify-between text-gray-600">
                         <span>Subtotal</span>
@@ -313,7 +313,7 @@ export default function DraftDetailModal({ draft, open, onClose }) {
                 </div>
               </div>
             </div>
-            
+
           </div>
         </div>
       </form>

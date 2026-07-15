@@ -42,6 +42,7 @@ export default function CheckoutPage() {
   const topRef = useRef(null);
 
   const [recommendations, setRecommendations] = useState([]);
+  const [couponState, setCouponState] = useState({ code: '', discount: 0, isValid: false, error: '', loading: false });
 
   useEffect(() => {
     setMounted(true);
@@ -58,6 +59,66 @@ export default function CheckoutPage() {
     };
     fetchRecs();
   }, []);
+
+  const [appliedCoupons, setAppliedCoupons] = useState([]);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  const handleApplyCoupon = async (code, email = null) => {
+    if (!code) return;
+    
+    // Check if already applied
+    if (appliedCoupons.some(c => c.code.toUpperCase() === code.toUpperCase())) {
+      setCouponError('This coupon is already applied.');
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const { validateCoupons } = await import('@/actions/coupon');
+      const codesToValidate = [...appliedCoupons.map(c => c.code), code];
+      
+      const res = await validateCoupons(codesToValidate, items, email);
+      if (res.success) {
+        setAppliedCoupons(res.coupons);
+      } else {
+        setCouponError(res.error || 'Failed to apply coupon.');
+      }
+    } catch (err) {
+      setCouponError('Failed to apply coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = async (codeToRemove, email = null) => {
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const remainingCodes = appliedCoupons.filter(c => c.code !== codeToRemove).map(c => c.code);
+      if (remainingCodes.length === 0) {
+        setAppliedCoupons([]);
+        setCouponLoading(false);
+        return;
+      }
+      
+      const { validateCoupons } = await import('@/actions/coupon');
+      const res = await validateCoupons(remainingCodes, items, email);
+      
+      if (res.success) {
+        setAppliedCoupons(res.coupons);
+      } else {
+        // If remaining somehow fail validation, clear them or show error
+        setAppliedCoupons([]);
+        setCouponError(res.error || 'Failed to validate remaining coupons.');
+      }
+    } catch (err) {
+      setCouponError('Error updating coupons');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   if (!mounted) {
     return (
@@ -89,8 +150,10 @@ export default function CheckoutPage() {
   }
 
   const subtotal = getSubtotal();
-  const prepaidDiscount = isPrepaid ? calculatePrepaidDiscount(subtotal) : 0;
-  const total = subtotal + SHIPPING_COST - prepaidDiscount;
+  const totalCouponDiscount = appliedCoupons.reduce((sum, c) => sum + c.discountAmount, 0);
+  const afterCouponSubtotal = Math.max(0, subtotal - totalCouponDiscount);
+  const prepaidDiscount = isPrepaid ? calculatePrepaidDiscount(afterCouponSubtotal) : 0;
+  const total = afterCouponSubtotal + SHIPPING_COST - prepaidDiscount;
 
   return (
     <div ref={topRef} className="min-h-screen bg-white">
@@ -103,7 +166,12 @@ export default function CheckoutPage() {
             <h1 className="text-2xl md:text-3xl font-bold text-brand-black mb-8">Secure Checkout</h1>
             <PrepaidBanner discountAmount={calculatePrepaidDiscount(subtotal)} isPrepaid={isPrepaid} />
             <div className="mt-8">
-              <CheckoutForm isPrepaid={isPrepaid} setIsPrepaid={setIsPrepaid} total={total} />
+              <CheckoutForm 
+                isPrepaid={isPrepaid} 
+                setIsPrepaid={setIsPrepaid} 
+                total={total} 
+                appliedCoupons={appliedCoupons}
+              />
             </div>
           </div>
 
@@ -118,6 +186,11 @@ export default function CheckoutPage() {
                 total={total}
                 isPrepaid={isPrepaid}
                 recommendations={recommendations}
+                appliedCoupons={appliedCoupons}
+                couponError={couponError}
+                couponLoading={couponLoading}
+                onApplyCoupon={handleApplyCoupon}
+                onRemoveCoupon={handleRemoveCoupon}
               />
             </div>
           </div>

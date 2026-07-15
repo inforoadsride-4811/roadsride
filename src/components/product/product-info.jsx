@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import useCartStore from '@/store/cart';
 import SalesBadge from './sales-badge';
+import OfferCountdown from './offer-countdown';
 
 export default function ProductInfo({ product, selectedPackIndex = 0, onPackSelect = () => { } }) {
   const [quantity, setQuantity] = useState(1);
@@ -95,12 +96,14 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
-              const el = document.getElementById('reviews-section');
-              if (el) {
-                const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                window.scrollTo({ top: y, behavior: 'smooth' });
-              }
               window.dispatchEvent(new CustomEvent('open-reviews-tab'));
+              setTimeout(() => {
+                const el = document.getElementById('reviews-section');
+                if (el) {
+                  el.style.scrollMarginTop = '120px';
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 150);
             }}
             className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
           >
@@ -132,6 +135,13 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
             )}
           </div>
         </div>
+
+        {/* Offers (Top of Page) */}
+        {product.offers && product.offers.length > 0 && product.offers[0].position === 'top-of-page' && (
+          <div className="mt-2">
+            <OfferCountdown offer={product.offers[0]} />
+          </div>
+        )}
 
         {/* Price */}
         <div className="flex items-center gap-2">
@@ -175,11 +185,14 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
             <p 
               className="text-xs font-medium text-gray-500 mt-1 cursor-pointer hover:underline"
               onClick={() => {
-                const el = document.getElementById('reviews-section');
-                if (el) {
-                  const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                  window.scrollTo({ top: y, behavior: 'smooth' });
-                }
+                window.dispatchEvent(new CustomEvent('open-reviews-tab'));
+                setTimeout(() => {
+                  const el = document.getElementById('reviews-section');
+                  if (el) {
+                    el.style.scrollMarginTop = '120px';
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 150);
               }}
             >
               4.7 rating (114 reviews)
@@ -205,6 +218,11 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         </ul>
 
         {/* Removed Stock Indicator from here */}
+
+        {/* Offers (Above Packs) */}
+        {product.offers && product.offers.length > 0 && product.offers[0].position === 'above-packs' && (
+          <OfferCountdown offer={product.offers[0]} />
+        )}
 
         {/* Packs Variation */}
         {packs.length > 0 && (

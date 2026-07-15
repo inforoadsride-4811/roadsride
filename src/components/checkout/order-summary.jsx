@@ -1,15 +1,28 @@
 'use client';
-
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { formatPrice } from '@/lib/product';
 import useCartStore from '@/store/cart';
 import { useToast } from '@/components/ui/toast';
-import { Plus } from 'lucide-react';
+import { Plus, Tag, X } from 'lucide-react';
 
-export default function OrderSummary({ items, subtotal, shipping, discount, total, isPrepaid, recommendations = [] }) {
+export default function OrderSummary({
+  items,
+  subtotal,
+  shipping,
+  discount,
+  total,
+  isPrepaid,
+  recommendations = [],
+  appliedCoupons = [],
+  couponError = '',
+  couponLoading = false,
+  onApplyCoupon,
+  onRemoveCoupon
+}) {
   const addItem = useCartStore((s) => s.addItem);
   const { addToast } = useToast();
+  const [localCouponCode, setLocalCouponCode] = useState('');
 
   const suggestedProducts = useMemo(() => {
     if (!recommendations || recommendations.length === 0) return [];
@@ -30,6 +43,16 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
     });
   };
 
+  const handleApplyClick = (e) => {
+    e.preventDefault();
+    if (localCouponCode && onApplyCoupon) {
+      onApplyCoupon(localCouponCode);
+      setLocalCouponCode('');
+    }
+  };
+
+  const totalCouponDiscount = appliedCoupons.reduce((sum, c) => sum + c.discountAmount, 0);
+
   return (
     <div className="bg-gray-50 p-6 border border-brand-border rounded-xl">
       <h3 className="text-lg font-bold text-brand-black mb-6">Order Summary</h3>
@@ -39,7 +62,7 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
           let borderColor = 'border-brand-black';
           let bgColor = 'bg-green-50/30';
           let badgeBg = 'bg-gray-100 text-gray-700';
-          
+
           if (item.packIndex === 1) { borderColor = 'border-green-600'; badgeBg = 'bg-green-100 text-green-800'; }
           if (item.packIndex === 2) { borderColor = 'border-blue-600'; badgeBg = 'bg-blue-100 text-blue-800'; }
           if (item.packIndex === 3) { borderColor = 'border-orange-600'; badgeBg = 'bg-orange-100 text-orange-800'; }
@@ -53,7 +76,7 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
               )}
               <div className="p-4 flex gap-4">
                 <div className="w-16 h-16 relative rounded-lg border border-gray-200 bg-white overflow-hidden flex-shrink-0">
-                  <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px" />
+                  <Image src={item.image || '/placeholder.png'} alt={item.name} fill className="object-cover" sizes="64px" />
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gray-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-10 border-2 border-white shadow-sm">
                     {item.quantity}
                   </div>
@@ -94,6 +117,66 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
         })}
       </div>
 
+      {/* Coupon Section */}
+      <div className="mb-6 pt-4 border-t border-brand-border">
+        {appliedCoupons.length > 0 && (
+          <div className="space-y-2 mb-3">
+            {appliedCoupons.map(coupon => (
+              <div key={coupon.code} className="bg-green-50 border border-green-200 rounded-lg p-3 flex justify-between items-center">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600">
+                      <Tag size={16} />
+                    </span>
+                    <span className="font-bold text-green-800 tracking-wide">{coupon.code}</span>
+                    {coupon.isStackable && (
+                      <span className="text-[10px] bg-green-200 text-green-800 px-1.5 py-0.5 rounded font-semibold ml-1">STACKED</span>
+                    )}
+                  </div>
+                  <div className="text-[11px] font-medium text-green-700 mt-1 ml-6">
+                    {coupon.discountType === 'percentage' ? `${coupon.discountValue}% off applied` :
+                      coupon.discountType === 'fixed' ? `₹${coupon.discountValue} flat discount` :
+                        `₹${coupon.discountValue} price override`}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onRemoveCoupon(coupon.code)}
+                  className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                  disabled={couponLoading}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(appliedCoupons.length === 0 || appliedCoupons.every(c => c.isStackable)) && (
+          <div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Discount code"
+                value={localCouponCode}
+                onChange={(e) => setLocalCouponCode(e.target.value.toUpperCase())}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-black uppercase"
+                disabled={couponLoading}
+              />
+              <button
+                onClick={handleApplyClick}
+                disabled={!localCouponCode || couponLoading}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {couponLoading ? 'Applying...' : 'Apply'}
+              </button>
+            </div>
+            {couponError && (
+              <p className="text-red-500 text-xs mt-2 font-medium">{couponError}</p>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="border-t border-brand-border pt-4 space-y-3 text-sm">
         <div className="flex justify-between text-gray-600">
           <span>Subtotal</span>
@@ -105,6 +188,13 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
             {shipping === 0 ? 'Free' : formatPrice(shipping)}
           </span>
         </div>
+
+        {totalCouponDiscount > 0 && (
+          <div className="flex justify-between text-green-600 font-medium">
+            <span>Coupon Discount</span>
+            <span>-{formatPrice(totalCouponDiscount)}</span>
+          </div>
+        )}
 
         {isPrepaid && discount > 0 && (
           <div className="flex justify-between text-brand-success font-medium">
@@ -151,7 +241,7 @@ export default function OrderSummary({ items, subtotal, shipping, discount, tota
                   <h5 className="text-xs font-medium text-brand-black truncate">{product.name}</h5>
                   <p className="text-xs font-bold text-brand-black mt-0.5">{formatPrice(product.price)}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => handleAddSuggestion(product)}
                   className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-yellow text-brand-black hover:bg-yellow-400 transition-colors flex-shrink-0"
                   aria-label="Add to cart"

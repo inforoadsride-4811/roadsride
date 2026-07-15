@@ -41,7 +41,7 @@ export const YoutubeGrid = Node.create({
   renderHTML({ node, HTMLAttributes }) {
     let urls = node.attrs.urls
     if (!Array.isArray(urls)) urls = ['', '', '']
-    
+
     const getYoutubeId = (url: string) => {
       if (!url) return null
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|\/shorts\/)([^#&?]*).*/
@@ -52,7 +52,7 @@ export const YoutubeGrid = Node.create({
     const gridContent = urls.map((u: string) => {
       const yId = getYoutubeId(u)
       if (!yId) return ['div', { class: 'aspect-[9/16] bg-gray-100 rounded-lg border border-gray-200' }]
-      
+
       return ['div', { class: 'aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden border border-gray-200' },
         ['iframe', {
           src: `https://www.youtube.com/embed/${yId}`,
@@ -63,9 +63,9 @@ export const YoutubeGrid = Node.create({
       ]
     })
 
-    return ['div', mergeAttributes(HTMLAttributes, { 
-      'data-youtube-grid': '', 
-      class: 'grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 my-8' 
+    return ['div', mergeAttributes(HTMLAttributes, {
+      'data-youtube-grid': '',
+      class: 'grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 my-8'
     }), ...gridContent]
   },
 

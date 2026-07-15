@@ -12,7 +12,7 @@ const getProductBySlugQuery = async (slug) => {
 
   if (!product) return null;
 
-  const [images, variants, features, specs, reviews, qa, faqs, category] = await Promise.all([
+  const [images, variants, features, specs, reviews, qa, faqs, category, offers] = await Promise.all([
     prisma.productImage.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
     prisma.productVariant.findMany({ where: { productId: product.id, isActive: true }, orderBy: { sortOrder: 'asc' } }),
     prisma.productFeature.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
@@ -24,7 +24,8 @@ const getProductBySlugQuery = async (slug) => {
     }),
     prisma.productQA.findMany({ where: { productId: product.id, status: 'answered' }, orderBy: { createdAt: 'desc' } }),
     prisma.productFAQ.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
-    product.categoryId ? prisma.category.findUnique({ where: { id: product.categoryId } }) : null
+    product.categoryId ? prisma.category.findUnique({ where: { id: product.categoryId } }) : null,
+    prisma.productOffer.findMany({ where: { productId: product.id, isActive: true }, orderBy: { priority: 'desc' } })
   ]);
 
     return {
@@ -36,7 +37,8 @@ const getProductBySlugQuery = async (slug) => {
       reviews,
       qa,
       faqs,
-      category
+      category,
+      offers
     };
   },
   [`product-${slug}`],
@@ -138,6 +140,7 @@ export async function getProductBySlug(slug) {
       seoKeywords: product.seoKeywords,
       ogImage: product.ogImage,
       canonicalUrl: product.canonicalUrl,
+      offers: product.offers || [],
     };
 
     return { success: true, product: transformed };

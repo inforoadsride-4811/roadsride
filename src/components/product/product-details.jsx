@@ -243,7 +243,8 @@ export default function ProductDetails({ product }) {
         setTimeout(() => {
           const element = document.getElementById('reviews-section');
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+            element.style.scrollMarginTop = '120px';
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }, 500);
       }
@@ -550,7 +551,8 @@ export default function ProductDetails({ product }) {
                     disabled={reviewPage === 1}
                     onClick={() => {
                       setReviewPage(prev => Math.max(1, prev - 1));
-                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('reviews-section').style.scrollMarginTop = '120px';
+                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
                     style={{
                       padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',
@@ -569,7 +571,8 @@ export default function ProductDetails({ product }) {
                     disabled={reviewPage === totalReviewPages}
                     onClick={() => {
                       setReviewPage(prev => Math.min(totalReviewPages, prev + 1));
-                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('reviews-section').style.scrollMarginTop = '120px';
+                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
                     style={{
                       padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',

@@ -11,7 +11,7 @@ export const metadata = {
   description: 'Drive Smart, Stay Safe. Discover our premium collection of car and bike accessories designed for ultimate performance and protection.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const { success, sections, error } = await getHomepageSections();

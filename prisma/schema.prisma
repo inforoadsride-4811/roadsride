@@ -82,6 +82,7 @@ model Product {
   reviews          ProductReview[]
   qa               ProductQA[]
   faqs             ProductFAQ[]
+  offers           ProductOffer[]
   homepageSections HomepageSectionProduct[]
 
   @@index([slug])
@@ -225,24 +226,125 @@ model ProductFAQ {
 }
 
 // ==========================================
-// COUPONS (Future-proof)
+// PRODUCT OFFERS (Countdown Banners)
+// ==========================================
+
+model ProductOffer {
+  id              String    @id @default(cuid())
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // Content
+  title           String                    // "🔥 Independence Day Mega Offer"
+  subtitle        String?                   // "Save up to 40%..."
+  badgeText       String?                   // "⚡ Flash Sale"
+  ctaText         String?                   // "Grab Now"
+  expiredMessage  String?   @default("This offer has ended")
+
+  // Styling
+  bgTheme         String    @default("gradient-fire")  // preset theme name
+  bgColor         String?                   // custom hex
+  bgGradient      String?                   // custom CSS gradient
+  bannerImage     String?                   // optional Supabase URL
+
+  // Schedule
+  startDate       DateTime
+  endDate         DateTime
+
+  // Config
+  isActive        Boolean   @default(true)
+  showCountdown   Boolean   @default(true)
+  priority        Int       @default(0)     // higher = shown first if multiple
+  position        String    @default("above-packs")  // "above-packs" | "top-of-page"
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([productId])
+  @@index([isActive, startDate, endDate])
+}
+
+// ==========================================
+// COUPONS
 // ==========================================
 
 model Coupon {
-  id        String    @id @default(cuid())
-  code      String    @unique
-  type      String    // "percentage" | "fixed"
-  value     Float     // discount amount or percentage
-  minOrder  Float     @default(0)
-  maxUses   Int?      // null = unlimited
-  usedCount Int       @default(0)
-  active    Boolean   @default(true)
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  // Basic
+  name              String                    // Internal name
+  code              String    @unique         // SAVE20
+  description       String?
+  internalNotes     String?   @db.Text
+
+  // Discount
+  discountType      String                    // "percentage" | "fixed" | "flat_price"
+  discountValue     Float                     // 20 (%), ₹2000, etc.
+
+  // Rules
+  minOrderAmount    Float     @default(0)
+  maxDiscountAmount Float?                    // Cap for percentage discounts
+  minQuantity       Int       @default(1)
+
+  // Product assignment
+  applicableTo      String    @default("all") // "all" | "products" | "categories"
+  productIds        Json?                     // Array of product IDs
+  categoryIds       Json?                     // Array of category IDs
+
+  // Usage limits
+  maxTotalUses      Int?                      // null = unlimited
+  maxPerUser        Int       @default(1)
+  maxDailyUses      Int?
+  maxMonthlyUses    Int?   
+  usedCount         Int       @default(0)
+
+  // Validity
+  startDate         DateTime  @default(now())
+  endDate           DateTime?                 // null = never expires
+
+  // User restrictions
+  userRestriction   String    @default("all") // "all" | "logged_in" | "guest" | "new_customers" | "existing_customers"
+  allowedEmails     Json?                     // Array of specific emails
+
+  // Advanced
+  isStackable       Boolean   @default(false)
+  isAutoApply       Boolean   @default(false)
+  isHidden          Boolean   @default(false) // Don't show in public lists
+  firstPurchaseOnly Boolean   @default(false)
+
+  // Status
+  isActive          Boolean   @default(true)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  redemptions       CouponRedemption[]
 
   @@index([code])
-  @@index([active])
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+model CouponRedemption {
+  id              String    @id @default(cuid())
+  couponId        String
+  coupon          Coupon    @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  orderId         String?
+  customerId      String?
+  email           String?
+
+  discountAmount  Float
+  orderTotal      Float
+  productName     String?
+  ipAddress       String?
+
+  createdAt       DateTime  @default(now())
+
+  @@index([couponId])
+  @@index([email])
+  @@index([customerId])
+  @@index([createdAt])
 }
 
 // ==========================================

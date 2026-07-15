@@ -109,6 +109,7 @@ export async function getAdminProduct(id) {
         features: { orderBy: { sortOrder: 'asc' } },
         specs: { orderBy: { sortOrder: 'asc' } },
         reviews: { orderBy: { createdAt: 'desc' } },
+        offers: { orderBy: { priority: 'desc' } },
         category: true
       }
     });

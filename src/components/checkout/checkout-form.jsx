@@ -16,7 +16,7 @@ import { formatPrice } from '@/lib/product';
 import { checkoutSchema, validateForm } from '@/lib/validations';
 import { Loader2, MapPin, Home, Briefcase, Plus, CheckCircle2 } from 'lucide-react';
 
-export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
+export default function CheckoutForm({ isPrepaid, setIsPrepaid, total, appliedCoupons }) {
   const router = useRouter();
   const { addToast } = useToast();
   const { items, clearCart, getCartForCheckout } = useCartStore();
@@ -281,6 +281,7 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total }) {
         total,
         customerId,
         draftId, // pass draftId to convert it
+        couponCodes: appliedCoupons ? appliedCoupons.map(c => c.code) : [], // pass array of coupon codes to order processing
       };
 
       if (isPrepaid) {
