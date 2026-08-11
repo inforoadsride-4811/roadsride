@@ -1,13 +1,5 @@
 import { updateSession } from '@/lib/supabase/middleware';
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-
-// Lightweight admin check in middleware (no Prisma in edge runtime)
-// We use a cookie flag set during admin login to avoid DB calls here
-async function isAdminSession(request) {
-  const { user } = await updateSession(request);
-  return { user };
-}
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -22,7 +14,6 @@ export async function middleware(request) {
   }
 
   // Protect all admin routes — require authenticated user
-  // The actual admin role check happens in getSessionAdmin() on each page
   if (pathname.startsWith('/admin')) {
     const { user, supabaseResponse } = await updateSession(request);
 
@@ -35,9 +26,16 @@ export async function middleware(request) {
     return supabaseResponse;
   }
 
-  // For all other routes, just refresh session
-  const { supabaseResponse } = await updateSession(request);
-  return supabaseResponse;
+  // Account routes need session refresh
+  if (pathname.startsWith('/account')) {
+    const { supabaseResponse } = await updateSession(request);
+    return supabaseResponse;
+  }
+
+  // All other public routes (homepage, checkout, product, blog, etc.)
+  // skip Supabase auth entirely — no need to waste 200-400ms on a
+  // network round-trip to Supabase for pages that don't need auth.
+  return NextResponse.next();
 }
 
 export const config = {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sheet } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,11 @@ import { formatPrice } from '@/lib/product';
 export default function CartDrawer({ open, onClose }) {
   const { items, updateQuantity, removeItem, getSubtotal } = useCartStore();
   const router = useRouter();
+
+  // Prefetch checkout route so navigation is instant
+  useEffect(() => {
+    router.prefetch('/checkout');
+  }, [router]);
 
   const handleCheckout = () => {
     onClose();

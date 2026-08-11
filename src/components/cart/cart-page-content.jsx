@@ -17,7 +17,8 @@ export default function CartPageContent() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    router.prefetch('/checkout');
+  }, [router]);
 
   const subtotal = getSubtotal();
   const originalSubtotal = getOriginalSubtotal();

@@ -19,6 +19,10 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
   const [isNavigating, setIsNavigating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Prefetch checkout route on mount so "Order Now" navigates instantly
+  useEffect(() => {
+    router.prefetch('/checkout');
+  }, [router]);
 
   const handlePackSelect = (index) => {
     onPackSelect(index);
@@ -73,9 +77,10 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
 
   const handleOrderNow = () => {
     setIsNavigating(true);
-    clearCart(); // Clear the cart so only this item is checked out
+    clearCart();
     addItem(getPackProduct(), quantity);
-    router.push('/checkout?payment=Cash On Delivery');
+    // Instant redirect — cart is in localStorage so no server round-trip needed
+    window.location.href = '/checkout?payment=cod';
   };
 
   const trustItems = [

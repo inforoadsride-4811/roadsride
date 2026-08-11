@@ -38,17 +38,20 @@ export async function generateMetadata({ params }) {
 
 export default async function SlugProductPage({ params }) {
   const { slug } = await params;
-  const { success, product } = await getProductBySlug(slug);
 
-  if (!success || !product) {
+  // Run both queries in parallel instead of sequentially
+  const [productResult, recsResult] = await Promise.all([
+    getProductBySlug(slug),
+    getProducts({ limit: 4 }),
+  ]);
+
+  if (!productResult.success || !productResult.product) {
     notFound();
   }
 
-  // Fetch 4 latest products to use as recommendations (exclude current)
-  const { products: latestProducts = [] } = await getProducts({ limit: 4 });
-  const recommendations = latestProducts
-    .filter(p => p.id !== product.id)
+  const recommendations = (recsResult.products || [])
+    .filter(p => p.id !== productResult.product.id)
     .slice(0, 3);
 
-  return <ProductPageClient product={product} recommendations={recommendations} />;
+  return <ProductPageClient product={productResult.product} recommendations={recommendations} />;
 }

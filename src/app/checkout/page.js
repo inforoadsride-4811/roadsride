@@ -50,14 +50,15 @@ export default function CheckoutPage() {
       setIsPrepaid(false);
     }
     
-    // Fetch recommendations
-    const fetchRecs = async () => {
+    // Defer recommendation fetch — user needs to fill form first anyway,
+    // no need to block the checkout experience with a DB call
+    const timer = setTimeout(async () => {
       const res = await getProducts({ limit: 10 });
       if (res.success) {
         setRecommendations(res.products);
       }
-    };
-    fetchRecs();
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
   const [appliedCoupons, setAppliedCoupons] = useState([]);

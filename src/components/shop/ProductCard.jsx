@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, Heart, ShoppingCart, Star, Zap } from 'lucide-react';
 import { formatPrice } from '@/lib/product';
@@ -11,6 +12,11 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
   const { addItem } = useCartStore();
   const { addToast } = useToast();
   const router = useRouter();
+
+  // Prefetch checkout route so "Buy Now" navigates instantly
+  useEffect(() => {
+    router.prefetch('/checkout');
+  }, [router]);
 
   const mainImage = product.images?.[0]?.src || '/placeholder-product.png';
   const hoverImage = product.images?.[1]?.src || mainImage;
