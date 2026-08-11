@@ -7,39 +7,27 @@ const getProductBySlugQuery = async (slug) => {
   return unstable_cache(
     async () => {
   const product = await prisma.product.findUnique({
-    where: { slug }
+    where: { slug },
+    include: {
+      images: { orderBy: { sortOrder: 'asc' } },
+      variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
+      features: { orderBy: { sortOrder: 'asc' } },
+      specs: { orderBy: { sortOrder: 'asc' } },
+      reviews: { 
+        where: { approved: true }, 
+        orderBy: { createdAt: 'desc' },
+        include: { customer: true }
+      },
+      qa: { where: { status: 'answered' }, orderBy: { createdAt: 'desc' } },
+      faqs: { orderBy: { sortOrder: 'asc' } },
+      category: true,
+      offers: { where: { isActive: true }, orderBy: { priority: 'desc' } }
+    }
   });
 
   if (!product) return null;
 
-  const [images, variants, features, specs, reviews, qa, faqs, category, offers] = await Promise.all([
-    prisma.productImage.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
-    prisma.productVariant.findMany({ where: { productId: product.id, isActive: true }, orderBy: { sortOrder: 'asc' } }),
-    prisma.productFeature.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
-    prisma.productSpec.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
-    prisma.productReview.findMany({ 
-      where: { productId: product.id, approved: true }, 
-      orderBy: { createdAt: 'desc' },
-      include: { customer: true }
-    }),
-    prisma.productQA.findMany({ where: { productId: product.id, status: 'answered' }, orderBy: { createdAt: 'desc' } }),
-    prisma.productFAQ.findMany({ where: { productId: product.id }, orderBy: { sortOrder: 'asc' } }),
-    product.categoryId ? prisma.category.findUnique({ where: { id: product.categoryId } }) : null,
-    prisma.productOffer.findMany({ where: { productId: product.id, isActive: true }, orderBy: { priority: 'desc' } })
-  ]);
-
-    return {
-      ...product,
-      images,
-      variants,
-      features,
-      specs,
-      reviews,
-      qa,
-      faqs,
-      category,
-      offers
-    };
+  return product;
   },
   [`product-${slug}`],
   {
@@ -175,46 +163,52 @@ export async function getFeaturedProducts() {
 /**
  * Fetch all active products (paginated)
  */
-export async function getProducts({ page = 1, limit = 12, categorySlug, search } = {}) {
-  try {
-    const where = { status: 'active' };
-    if (categorySlug) {
-      where.category = { slug: categorySlug };
-    }
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { shortName: { contains: search, mode: 'insensitive' } },
-      ];
-    }
+export const getProducts = async ({ page = 1, limit = 12, categorySlug, search } = {}) => {
+  return unstable_cache(
+    async () => {
+      try {
+        const where = { status: 'active' };
+        if (categorySlug) {
+          where.category = { slug: categorySlug };
+        }
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: 'insensitive' } },
+            { shortName: { contains: search, mode: 'insensitive' } },
+          ];
+        }
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        include: {
-          images: { orderBy: { sortOrder: 'asc' }, take: 1 },
-          variants: { orderBy: { sortOrder: 'asc' }, where: { isActive: true }, take: 1 },
-          category: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.product.count({ where }),
-    ]);
+        const [products, total] = await Promise.all([
+          prisma.product.findMany({
+            where,
+            include: {
+              images: { orderBy: { sortOrder: 'asc' }, take: 1 },
+              variants: { orderBy: { sortOrder: 'asc' }, where: { isActive: true }, take: 1 },
+              category: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            skip: (page - 1) * limit,
+            take: limit,
+          }),
+          prisma.product.count({ where }),
+        ]);
 
-    return {
-      success: true,
-      products,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
-  } catch (error) {
-    console.error('getProducts error:', error);
-    return { success: false, products: [], pagination: {} };
-  }
-}
+        return {
+          success: true,
+          products,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+          },
+        };
+      } catch (error) {
+        console.error('getProducts error:', error);
+        return { success: false, products: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } };
+      }
+    },
+    [`products-list-${page}-${limit}-${categorySlug || 'all'}-${search || 'none'}`],
+    { tags: ['product'], revalidate: 60 }
+  )();
+};

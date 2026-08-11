@@ -99,23 +99,37 @@ export default function FilterSidebar({ filters, updateFilter, clearFilters, fil
                 </span>
               </label>
               
-              {categories.map((cat) => (
-                <label key={cat.id} className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-3">
-                    <input 
-                      type="radio" 
-                      name="category"
-                      checked={filters.categorySlug === cat.slug}
-                      onChange={() => updateFilter('categorySlug', cat.slug)}
-                      className="w-4 h-4 text-brand-yellow focus:ring-brand-yellow border-gray-300"
-                    />
-                    <span className={`text-sm ${filters.categorySlug === cat.slug ? 'font-semibold text-brand-black' : 'text-gray-600 group-hover:text-brand-black'}`}>
-                      {cat.name}
-                    </span>
-                  </div>
-                  <span className="text-xs text-gray-400">({cat._count.products})</span>
-                </label>
-              ))}
+              {(() => {
+                const flattenTree = (cats, parentId = null, depth = 0) => {
+                  let result = [];
+                  const children = cats.filter(c => c.parentId === parentId).sort((a, b) => a.sortOrder - b.sortOrder);
+                  for (const child of children) {
+                    result.push({ ...child, depth });
+                    result = result.concat(flattenTree(cats, child.id, depth + 1));
+                  }
+                  return result;
+                };
+                
+                const displayedCategories = flattenTree(categories);
+                
+                return displayedCategories.map((cat) => (
+                  <label key={cat.id} className="flex items-center justify-between cursor-pointer group" style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="radio" 
+                        name="category"
+                        checked={filters.categorySlug === cat.slug}
+                        onChange={() => updateFilter('categorySlug', cat.slug)}
+                        className="w-4 h-4 text-brand-yellow focus:ring-brand-yellow border-gray-300"
+                      />
+                      <span className={`text-sm ${filters.categorySlug === cat.slug ? 'font-semibold text-brand-black' : 'text-gray-600 group-hover:text-brand-black'}`}>
+                        {cat.name}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400">({cat._count?.products || 0})</span>
+                  </label>
+                ));
+              })()}
             </div>
           )}
         </div>

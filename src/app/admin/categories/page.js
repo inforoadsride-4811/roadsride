@@ -1,4 +1,4 @@
-import { getPaginatedCategories } from '@/actions/admin-products';
+import { getAdminCategories } from '@/actions/admin-products';
 import CategoriesClient from '@/components/admin/categories-client';
 
 export const metadata = {
@@ -10,11 +10,7 @@ export default async function AdminCategoriesPage({ searchParams }) {
   const page = Number(resolvedParams?.page) || 1;
   const search = resolvedParams?.search || '';
 
-  const { success, categories, pagination, error } = await getPaginatedCategories({
-    page,
-    limit: 10,
-    search,
-  });
+  const { success, categories, error } = await getAdminCategories();
 
   if (!success) {
     return <div className="p-6 text-red-500">Error: {error}</div>;
@@ -29,7 +25,7 @@ export default async function AdminCategoriesPage({ searchParams }) {
         </div>
       </div>
       
-      <CategoriesClient initialCategories={categories} pagination={pagination} />
+      <CategoriesClient initialCategories={categories} />
     </div>
   );
 }

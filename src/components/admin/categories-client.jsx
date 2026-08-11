@@ -18,7 +18,7 @@ const COMMON_ICONS = [
   'Layers', 'Umbrella', 'Speaker', 'Monitor', 'Headphones', 'Video', 'Camera'
 ];
 
-export default function CategoriesClient({ initialCategories, pagination }) {
+export default function CategoriesClient({ initialCategories }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
@@ -38,27 +38,35 @@ export default function CategoriesClient({ initialCategories, pagination }) {
     slug: '',
     description: '',
     image: '',
+    parentId: '',
     isActive: true,
   });
+
+  const flattenTree = (categories, parentId = null, depth = 0) => {
+    let result = [];
+    const children = categories.filter(c => c.parentId === parentId).sort((a, b) => a.sortOrder - b.sortOrder);
+    for (const child of children) {
+      result.push({ ...child, depth });
+      result = result.concat(flattenTree(categories, child.id, depth + 1));
+    }
+    return result;
+  };
+
+  const displayedCategories = flattenTree(initialCategories).filter(c => 
+    !searchQuery || c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.slug.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleSearch = (e) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
     if (searchQuery) params.set('search', searchQuery);
     else params.delete('search');
-    params.set('page', '1');
-    router.push(`/admin/categories?${params.toString()}`);
-  };
-
-  const handlePageChange = (newPage) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', newPage.toString());
     router.push(`/admin/categories?${params.toString()}`);
   };
 
   const openCreateModal = () => {
     setEditingCategory(null);
-    setFormData({ name: '', slug: '', description: '', image: '', isActive: true });
+    setFormData({ name: '', slug: '', description: '', image: '', parentId: '', isActive: true });
     setIconSearchQuery('');
     setIsModalOpen(true);
   };
@@ -70,6 +78,7 @@ export default function CategoriesClient({ initialCategories, pagination }) {
       slug: category.slug,
       description: category.description || '',
       image: category.image || '',
+      parentId: category.parentId || '',
       isActive: category.isActive,
     });
     setIconSearchQuery('');
@@ -147,7 +156,7 @@ export default function CategoriesClient({ initialCategories, pagination }) {
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedIds(initialCategories.map(c => c.id));
+      setSelectedIds(displayedCategories.map(c => c.id));
     } else {
       setSelectedIds([]);
     }
@@ -230,7 +239,7 @@ export default function CategoriesClient({ initialCategories, pagination }) {
                   <input 
                     type="checkbox" 
                     className="rounded border-gray-300"
-                    checked={initialCategories.length > 0 && selectedIds.length === initialCategories.length}
+                    checked={displayedCategories.length > 0 && selectedIds.length === displayedCategories.length}
                     onChange={handleSelectAll}
                   />
                 </th>
@@ -242,14 +251,14 @@ export default function CategoriesClient({ initialCategories, pagination }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border">
-              {initialCategories.length === 0 ? (
+              {displayedCategories.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
                     No categories found.
                   </td>
                 </tr>
               ) : (
-                initialCategories.map((cat) => (
+                displayedCategories.map((cat) => (
                   <tr key={cat.id} className={`transition-colors ${selectedIds.includes(cat.id) ? 'bg-blue-50/50 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}>
                     <td className="px-6 py-4 text-center" onClick={e => e.stopPropagation()}>
                       <input 
@@ -259,7 +268,7 @@ export default function CategoriesClient({ initialCategories, pagination }) {
                         onChange={(e) => handleSelectOne(e, cat.id)}
                       />
                     </td>
-                    <td className="px-6 py-4 font-medium text-brand-black flex items-center gap-3">
+                    <td className="px-6 py-4 font-medium text-brand-black flex items-center gap-3" style={{ paddingLeft: `${(cat.depth * 2) + 1.5}rem` }}>
                       {cat.image ? (
                         cat.image.startsWith('lucide:') ? (
                           <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-700">
@@ -303,32 +312,7 @@ export default function CategoriesClient({ initialCategories, pagination }) {
           </table>
         </div>
 
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-brand-border bg-gray-50">
-            <span className="text-sm text-gray-500">
-              Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-              >
-                <ChevronLeft size={16} className="mr-1" /> Prev
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page >= pagination.totalPages}
-              >
-                Next <ChevronRight size={16} className="ml-1" />
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Pagination removed */}
       </div>
 
       {/* Modal */}
@@ -348,11 +332,24 @@ export default function CategoriesClient({ initialCategories, pagination }) {
                 <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} required />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Parent Category</label>
+                <select 
+                  value={formData.parentId} 
+                  onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow outline-none text-sm text-gray-900 bg-white"
+                >
+                  <option value="">None (Top Level)</option>
+                  {initialCategories.filter(c => c.id !== editingCategory?.id).map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea 
                   value={formData.description} 
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
-                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none h-24"
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow focus:border-brand-yellow outline-none h-24 text-gray-900 bg-white"
                 />
               </div>
               
@@ -360,10 +357,10 @@ export default function CategoriesClient({ initialCategories, pagination }) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category Image or Icon</label>
                 
                 <div className="flex gap-4 mb-4">
-                  <Button type="button" variant={formData.image?.startsWith('lucide:') ? 'outline' : 'default'} onClick={() => setFormData({...formData, image: ''})} className="flex-1">
+                  <Button type="button" variant={formData.image?.startsWith('lucide:') ? 'outline' : 'secondary'} onClick={() => setFormData({...formData, image: ''})} className="flex-1">
                     Use Image
                   </Button>
-                  <Button type="button" variant={formData.image?.startsWith('lucide:') ? 'default' : 'outline'} onClick={() => setFormData({...formData, image: 'lucide:Car'})} className="flex-1">
+                  <Button type="button" variant={formData.image?.startsWith('lucide:') ? 'secondary' : 'outline'} onClick={() => setFormData({...formData, image: 'lucide:Car'})} className="flex-1">
                     Use Icon
                   </Button>
                 </div>

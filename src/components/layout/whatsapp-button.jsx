@@ -1,9 +1,44 @@
 'use client';
 
-export default function WhatsAppButton() {
-  const phoneNumber = '919097968671'; // Using the phone number from the footer
+import { usePathname } from 'next/navigation';
+
+export default function WhatsAppButton({ settings }) {
+  const pathname = usePathname();
+  const phoneNumber = settings?.whatsappNumber || '919097968671'; // Fallback if not in settings
   const message = 'Hello, I need some help with RoadsRide products.';
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  // Default to showing on all pages if no settings exist (null or undefined)
+  const enabledUrls = settings?.whatsappEnabledUrls || '/*';
+    
+  const urlsArray = (typeof enabledUrls === 'string' ? enabledUrls : '/*').split(',').map(u => u.trim()).filter(Boolean);
+
+  let shouldShow = false;
+  if (urlsArray.length === 0) {
+     // if intentionally empty, don't show
+     shouldShow = false;
+  } else {
+    for (const pattern of urlsArray) {
+      if (pattern === '/*' || pattern === '*') {
+        shouldShow = true;
+        break;
+      }
+      if (pattern.endsWith('/*')) {
+        const base = pattern.slice(0, -2);
+        if (pathname.startsWith(base)) {
+          shouldShow = true;
+          break;
+        }
+      } else {
+        if (pathname === pattern || pathname + '/' === pattern) {
+          shouldShow = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!shouldShow) return null;
 
   return (
     <a

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Star, StarHalf, Minus, Plus, Truck, ShieldCheck, RotateCcw, MessageCircle, Loader2, CheckCircle2, ChevronUp, X, Gift } from 'lucide-react';
@@ -18,6 +18,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
 
   const handlePackSelect = (index) => {
     onPackSelect(index);
@@ -96,14 +97,16 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
-              window.dispatchEvent(new CustomEvent('open-reviews-tab'));
-              setTimeout(() => {
+              const scrollToReviews = () => {
                 const el = document.getElementById('reviews-section');
                 if (el) {
                   el.style.scrollMarginTop = '120px';
                   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-              }, 150);
+              };
+              scrollToReviews();
+              // Double check after 800ms in case lazy-loaded images pushed the section down
+              setTimeout(scrollToReviews, 800);
             }}
             className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
           >
@@ -185,14 +188,15 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
             <p 
               className="text-xs font-medium text-gray-500 mt-1 cursor-pointer hover:underline"
               onClick={() => {
-                window.dispatchEvent(new CustomEvent('open-reviews-tab'));
-                setTimeout(() => {
+                const scrollToReviews = () => {
                   const el = document.getElementById('reviews-section');
                   if (el) {
                     el.style.scrollMarginTop = '120px';
                     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
-                }, 150);
+                };
+                scrollToReviews();
+                setTimeout(scrollToReviews, 800);
               }}
             >
               4.7 rating (114 reviews)
@@ -382,7 +386,7 @@ export default function ProductInfo({ product, selectedPackIndex = 0, onPackSele
           
           <Button 
             onClick={() => {
-              if (selectedPackIndex === null) {
+              if (packs.length > 0 && selectedPackIndex === null) {
                 setIsDrawerOpen(true);
               } else {
                 handleOrderNow();

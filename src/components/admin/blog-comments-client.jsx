@@ -4,23 +4,21 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
-import { bulkDeleteReviews, bulkUpdateReviewStatus } from '@/actions/admin';
-import { updateReviewStatus, editReview, replyToReview, getAdminReviews } from '@/actions/review';
+import { bulkDeleteBlogComments, bulkUpdateBlogCommentStatus, toggleBlogCommentStatus, deleteBlogComment, replyToBlogComment, editBlogComment, getAdminBlogComments } from '@/actions/admin-blog-comments';
 import { Loader2, Search, CheckCircle2, Trash2, Star, EyeOff, Eye, Pencil, MessageSquare, X, ChevronDown, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-// ─── Edit Review Modal ─────────────────────────────────────────────────────────
-function EditReviewModal({ review, onClose, onSave }) {
-  const [title, setTitle] = useState(review.title || '');
-  const [content, setContent] = useState(review.content || '');
-  const [rating, setRating] = useState(review.rating);
-  const [images, setImages] = useState(review.images || (review.image ? [review.image] : []));
+// ─── Edit Comment Modal ─────────────────────────────────────────────────────────
+function EditCommentModal({ comment, onClose, onSave }) {
+  const [content, setContent] = useState(comment.content || '');
+  const [rating, setRating] = useState(comment.rating || 0);
+  const [images, setImages] = useState(comment.images || []);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    const result = await onSave(review.id, { title, content, rating, images });
+    const result = await onSave(comment.id, { content, rating: rating || null, images });
     setSaving(false);
     if (result) onClose();
   };
@@ -29,7 +27,7 @@ function EditReviewModal({ review, onClose, onSave }) {
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900">Edit Review</h3>
+          <h3 className="text-lg font-bold text-gray-900">Edit Comment</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
             <X size={20} className="text-gray-500" />
           </button>
@@ -44,7 +42,7 @@ function EditReviewModal({ review, onClose, onSave }) {
                 <button
                   key={star}
                   type="button"
-                  onClick={() => setRating(star)}
+                  onClick={() => setRating(rating === star ? 0 : star)}
                   className="focus:outline-none transition-transform hover:scale-110"
                 >
                   <Star
@@ -57,31 +55,19 @@ function EditReviewModal({ review, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Review Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow text-sm"
-              placeholder="Review title..."
-            />
-          </div>
-
           {/* Content */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Review Content</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Comment Content</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={5}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow text-sm resize-none"
-              placeholder="Review content..."
+              placeholder="Comment content..."
             />
           </div>
 
-          {/* GIF / Image URL */}
+          {/* Image / GIF URL */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Image / GIF URL (Optional)</label>
             <input
@@ -94,12 +80,12 @@ function EditReviewModal({ review, onClose, onSave }) {
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow text-sm"
               placeholder="https://media.giphy.com/media/.../giphy.gif"
             />
-            <p className="text-xs text-gray-500 mt-1">Paste a URL to a GIF or image to embed it in the review.</p>
+            <p className="text-xs text-gray-500 mt-1">Paste a URL to a GIF or image to embed it in the comment.</p>
           </div>
 
           {/* Author info (read-only) */}
           <div className="bg-gray-50 rounded-lg px-4 py-3 text-xs text-gray-500">
-            <span className="font-semibold text-gray-700">{review.author}</span> · {new Date(review.createdAt).toLocaleDateString()}
+            <span className="font-semibold text-gray-700">{comment.author}</span> · {new Date(comment.createdAt).toLocaleDateString()}
           </div>
         </div>
 
@@ -115,20 +101,20 @@ function EditReviewModal({ review, onClose, onSave }) {
 }
 
 // ─── Reply Modal ────────────────────────────────────────────────────────────────
-function ReplyModal({ review, onClose, onSave }) {
-  const [reply, setReply] = useState(review.adminReply || '');
+function ReplyModal({ comment, onClose, onSave }) {
+  const [reply, setReply] = useState(comment.adminReply || '');
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    const result = await onSave(review.id, reply.trim());
+    const result = await onSave(comment.id, reply.trim());
     setSaving(false);
     if (result) onClose();
   };
 
   const handleRemoveReply = async () => {
     setSaving(true);
-    const result = await onSave(review.id, '');
+    const result = await onSave(comment.id, '');
     setSaving(false);
     if (result) onClose();
   };
@@ -138,7 +124,7 @@ function ReplyModal({ review, onClose, onSave }) {
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-bold text-gray-900">
-            {review.adminReply ? 'Edit Reply' : 'Reply to Review'}
+            {comment.adminReply ? 'Edit Reply' : 'Reply to Comment'}
           </h3>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
             <X size={20} className="text-gray-500" />
@@ -146,18 +132,19 @@ function ReplyModal({ review, onClose, onSave }) {
         </div>
 
         <div className="p-6 space-y-4">
-          {/* Original review context */}
+          {/* Original comment context */}
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
             <div className="flex items-center gap-2 mb-2">
-              <div className="flex items-center gap-0.5 text-yellow-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={12} fill={i < review.rating ? 'currentColor' : 'none'} className={i < review.rating ? '' : 'text-gray-300'} />
-                ))}
-              </div>
-              <span className="text-xs font-semibold text-gray-700">{review.author}</span>
+              {comment.rating ? (
+                <div className="flex items-center gap-0.5 text-yellow-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={12} fill={i < comment.rating ? 'currentColor' : 'none'} className={i < comment.rating ? '' : 'text-gray-300'} />
+                  ))}
+                </div>
+              ) : null}
+              <span className="text-xs font-semibold text-gray-700">{comment.author}</span>
             </div>
-            {review.title && <p className="text-sm font-semibold text-gray-900 mb-1">{review.title}</p>}
-            <p className="text-sm text-gray-600 line-clamp-3">{review.content}</p>
+            <p className="text-sm text-gray-600 line-clamp-3">{comment.content}</p>
           </div>
 
           {/* Reply textarea */}
@@ -168,14 +155,14 @@ function ReplyModal({ review, onClose, onSave }) {
               onChange={(e) => setReply(e.target.value)}
               rows={4}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow text-sm resize-none"
-              placeholder="Write your reply to the customer..."
+              placeholder="Write your reply to the commenter..."
             />
           </div>
         </div>
 
         <div className="flex justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
           <div>
-            {review.adminReply && (
+            {comment.adminReply && (
               <Button type="button" variant="outline" onClick={handleRemoveReply} disabled={saving} className="px-4 text-red-600 border-red-200 hover:bg-red-50">
                 Remove Reply
               </Button>
@@ -194,7 +181,7 @@ function ReplyModal({ review, onClose, onSave }) {
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
-export default function ReviewsClient({ initialData, pagination: initialPagination }) {
+export default function BlogCommentsClient({ initialData, pagination: initialPagination }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
@@ -207,32 +194,32 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
   const bulkMenuRef = useRef(null);
-  
+
   const pageParam = parseInt(searchParams.get('page') || '1');
   const searchParam = searchParams.get('search') || '';
   const statusParam = searchParams.get('status') || 'all';
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['adminReviews', pageParam, searchParam, statusParam],
+    queryKey: ['adminBlogComments', pageParam, searchParam, statusParam],
     queryFn: async () => {
-      const res = await getAdminReviews({ page: pageParam, limit: 20, search: searchParam, status: statusParam });
-      if (!res.success) throw new Error(res.error || 'Failed to fetch reviews');
+      const res = await getAdminBlogComments({ page: pageParam, limit: 20, search: searchParam, status: statusParam });
+      if (!res.success) throw new Error(res.error || 'Failed to fetch comments');
       return res;
     },
     initialData: () => {
       if (pageParam === (initialPagination?.currentPage || 1) && searchParam === searchTerm && statusParam === filter) {
-        return { reviews: initialData, pagination: initialPagination };
+        return { comments: initialData, pagination: initialPagination };
       }
       return undefined;
     }
   });
 
-  const reviews = data?.reviews || [];
+  const comments = data?.comments || [];
   const pagination = data?.pagination || initialPagination;
 
   // Modals
-  const [editingReview, setEditingReview] = useState(null);
-  const [replyingReview, setReplyingReview] = useState(null);
+  const [editingComment, setEditingComment] = useState(null);
+  const [replyingComment, setReplyingComment] = useState(null);
 
   // Close bulk menu on outside click
   useEffect(() => {
@@ -247,34 +234,46 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
 
   const handleSearch = (e) => {
     e.preventDefault();
-    router.push(`/admin/reviews?search=${encodeURIComponent(searchTerm)}&status=${filter}`);
+    router.push(`/admin/reviews?tab=blogs&search=${encodeURIComponent(searchTerm)}&status=${filter}`);
   };
 
   const handleFilter = (status) => {
     setFilter(status);
-    router.push(`/admin/reviews?search=${encodeURIComponent(searchTerm)}&status=${status}`);
+    router.push(`/admin/reviews?tab=blogs&search=${encodeURIComponent(searchTerm)}&status=${status}`);
   };
 
   const handleAction = async (id, action) => {
-    if (action === 'delete' && !confirm('Are you sure you want to permanently delete this review?')) return;
+    if (action === 'delete' && !confirm('Are you sure you want to permanently delete this comment?')) return;
 
     setLoadingId(id);
-    const { success, error } = await updateReviewStatus(id, action);
+    let success = false;
+    let errorMsg = '';
+
+    if (action === 'approve' || action === 'hide') {
+      const res = await toggleBlogCommentStatus(id);
+      success = res.success;
+      errorMsg = res.error;
+    } else if (action === 'delete') {
+      const res = await deleteBlogComment(id);
+      success = res.success;
+      errorMsg = res.error;
+    }
+    
     setLoadingId(null);
 
     if (success) {
-      addToast({ title: `Review ${action === 'approve' ? 'approved' : action === 'hide' ? 'hidden' : action === 'delete' ? 'deleted' : 'updated'} successfully`, type: 'success' });
-      queryClient.invalidateQueries({ queryKey: ['adminReviews'] });
+      addToast({ title: `Comment ${action === 'approve' ? 'approved' : action === 'hide' ? 'hidden' : 'deleted'} successfully`, type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
     } else {
-      addToast({ title: 'Update failed', message: error, type: 'error' });
+      addToast({ title: 'Update failed', message: errorMsg, type: 'error' });
     }
   };
 
   const handleEditSave = async (id, data) => {
-    const { success, error } = await editReview(id, data);
+    const { success, error } = await editBlogComment(id, data);
     if (success) {
-      addToast({ title: 'Review updated successfully', type: 'success' });
-      queryClient.invalidateQueries({ queryKey: ['adminReviews'] });
+      addToast({ title: 'Comment updated successfully', type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
       return true;
     } else {
       addToast({ title: 'Edit failed', message: error, type: 'error' });
@@ -282,11 +281,11 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
     }
   };
 
-  const handleReplySave = async (id, replyContent) => {
-    const { success, error } = await replyToReview(id, replyContent);
+  const handleReplySave = async (id, reply) => {
+    const { success, error } = await replyToBlogComment(id, reply);
     if (success) {
       addToast({ title: 'Reply sent successfully', type: 'success' });
-      queryClient.invalidateQueries({ queryKey: ['adminReviews'] });
+      queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
       return true;
     } else {
       addToast({ title: 'Reply failed', message: error, type: 'error' });
@@ -296,7 +295,7 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedIds(reviews.map(r => r.id));
+      setSelectedIds(comments.map(c => c.id));
     } else {
       setSelectedIds([]);
     }
@@ -305,8 +304,8 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
   const handleSelectOne = (e, id) => {
     e.stopPropagation();
     if (e.target.checked) {
-      if (selectedIds.length >= 10) {
-        addToast({ title: 'Limit Reached', message: 'Maximum 10 records can be selected at once', type: 'error' });
+      if (selectedIds.length >= 20) {
+        addToast({ title: 'Limit Reached', message: 'Maximum 20 records can be selected at once', type: 'error' });
         return;
       }
       setSelectedIds(prev => [...prev, id]);
@@ -319,23 +318,24 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
     if (selectedIds.length === 0) return;
     setBulkMenuOpen(false);
 
-    if (action === 'delete' && !confirm(`Are you sure you want to delete ${selectedIds.length} review(s)? This cannot be undone.`)) return;
-    if (action === 'reject' && !confirm(`Reject ${selectedIds.length} review(s)? They will be hidden from the storefront.`)) return;
+    if (action === 'delete' && !confirm(`Are you sure you want to delete ${selectedIds.length} comment(s)? This cannot be undone.`)) return;
+    if (action === 'reject' && !confirm(`Reject ${selectedIds.length} comment(s)? They will be hidden from the storefront.`)) return;
 
     setIsBulkProcessing(true);
     try {
       let result;
       if (action === 'delete') {
-        result = await bulkDeleteReviews(selectedIds);
+        result = await bulkDeleteBlogComments(selectedIds);
       } else {
-        result = await bulkUpdateReviewStatus(selectedIds, action);
+        result = await bulkUpdateBlogCommentStatus(selectedIds, action === 'approve');
       }
 
       if (result.success) {
-        addToast({ title: 'Success', message: `Successfully updated ${selectedIds.length} reviews`, type: 'success' });
+        const pastTense = { approve: 'approved', reject: 'rejected', delete: 'deleted' };
+        addToast({ title: 'Success', message: `${selectedIds.length} comment(s) ${pastTense[action]}`, type: 'success' });
         setSelectedIds([]);
         setBulkMenuOpen(false);
-        queryClient.invalidateQueries({ queryKey: ['adminReviews'] });
+        queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
       } else {
         addToast({ title: 'Error', message: result.error || 'Operation failed', type: 'error' });
       }
@@ -348,7 +348,7 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mt-4">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             {selectedIds.length > 0 && (
@@ -388,7 +388,7 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search reviews..."
+                placeholder="Search blog comments..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow bg-white"
@@ -425,8 +425,8 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
                     onChange={handleSelectAll}
                   />
                 </th>
-                <th className="px-6 py-4">Product & Customer</th>
-                <th className="px-6 py-4">Review</th>
+                <th className="px-6 py-4">Blog & Commenter</th>
+                <th className="px-6 py-4">Comment</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -435,65 +435,55 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
               {initialData.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                    <p className="text-base mb-1">No reviews found</p>
+                    <p className="text-base mb-1">No blog comments found</p>
                     <p className="text-sm">Adjust your search or filter to see more results.</p>
                   </td>
                 </tr>
               ) : (
-                initialData.map((review) => (
-                  <tr key={review.id} className={`transition-colors ${!review.approved ? 'bg-orange-50/30' : ''} ${selectedIds.includes(review.id) ? 'bg-blue-50/50 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}>
+                initialData.map((comment) => (
+                  <tr key={comment.id} className={`transition-colors ${!comment.approved ? 'bg-orange-50/30' : ''} ${selectedIds.includes(comment.id) ? 'bg-blue-50/50 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}>
                     <td className="px-6 py-4 text-center" onClick={e => e.stopPropagation()}>
                       <input 
                         type="checkbox" 
                         className="rounded border-gray-300"
-                        checked={selectedIds.includes(review.id)}
-                        onChange={(e) => handleSelectOne(e, review.id)}
+                        checked={selectedIds.includes(comment.id)}
+                        onChange={(e) => handleSelectOne(e, comment.id)}
                       />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg border border-gray-100 overflow-hidden relative flex-shrink-0 bg-white">
-                            {review.product?.images?.[0]?.src ? (
-                              <Image src={review.product.images[0].src} alt={review.product.name} fill className="object-cover" sizes="40px" />
-                            ) : (
-                              <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-400">No Img</div>
-                            )}
-                          </div>
                           <div>
-                            <p className="font-semibold text-gray-900 line-clamp-1" title={review.product?.name}>
-                              {review.product?.name || 'Unknown Product'}
+                            <p className="font-semibold text-gray-900 line-clamp-1" title={comment.blog?.title}>
+                              {comment.blog?.title || 'Unknown Blog'}
                             </p>
-                            <p className="text-xs text-gray-500">ID: {review.id.slice(-8)}</p>
+                            <p className="text-xs text-gray-500">ID: {comment.id.slice(-8)}</p>
                           </div>
                         </div>
                         
                         <div className="mt-2 pl-2 border-l-2 border-gray-200 flex items-center gap-2">
-                          {review.customer?.avatar ? (
-                            <img src={review.customer.avatar} alt="Avatar" className="w-5 h-5 rounded-full" />
-                          ) : (
-                            <div className="w-5 h-5 rounded-full bg-brand-yellow flex items-center justify-center text-brand-black font-bold text-[9px]">
-                              {review.author.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-xs font-medium text-gray-700">{review.author}</span>
-                          {review.verified && <CheckCircle2 size={12} className="text-green-500" title="Verified Purchase" />}
+                          <div className="w-5 h-5 rounded-full bg-brand-yellow flex items-center justify-center text-brand-black font-bold text-[9px]">
+                            {comment.author.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-xs font-medium text-gray-700">{comment.author}</span>
                         </div>
                       </div>
                     </td>
                     
                     <td className="px-6 py-4 max-w-sm">
-                      <div className="flex items-center gap-1 text-brand-yellow mb-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={12} fill={i < review.rating ? 'currentColor' : 'none'} className={i < review.rating ? '' : 'text-gray-300'} />
-                        ))}
-                      </div>
-                      {review.title && <p className="font-semibold text-gray-900 mb-1">{review.title}</p>}
-                      <p className="text-gray-600 line-clamp-2" title={review.content}>{review.content}</p>
-                      
-                      {review.images && review.images.length > 0 && (
+                      {comment.rating ? (
+                        <div className="flex items-center gap-1 text-brand-yellow mb-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={12} fill={i < comment.rating ? 'currentColor' : 'none'} className={i < comment.rating ? '' : 'text-gray-300'} />
+                          ))}
+                        </div>
+                      ) : null}
+                      <p className="text-gray-600 line-clamp-2" title={comment.content}>{comment.content}</p>
+
+                      {/* Show attached media */}
+                      {comment.images && comment.images.length > 0 && (
                         <div className="flex gap-2 mt-2 flex-wrap">
-                          {review.images.map((media, idx) => {
+                          {comment.images.map((media, idx) => {
                             const isVideo = media.match(/\.(mp4|webm|mov)(\?|$)/i);
                             return (
                               <a key={idx} href={media} target="_blank" rel="noopener noreferrer" className="block">
@@ -516,21 +506,21 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
                       )}
 
                       {/* Show admin reply if exists */}
-                      {review.adminReply && (
+                      {comment.adminReply && (
                         <div className="mt-2 bg-blue-50 border border-blue-100 rounded-lg p-2.5">
                           <p className="text-[10px] font-semibold text-blue-600 mb-0.5">Admin Reply</p>
-                          <p className="text-xs text-blue-800 line-clamp-2">{review.adminReply}</p>
+                          <p className="text-xs text-blue-800 line-clamp-2">{comment.adminReply}</p>
                         </div>
                       )}
 
                       <p className="text-[10px] text-gray-400 mt-2">
-                        {new Date(review.createdAt).toLocaleDateString()}
+                        {new Date(comment.createdAt).toLocaleDateString()}
                       </p>
                     </td>
 
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1">
-                        {review.approved ? (
+                        {comment.approved ? (
                           <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-[11px] font-semibold w-max border border-green-200">
                             <CheckCircle2 size={12} /> Approved
                           </span>
@@ -539,14 +529,8 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
                             <Loader2 size={12} /> Pending Review
                           </span>
                         )}
-                        
-                        {review.isFeatured && (
-                          <span className="inline-flex items-center gap-1 text-brand-black bg-brand-yellow/20 px-2.5 py-1 rounded-full text-[11px] font-semibold w-max border border-brand-yellow/40">
-                            <Star size={12} fill="currentColor" /> Featured
-                          </span>
-                        )}
 
-                        {review.adminReply && (
+                        {comment.adminReply && (
                           <span className="inline-flex items-center gap-1 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full text-[11px] font-semibold w-max border border-blue-200">
                             <MessageSquare size={12} /> Replied
                           </span>
@@ -557,18 +541,18 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         {/* Approve / Hide */}
-                        {!review.approved ? (
+                        {!comment.approved ? (
                           <button 
-                            disabled={loadingId === review.id}
-                            onClick={() => handleAction(review.id, 'approve')}
+                            disabled={loadingId === comment.id}
+                            onClick={() => handleAction(comment.id, 'approve')}
                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Approve"
                           >
-                            {loadingId === review.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                            {loadingId === comment.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                           </button>
                         ) : (
                           <button 
-                            disabled={loadingId === review.id}
-                            onClick={() => handleAction(review.id, 'hide')}
+                            disabled={loadingId === comment.id}
+                            onClick={() => handleAction(comment.id, 'hide')}
                             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Hide (Unapprove)"
                           >
                             <EyeOff size={16} />
@@ -577,45 +561,24 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
 
                         {/* Edit */}
                         <button 
-                          onClick={() => setEditingReview(review)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Review"
+                          onClick={() => setEditingComment(comment)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Comment"
                         >
                           <Pencil size={16} />
                         </button>
 
                         {/* Reply */}
                         <button 
-                          onClick={() => setReplyingReview(review)}
-                          className="p-2 text-purple-500 hover:bg-purple-50 rounded-lg transition-colors" title="Reply to Review"
+                          onClick={() => setReplyingComment(comment)}
+                          className="p-2 text-purple-500 hover:bg-purple-50 rounded-lg transition-colors" title="Reply to Comment"
                         >
                           <MessageSquare size={16} />
                         </button>
 
-                        {/* Feature / Unfeature */}
-                        {review.approved && !review.isFeatured && (
-                          <button 
-                            disabled={loadingId === review.id}
-                            onClick={() => handleAction(review.id, 'feature')}
-                            className="p-2 text-brand-yellow hover:bg-brand-yellow/10 rounded-lg transition-colors" title="Feature Review"
-                          >
-                            <Star size={16} />
-                          </button>
-                        )}
-
-                        {review.isFeatured && (
-                          <button 
-                            disabled={loadingId === review.id}
-                            onClick={() => handleAction(review.id, 'unfeature')}
-                            className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors" title="Remove Feature"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        )}
-
                         {/* Delete */}
                         <button 
-                          disabled={loadingId === review.id}
-                          onClick={() => handleAction(review.id, 'delete')}
+                          disabled={loadingId === comment.id}
+                          onClick={() => handleAction(comment.id, 'delete')}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete"
                         >
                           <Trash2 size={16} />
@@ -637,14 +600,14 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
             <div className="flex gap-1">
               <button
                 disabled={pagination.page <= 1}
-                onClick={() => router.push(`/admin/reviews?page=${pagination.page - 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
+                onClick={() => router.push(`/admin/reviews?tab=blogs&page=${pagination.page - 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
                 className="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-700"
               >
                 Prev
               </button>
               <button
                 disabled={pagination.page >= pagination.totalPages}
-                onClick={() => router.push(`/admin/reviews?page=${pagination.page + 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
+                onClick={() => router.push(`/admin/reviews?tab=blogs&page=${pagination.page + 1}&search=${encodeURIComponent(searchTerm)}&status=${filter}`)}
                 className="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-700"
               >
                 Next
@@ -655,19 +618,19 @@ export default function ReviewsClient({ initialData, pagination: initialPaginati
       </div>
 
       {/* Edit Modal */}
-      {editingReview && (
-        <EditReviewModal
-          review={editingReview}
-          onClose={() => setEditingReview(null)}
+      {editingComment && (
+        <EditCommentModal
+          comment={editingComment}
+          onClose={() => setEditingComment(null)}
           onSave={handleEditSave}
         />
       )}
 
       {/* Reply Modal */}
-      {replyingReview && (
+      {replyingComment && (
         <ReplyModal
-          review={replyingReview}
-          onClose={() => setReplyingReview(null)}
+          comment={replyingComment}
+          onClose={() => setReplyingComment(null)}
           onSave={handleReplySave}
         />
       )}

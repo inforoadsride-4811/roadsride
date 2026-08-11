@@ -58,7 +58,7 @@ export async function getAdminBlog(id) {
 
 export async function createBlogPost(data) {
   try {
-    let slug = data.slug || generateSlug(data.title);
+    let slug = generateSlug(data.slug || data.title);
 
     // Ensure unique slug
     let existing = await prisma.blogPost.findUnique({ where: { slug } });
@@ -96,8 +96,8 @@ export async function createBlogPost(data) {
       });
     }
 
-    revalidatePath('/blog');
-    revalidatePath('/admin/blogs');
+    revalidatePath('/blog', 'page');
+    revalidatePath('/admin/blogs', 'page');
     revalidateTag('blog');
     return { success: true, blog };
   } catch (error) {
@@ -109,9 +109,11 @@ export async function createBlogPost(data) {
 export async function updateBlogPost(id, data) {
   try {
     // Handle slug uniqueness if slug is being changed
+    let finalSlug = data.slug;
     if (data.slug) {
+      finalSlug = generateSlug(data.slug);
       const existing = await prisma.blogPost.findFirst({
-        where: { slug: data.slug, NOT: { id } },
+        where: { slug: finalSlug, NOT: { id } },
       });
       if (existing) {
         return { success: false, error: 'Slug already exists. Please choose a different slug.' };
@@ -120,7 +122,7 @@ export async function updateBlogPost(id, data) {
 
     const updateData = {};
     const fields = [
-      'title', 'slug', 'excerpt', 'content', 'coverImage',
+      'title', 'excerpt', 'content', 'coverImage',
       'status', 'author', 'seoTitle', 'seoDescription', 'seoKeywords'
     ];
 
@@ -128,6 +130,10 @@ export async function updateBlogPost(id, data) {
       if (data[field] !== undefined) {
         updateData[field] = data[field];
       }
+    }
+    
+    if (finalSlug) {
+      updateData.slug = finalSlug;
     }
 
     const blog = await prisma.blogPost.update({
@@ -146,8 +152,8 @@ export async function updateBlogPost(id, data) {
       });
     }
 
-    revalidatePath('/blog');
-    revalidatePath('/admin/blogs');
+    revalidatePath('/blog', 'page');
+    revalidatePath('/admin/blogs', 'page');
     revalidateTag('blog');
     if (blog?.slug) revalidateTag(`blog-${blog.slug}`);
     return { success: true, blog };
@@ -175,13 +181,82 @@ export async function deleteBlogPost(id) {
       });
     }
 
-    revalidatePath('/blog');
-    revalidatePath('/admin/blogs');
+    revalidatePath('/blog', 'page');
+    revalidatePath('/admin/blogs', 'page');
     revalidateTag('blog');
     if (blog?.slug) revalidateTag(`blog-${blog.slug}`);
     return { success: true };
   } catch (error) {
     console.error('deleteBlogPost error:', error);
     return { success: false, error: 'Failed to delete blog post' };
+  }
+}
+
+export async function bulkDeleteBlogs(ids) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (ids.length > 10) return { success: false, error: 'Maximum 10 records can be deleted at once' };
+    
+    const blogs = await prisma.blogPost.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, title: true, slug: true }
+    });
+    
+    if (blogs.length === 0) return { success: false, error: 'No blogs found' };
+
+    await prisma.blogPost.deleteMany({
+      where: { id: { in: ids } }
+    });
+
+    const session = await getSessionAdmin();
+    if (session.success) {
+      await logAdminActivity({
+        authId: session.authId,
+        action: 'bulk_delete_blogs',
+        entityType: 'blog',
+        entityId: 'multiple',
+        description: `Deleted ${blogs.length} blog posts`,
+      });
+    }
+
+    revalidatePath('/blog', 'page');
+    revalidatePath('/admin/blogs', 'page');
+    revalidateTag('blog');
+    return { success: true };
+  } catch (error) {
+    console.error('bulkDeleteBlogs error:', error);
+    return { success: false, error: 'Failed to delete blogs' };
+  }
+}
+
+export async function bulkUpdateBlogStatus(ids, status) {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) return { success: false, error: 'No IDs provided' };
+    if (!status) return { success: false, error: 'No status provided' };
+
+    await prisma.blogPost.updateMany({
+      where: { id: { in: ids } },
+      data: { status, updatedAt: new Date() }
+    });
+
+    const session = await getSessionAdmin();
+    if (session.success) {
+      await logAdminActivity({
+        authId: session.authId,
+        action: 'bulk_update_blog_status',
+        entityType: 'blog',
+        entityId: 'multiple',
+        description: `Updated status to ${status} for ${ids.length} blog posts`,
+      });
+    }
+
+    revalidatePath('/blog', 'page');
+    revalidatePath('/admin/blogs', 'page');
+    revalidateTag('blog');
+
+    return { success: true };
+  } catch (error) {
+    console.error('bulkUpdateBlogStatus error:', error);
+    return { success: false, error: 'Failed to update blogs' };
   }
 }

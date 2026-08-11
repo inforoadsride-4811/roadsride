@@ -1,6 +1,7 @@
 import { ToastProvider } from '@/components/ui/toast';
 import WhatsAppButton from '@/components/layout/whatsapp-button';
 import ClientLayout from '@/components/layout/client-layout';
+import ReactQueryProvider from '@/components/providers/ReactQueryProvider';
 import NextTopLoader from 'nextjs-toploader';
 import Script from 'next/script';
 import { getStoreSettings } from '@/actions/admin-products';
@@ -91,12 +92,14 @@ export default async function RootLayout({ children }) {
           shadow="0 0 10px #F5C400,0 0 5px #F5C400"
         />
 
-        <ToastProvider>
-          <ClientLayout settings={settings}>
-            {children}
-          </ClientLayout>
-        </ToastProvider>
-        <WhatsAppButton />
+        <ReactQueryProvider>
+          <ToastProvider>
+            <ClientLayout settings={settings}>
+              {children}
+            </ClientLayout>
+          </ToastProvider>
+          <WhatsAppButton settings={settings} />
+        </ReactQueryProvider>
       </body>
     </html>
   );

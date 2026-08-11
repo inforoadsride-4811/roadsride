@@ -1,12 +1,14 @@
 import { getCachedBlogBySlug } from '@/actions/blogs';
+import { getApprovedBlogComments } from '@/actions/blog-comments';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, User, ChevronLeft, Share2 } from 'lucide-react';
+import BlogCommentsSection from '@/components/blog/blog-comments-section';
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
-  const { slug } = resolvedParams;
+  const slug = decodeURIComponent(resolvedParams.slug);
   const { success, blog } = await getCachedBlogBySlug(slug);
 
   if (!success || !blog) {
@@ -27,12 +29,16 @@ export async function generateMetadata({ params }) {
 
 export default async function SingleBlogPage({ params }) {
   const resolvedParams = await params;
-  const { slug } = resolvedParams;
+  const slug = decodeURIComponent(resolvedParams.slug);
   const { success, blog } = await getCachedBlogBySlug(slug);
 
   if (!success || !blog) {
     notFound();
   }
+
+  // Fetch approved comments for this blog post
+  const commentsResult = await getApprovedBlogComments(blog.id);
+  const initialComments = commentsResult.success ? commentsResult.comments : [];
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -97,6 +103,8 @@ export default async function SingleBlogPage({ params }) {
             </button>
           </Link>
         </div>
+
+        <BlogCommentsSection blogId={blog.id} initialComments={initialComments} />
       </main>
     </div>
   );

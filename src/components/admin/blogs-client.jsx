@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
-import { deleteBlogPost, updateBlogPost } from '@/actions/admin-blogs';
+import { deleteBlogPost, updateBlogPost, bulkDeleteBlogs, bulkUpdateBlogStatus } from '@/actions/admin-blogs';
 import { Loader2, Search, Plus, Trash2, Edit, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
@@ -15,6 +15,8 @@ export default function BlogsClient({ initialData, pagination }) {
   const [loadingId, setLoadingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkActionLoading, setBulkActionLoading] = useState(null);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -55,6 +57,60 @@ export default function BlogsClient({ initialData, pagination }) {
     }
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(initialData.map(b => b.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (e, id) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      if (selectedIds.length >= 10) {
+        addToast({ title: 'Limit Reached', message: 'Maximum 10 records can be selected at once', type: 'error' });
+        return;
+      }
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} blogs? This cannot be undone.`)) return;
+
+    setBulkActionLoading('delete');
+    const { success, error } = await bulkDeleteBlogs(selectedIds);
+    setBulkActionLoading(null);
+
+    if (success) {
+      addToast({ title: `Deleted ${selectedIds.length} blogs`, type: 'success' });
+      setSelectedIds([]);
+      router.refresh();
+    } else {
+      addToast({ title: 'Delete failed', message: error, type: 'error' });
+    }
+  };
+
+  const handleBulkStatusChange = async (status) => {
+    if (selectedIds.length === 0) return;
+
+    setBulkActionLoading(status);
+    const { success, error } = await bulkUpdateBlogStatus(selectedIds, status);
+    setBulkActionLoading(null);
+
+    if (success) {
+      addToast({ title: `Marked ${selectedIds.length} blogs as ${status}`, type: 'success' });
+      setSelectedIds([]);
+      router.refresh();
+    } else {
+      addToast({ title: 'Update failed', message: error, type: 'error' });
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
       <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
@@ -69,27 +125,67 @@ export default function BlogsClient({ initialData, pagination }) {
           />
         </form>
 
-        <div className="flex gap-2 w-full sm:w-auto items-center justify-between sm:justify-end">
-          <div className="flex gap-2">
-            {['all', 'published', 'draft'].map((f) => (
-              <button
-                key={f}
-                onClick={() => handleFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  filter === f 
-                    ? 'bg-brand-black text-white' 
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                }`}
+        <div className="flex gap-2 w-full sm:w-auto items-center justify-between sm:justify-end flex-wrap">
+          {selectedIds.length > 0 ? (
+            <div className="flex items-center gap-2 mr-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 text-gray-700 bg-white"
+                onClick={() => handleBulkStatusChange('draft')}
+                disabled={!!bulkActionLoading}
               >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ))}
-          </div>
-          <Link href="/admin/blogs/new">
-            <Button className="bg-brand-yellow text-brand-black hover:bg-brand-yellow-hover font-bold flex items-center gap-2 h-9 px-4">
-              <Plus size={16} /> New Blog
-            </Button>
-          </Link>
+                {bulkActionLoading === 'draft' ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                Mark Draft
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 text-green-700 bg-green-50 border-green-200 hover:bg-green-100"
+                onClick={() => handleBulkStatusChange('published')}
+                disabled={!!bulkActionLoading}
+              >
+                {bulkActionLoading === 'published' ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                Mark Published
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                className="h-9 px-3"
+                onClick={handleBulkDelete}
+                disabled={!!bulkActionLoading}
+              >
+                {bulkActionLoading === 'delete' ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Trash2 size={14} className="mr-1.5" />}
+                Delete ({selectedIds.length})
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                {['all', 'published', 'draft'].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => handleFilter(f)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filter === f 
+                        ? 'bg-brand-black text-white' 
+                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <Link href="/admin/blogs/new">
+                <Button className="bg-brand-yellow text-brand-black hover:bg-brand-yellow-hover font-bold flex items-center gap-2 h-9 px-4">
+                  <Plus size={16} /> New Blog
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -97,6 +193,14 @@ export default function BlogsClient({ initialData, pagination }) {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50/80 text-gray-500 font-medium border-b border-gray-100 uppercase text-[11px] tracking-wider">
             <tr>
+              <th className="px-6 py-4 w-12 text-center">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={initialData.length > 0 && selectedIds.length === initialData.length}
+                  onChange={handleSelectAll}
+                />
+              </th>
               <th className="px-6 py-4">Blog Post</th>
               <th className="px-6 py-4">Author</th>
               <th className="px-6 py-4">Status</th>
@@ -107,7 +211,7 @@ export default function BlogsClient({ initialData, pagination }) {
           <tbody className="divide-y divide-gray-100">
             {initialData.length === 0 ? (
               <tr>
-                <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                   <p className="text-base mb-1">No blog posts found</p>
                   <p className="text-sm mb-4">Get started by creating your first blog post.</p>
                   <Link href="/admin/blogs/new">
@@ -117,7 +221,15 @@ export default function BlogsClient({ initialData, pagination }) {
               </tr>
             ) : (
               initialData.map((blog) => (
-                <tr key={blog.id} className="hover:bg-gray-50/50 transition-colors group">
+                <tr key={blog.id} className={`hover:bg-gray-50/50 transition-colors group ${selectedIds.includes(blog.id) ? 'bg-blue-50/50' : ''}`}>
+                  <td className="px-6 py-4 text-center">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300"
+                      checked={selectedIds.includes(blog.id)}
+                      onChange={(e) => handleSelectOne(e, blog.id)}
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg border border-gray-100 overflow-hidden relative flex-shrink-0 bg-gray-50 flex items-center justify-center">

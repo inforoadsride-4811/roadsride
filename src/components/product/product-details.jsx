@@ -548,12 +548,18 @@ export default function ProductDetails({ product }) {
               {totalReviewPages > 1 && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '16px' }}>
                   <button
-                    disabled={reviewPage === 1}
-                    onClick={() => {
-                      setReviewPage(prev => Math.max(1, prev - 1));
-                      document.getElementById('reviews-section').style.scrollMarginTop = '120px';
-                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }}
+                      onClick={() => {
+                        setReviewPage(Math.max(1, reviewPage - 1));
+                        const scrollToReviews = () => {
+                          const el = document.getElementById('reviews-section');
+                          if (el) {
+                            el.style.scrollMarginTop = '120px';
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        };
+                        scrollToReviews();
+                        setTimeout(scrollToReviews, 800);
+                      }}
                     style={{
                       padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',
                       background: reviewPage === 1 ? '#f3f4f6' : '#fff',
@@ -568,12 +574,19 @@ export default function ProductDetails({ product }) {
                     Page {reviewPage} of {totalReviewPages}
                   </span>
                   <button
-                    disabled={reviewPage === totalReviewPages}
-                    onClick={() => {
-                      setReviewPage(prev => Math.min(totalReviewPages, prev + 1));
-                      document.getElementById('reviews-section').style.scrollMarginTop = '120px';
-                      document.getElementById('reviews-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }}
+                      disabled={reviewPage === totalReviewPages}
+                      onClick={() => {
+                        setReviewPage(Math.min(totalReviewPages, reviewPage + 1));
+                        const scrollToReviews = () => {
+                          const el = document.getElementById('reviews-section');
+                          if (el) {
+                            el.style.scrollMarginTop = '120px';
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        };
+                        scrollToReviews();
+                        setTimeout(scrollToReviews, 800);
+                      }}
                     style={{
                       padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',
                       background: reviewPage === totalReviewPages ? '#f3f4f6' : '#fff',

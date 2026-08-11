@@ -171,12 +171,28 @@ export default function CheckoutPage() {
                 setIsPrepaid={setIsPrepaid} 
                 total={total} 
                 appliedCoupons={appliedCoupons}
+                orderSummary={
+                  <OrderSummary
+                    items={items}
+                    subtotal={subtotal}
+                    shipping={SHIPPING_COST}
+                    discount={prepaidDiscount}
+                    total={total}
+                    isPrepaid={isPrepaid}
+                    recommendations={recommendations}
+                    appliedCoupons={appliedCoupons}
+                    couponError={couponError}
+                    couponLoading={couponLoading}
+                    onApplyCoupon={handleApplyCoupon}
+                    onRemoveCoupon={handleRemoveCoupon}
+                  />
+                }
               />
             </div>
           </div>
 
-          {/* Right Column: Order Summary */}
-          <div className="w-full lg:w-[400px] xl:w-[450px]">
+          {/* Right Column: Order Summary (Desktop Only) */}
+          <div className="hidden lg:block w-full lg:w-[400px] xl:w-[450px]">
             <div className="sticky top-24">
               <OrderSummary
                 items={items}

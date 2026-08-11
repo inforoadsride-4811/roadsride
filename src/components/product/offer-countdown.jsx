@@ -56,13 +56,8 @@ export default function OfferCountdown({ offer }) {
 
   const themeClass = themes[offer.bgTheme] || themes['gradient-fire'];
 
-  if (isExpired) {
-    if (!offer.expiredMessage) return null;
-    return (
-      <div className={`rounded-md p-3 mb-6 flex items-center justify-center text-center shadow-sm text-sm ${themeClass}`}>
-        <p className="font-bold opacity-90">{offer.expiredMessage}</p>
-      </div>
-    );
+  if (isExpired && !offer.expiredMessage) {
+    return null;
   }
 
   return (
@@ -86,8 +81,12 @@ export default function OfferCountdown({ offer }) {
           )}
         </div>
 
-        {/* Timer Side */}
-        {offer.showCountdown && (
+        {/* Timer or Expired Message Side */}
+        {isExpired ? (
+          <div className="flex items-center gap-2 z-10 shrink-0 bg-black/10 px-2 py-1 rounded border border-white/10 backdrop-blur-sm">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider opacity-90">{offer.expiredMessage}</span>
+          </div>
+        ) : offer.showCountdown ? (
           <div className="flex items-center gap-2 z-10 shrink-0 bg-black/10 px-2 py-1 rounded border border-white/10 backdrop-blur-sm">
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider opacity-90">Ends in:</span>
             <div className="flex items-center font-mono text-sm sm:text-sm font-bold tracking-tight">
@@ -97,7 +96,7 @@ export default function OfferCountdown({ offer }) {
               <span>{timeLeft.seconds.toString().padStart(2, '0')}s</span>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

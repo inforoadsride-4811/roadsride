@@ -4,6 +4,7 @@ import prisma from '@/lib/db';
 import { generateSlug } from '@/lib/product';
 import { logAdminActivity } from '@/actions/admin';
 import { getSessionAdmin } from '@/actions/auth';
+import { unstable_cache } from 'next/cache';
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 // ==========================================
@@ -174,7 +175,8 @@ export async function createProduct(data) {
       });
     }
 
-    revalidatePath('/', 'layout');
+    revalidatePath('/admin/products');
+    revalidatePath('/product');
     revalidateTag('product');
     if (product?.slug) revalidateTag(`product-${product.slug}`);
     return { success: true, product };
@@ -235,7 +237,9 @@ export async function updateProduct(id, data) {
       });
     }
 
-    revalidatePath('/', 'layout');
+    revalidatePath('/admin/products');
+    revalidatePath(`/admin/products/${id}/edit`);
+    revalidatePath(`/product/${product.slug || ''}`);
     revalidateTag('product');
     if (product?.slug) revalidateTag(`product-${product.slug}`);
     return { success: true, product };
@@ -263,7 +267,7 @@ export async function deleteProduct(id) {
       });
     }
 
-    revalidatePath('/', 'layout');
+    revalidatePath('/admin/products');
     revalidateTag('product');
     if (product?.slug) revalidateTag(`product-${product.slug}`);
     return { success: true };
@@ -554,10 +558,23 @@ export async function updateCategory(id, data) {
 
 export async function deleteCategory(id) {
   try {
+    // Cascade delete: first find all children
+    const children = await prisma.category.findMany({ where: { parentId: id } });
+    for (const child of children) {
+      // Find and delete grandchildren
+      const grandchildren = await prisma.category.findMany({ where: { parentId: child.id } });
+      for (const gc of grandchildren) {
+        await prisma.category.delete({ where: { id: gc.id } });
+      }
+      // Delete child
+      await prisma.category.delete({ where: { id: child.id } });
+    }
+    // Delete the target category
     await prisma.category.delete({ where: { id } });
     return { success: true };
   } catch (error) {
-    return { success: false, error: 'Failed to delete category' };
+    console.error('Delete category error:', error);
+    return { success: false, error: 'Failed to delete category. Ensure no products are attached.' };
   }
 }
 
@@ -565,17 +582,23 @@ export async function deleteCategory(id) {
 // STORE SETTINGS
 // ==========================================
 
-export async function getStoreSettings() {
-  try {
-    let settings = await prisma.storeSettings.findUnique({ where: { id: 'default' } });
-    if (!settings) {
-      settings = await prisma.storeSettings.create({ data: { id: 'default' } });
-    }
-    return { success: true, settings };
-  } catch (error) {
-    return { success: false, error: 'Failed to fetch settings' };
-  }
-}
+export const getStoreSettings = async () => {
+  return unstable_cache(
+    async () => {
+      try {
+        let settings = await prisma.storeSettings.findUnique({ where: { id: 'default' } });
+        if (!settings) {
+          settings = await prisma.storeSettings.create({ data: { id: 'default' } });
+        }
+        return { success: true, settings };
+      } catch (error) {
+        return { success: false, error: 'Failed to fetch settings' };
+      }
+    },
+    ['store-settings'],
+    { tags: ['settings'], revalidate: 3600 }
+  )();
+};
 
 export async function updateStoreSettings(data) {
   try {
@@ -584,6 +607,7 @@ export async function updateStoreSettings(data) {
       update: data,
       create: { id: 'default', ...data },
     });
+    revalidateTag('settings');
     return { success: true, settings };
   } catch (error) {
     console.error('updateStoreSettings error:', error);
@@ -595,17 +619,23 @@ export async function updateStoreSettings(data) {
 // HOMEPAGE SETTINGS
 // ==========================================
 
-export async function getHomepageSettings() {
-  try {
-    let settings = await prisma.homepageSettings.findUnique({ where: { id: 'default' } });
-    if (!settings) {
-      settings = await prisma.homepageSettings.create({ data: { id: 'default' } });
-    }
-    return { success: true, settings };
-  } catch (error) {
-    return { success: false, error: 'Failed to fetch homepage settings' };
-  }
-}
+export const getHomepageSettings = async () => {
+  return unstable_cache(
+    async () => {
+      try {
+        let settings = await prisma.homepageSettings.findUnique({ where: { id: 'default' } });
+        if (!settings) {
+          settings = await prisma.homepageSettings.create({ data: { id: 'default' } });
+        }
+        return { success: true, settings };
+      } catch (error) {
+        return { success: false, error: 'Failed to fetch homepage settings' };
+      }
+    },
+    ['homepage-settings'],
+    { tags: ['homepage-settings'], revalidate: 3600 }
+  )();
+};
 
 export async function updateHomepageSettings(data) {
   try {
@@ -614,6 +644,7 @@ export async function updateHomepageSettings(data) {
       update: data,
       create: { id: 'default', ...data },
     });
+    revalidateTag('homepage-settings');
     return { success: true, settings };
   } catch (error) {
     return { success: false, error: 'Failed to update homepage settings' };

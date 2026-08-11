@@ -6,17 +6,20 @@ export const metadata = {
 };
 
 export default async function AdminOrdersPage({ searchParams }) {
-  const { page, search } = await searchParams;
+  const { page, search, dateFilter, startDate, endDate } = await searchParams;
   const currentPage = parseInt(page) || 1;
   const currentSearch = search || '';
+  const currentFilter = dateFilter || '';
+  const currentStart = startDate || '';
+  const currentEnd = endDate || '';
 
-  const { success, orders, pagination, error } = await getAllOrders(currentPage, 10, currentSearch);
+  const { success, orders, pagination, error } = await getAllOrders(currentPage, 10, currentSearch, currentFilter, currentStart, currentEnd);
 
   if (!success) {
     return <div className="text-red-500">Failed to load orders: {error}</div>;
   }
 
   return (
-    <OrdersClient initialData={{ orders, pagination }} />
+    <OrdersClient initialData={{ orders, pagination, currentSearch, currentFilter, currentStart, currentEnd }} />
   );
 }

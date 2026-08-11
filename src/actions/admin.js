@@ -71,11 +71,11 @@ export async function logAdminActivity({ authId, action, entityType, entityId, d
   }
 }
 
-export async function getAllOrders(page = 1, limit = 10, search = '') {
+export async function getAllOrders(page = 1, limit = 10, search = '', dateFilter = '', startDate = '', endDate = '') {
   try {
     const skip = (page - 1) * limit;
     
-    const where = search ? {
+    let where = search ? {
       OR: [
         { orderNumber: { contains: search, mode: 'insensitive' } },
         { customerName: { contains: search, mode: 'insensitive' } },
@@ -83,6 +83,29 @@ export async function getAllOrders(page = 1, limit = 10, search = '') {
         { phone: { contains: search, mode: 'insensitive' } },
       ]
     } : {};
+
+    const now = new Date();
+    if (dateFilter) {
+      if (dateFilter === 'today') {
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        where.createdAt = { gte: startOfToday };
+      } else if (dateFilter === 'yesterday') {
+        const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        where.createdAt = { gte: startOfYesterday, lt: startOfToday };
+      } else if (dateFilter === 'this_week') {
+        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+        where.createdAt = { gte: startOfWeek };
+      } else if (dateFilter === 'this_month') {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        where.createdAt = { gte: startOfMonth };
+      } else if (dateFilter === 'custom' && startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt = { gte: start, lte: end };
+      }
+    }
 
     const [orders, total] = await Promise.all([
       prisma.order.findMany({

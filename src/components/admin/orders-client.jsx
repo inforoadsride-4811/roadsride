@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { Badge, getOrderStatusVariant, getPaymentStatusVariant } from '@/components/ui/badge';
@@ -11,24 +11,63 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import { Search, Trash2, Loader2 } from 'lucide-react';
-import { bulkDeleteOrders, bulkUpdateOrderStatus } from '@/actions/admin';
+import { bulkDeleteOrders, bulkUpdateOrderStatus, getAllOrders } from '@/actions/admin';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function OrdersClient({ initialData }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const { orders, pagination } = initialData;
+  const { currentSearch, currentFilter, currentStart, currentEnd } = initialData;
+
+  const pageParam = parseInt(searchParams.get('page') || '1');
+  const searchParam = searchParams.get('search') || '';
+  const dateFilterParam = searchParams.get('dateFilter') || '';
+  const startDateParam = searchParams.get('startDate') || '';
+  const endDateParam = searchParams.get('endDate') || '';
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['adminOrders', pageParam, searchParam, dateFilterParam, startDateParam, endDateParam],
+    queryFn: async () => {
+      const res = await getAllOrders(pageParam, 10, searchParam, dateFilterParam, startDateParam, endDateParam);
+      if (!res.success) throw new Error(res.error);
+      return res;
+    },
+    initialData: () => {
+      if (
+        pageParam === (initialData.pagination?.currentPage || 1) &&
+        searchParam === currentSearch &&
+        dateFilterParam === currentFilter &&
+        startDateParam === currentStart &&
+        endDateParam === currentEnd
+      ) {
+        return initialData;
+      }
+      return undefined;
+    }
+  });
+
+  const orders = data?.orders || [];
+  const pagination = data?.pagination || initialData.pagination;
+
+  const [dateFilter, setDateFilter] = useState(currentFilter || '');
+  const [startDate, setStartDate] = useState(currentStart || '');
+  const [endDate, setEndDate] = useState(currentEnd || '');
 
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', newPage.toString());
-    router.push(`?${params.toString()}`);
+    startTransition(() => {
+      router.push(`?${params.toString()}`);
+    });
   };
 
   const handleSearch = (e) => {
@@ -39,8 +78,50 @@ export default function OrdersClient({ initialData }) {
     } else {
       params.delete('search');
     }
+
+    if (dateFilter) {
+      params.set('dateFilter', dateFilter);
+      if (dateFilter === 'custom') {
+        if (startDate) params.set('startDate', startDate);
+        else params.delete('startDate');
+        if (endDate) params.set('endDate', endDate);
+        else params.delete('endDate');
+      } else {
+        params.delete('startDate');
+        params.delete('endDate');
+      }
+    } else {
+      params.delete('dateFilter');
+      params.delete('startDate');
+      params.delete('endDate');
+    }
+
     params.set('page', '1');
-    router.push(`?${params.toString()}`);
+    startTransition(() => {
+      router.push(`?${params.toString()}`);
+    });
+  };
+
+  const applyDateFilter = (newFilter) => {
+    setDateFilter(newFilter);
+    if (newFilter === 'custom') return; // wait for search button for custom dates
+
+    const params = new URLSearchParams(searchParams);
+    if (newFilter) {
+      params.set('dateFilter', newFilter);
+      params.delete('startDate');
+      params.delete('endDate');
+    } else {
+      params.delete('dateFilter');
+      params.delete('startDate');
+      params.delete('endDate');
+    }
+
+    if (searchTerm) params.set('search', searchTerm);
+    params.set('page', '1');
+    startTransition(() => {
+      router.push(`?${params.toString()}`);
+    });
   };
 
   const handleSelectAll = (e) => {
@@ -75,7 +156,7 @@ export default function OrdersClient({ initialData }) {
       if (result.success) {
         addToast({ title: 'Success', message: `Successfully deleted ${selectedIds.length} orders`, type: 'success' });
         setSelectedIds([]);
-        router.refresh();
+        queryClient.invalidateQueries({ queryKey: ['adminOrders'] });
       } else {
         addToast({ title: 'Error', message: result.error || 'Failed to delete orders', type: 'error' });
       }
@@ -86,22 +167,16 @@ export default function OrdersClient({ initialData }) {
     }
   };
 
-  const handleBulkStatusChange = async (e) => {
-    const status = e.target.value;
-    if (!status || selectedIds.length === 0) return;
-
-    if (!confirm(`Update ${selectedIds.length} orders to '${status}'?`)) {
-      e.target.value = ''; // Reset select
-      return;
-    }
+  const submitBulkStatusChange = async (targetStatus) => {
+    if (!targetStatus || selectedIds.length === 0) return;
 
     setIsUpdatingStatus(true);
     try {
-      const result = await bulkUpdateOrderStatus(selectedIds, status);
+      const result = await bulkUpdateOrderStatus(selectedIds, targetStatus);
       if (result.success) {
-        addToast({ title: 'Success', message: `Updated ${selectedIds.length} orders`, type: 'success' });
+        addToast({ title: 'Success', message: `Successfully updated ${selectedIds.length} orders to ${targetStatus}`, type: 'success' });
         setSelectedIds([]);
-        router.refresh();
+        queryClient.invalidateQueries({ queryKey: ['adminOrders'] });
       } else {
         addToast({ title: 'Error', message: result.error || 'Failed to update orders', type: 'error' });
       }
@@ -109,32 +184,29 @@ export default function OrdersClient({ initialData }) {
       addToast({ title: 'Error', message: 'An unexpected error occurred', type: 'error' });
     } finally {
       setIsUpdatingStatus(false);
-      e.target.value = ''; // Reset select
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-brand-black">Orders Management</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <h1 className="text-2xl font-bold">Manage Orders</h1>
+        {isFetching && <Loader2 className="w-5 h-5 animate-spin text-gray-500" />}
 
         <form onSubmit={handleSearch} className="flex items-center gap-2 w-full sm:w-auto">
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 mr-2">
-              <select
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 disabled:opacity-50"
-                onChange={handleBulkStatusChange}
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="whitespace-nowrap px-4 bg-brand-yellow text-brand-black hover:bg-brand-yellow-hover"
+                onClick={() => submitBulkStatusChange('confirmed')}
                 disabled={isUpdatingStatus || isDeleting}
-                defaultValue=""
               >
-                <option value="" disabled>Change Status...</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+                {isUpdatingStatus ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Mark as Confirmed
+              </Button>
 
               <Button
                 type="button"
@@ -149,13 +221,46 @@ export default function OrdersClient({ initialData }) {
               </Button>
             </div>
           )}
+          <div className="flex items-center gap-2">
+            <select
+              className="text-sm border border-gray-300 rounded-lg px-3 py-2 h-[42px] focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 bg-white min-w-[140px]"
+              value={dateFilter}
+              onChange={(e) => applyDateFilter(e.target.value)}
+            >
+              <option value="">All Time</option>
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="this_week">This Week</option>
+              <option value="this_month">This Month</option>
+              <option value="custom">Custom Range</option>
+            </select>
+
+            {dateFilter === 'custom' && (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="h-[42px] w-[130px] text-xs"
+                />
+                <span className="text-gray-500 text-sm">to</span>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="h-[42px] w-[130px] text-xs"
+                />
+              </div>
+            )}
+          </div>
+
           <Input
             placeholder="Search orders..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full sm:w-64"
+            className="w-full sm:w-64 h-[42px]"
           />
-          <button type="submit" className="p-2.5 bg-brand-black text-white rounded-lg hover:bg-gray-800 transition-colors">
+          <button type="submit" className="p-2.5 h-[42px] w-[42px] bg-brand-black text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center">
             <Search size={18} />
           </button>
         </form>
@@ -184,10 +289,21 @@ export default function OrdersClient({ initialData }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.length === 0 ? (
+            {isPending ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-gray-500">
-                  No orders found.
+                <TableCell colSpan={9} className="h-64">
+                  <div className="flex flex-col items-center justify-center w-full h-full text-gray-500">
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-yellow mb-2" />
+                    <p>Loading orders...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : orders.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="h-64">
+                  <div className="flex flex-col items-center justify-center w-full h-full text-gray-500">
+                    <p>No orders found.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

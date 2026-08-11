@@ -33,6 +33,6 @@ export function TableHead({ children, className = '' }) {
   );
 }
 
-export function TableCell({ children, className = '' }) {
-  return <td className={`px-4 py-3.5 text-gray-700 ${className}`}>{children}</td>;
+export function TableCell({ children, className = '', ...props }) {
+  return <td className={`px-4 py-3.5 text-gray-700 ${className}`} {...props}>{children}</td>;
 }

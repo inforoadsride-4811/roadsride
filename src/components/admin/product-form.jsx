@@ -1001,7 +1001,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                         <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100">
                           <div className="flex items-center gap-3">
                             <input type="checkbox" checked={offer.isActive} onChange={(e) => updateArrayItem('offers', i, 'isActive', e.target.checked)} className="w-4 h-4 text-brand-yellow rounded border-gray-300" />
-                            <span className="font-medium">Offer Active</span>
+                            <span className="font-medium text-gray-900">Offer Active</span>
                           </div>
                           <button type="button" onClick={() => removeArrayItem('offers', i)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg text-sm flex items-center">
                             <Trash2 size={16} className="mr-1" /> Remove
@@ -1036,7 +1036,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                           
                           <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">Theme</label>
-                            <select value={offer.bgTheme} onChange={(e) => updateArrayItem('offers', i, 'bgTheme', e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow outline-none text-sm">
+                            <select value={offer.bgTheme} onChange={(e) => updateArrayItem('offers', i, 'bgTheme', e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow outline-none text-sm text-gray-900 bg-white">
                               <option value="gradient-fire">🔥 Fire Gradient (Red/Orange)</option>
                               <option value="gradient-ocean">🌊 Ocean Gradient (Blue/Teal)</option>
                               <option value="gradient-midnight">🌙 Midnight (Dark/Purple)</option>
@@ -1048,7 +1048,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                           
                           <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">Position</label>
-                            <select value={offer.position} onChange={(e) => updateArrayItem('offers', i, 'position', e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow outline-none text-sm">
+                            <select value={offer.position} onChange={(e) => updateArrayItem('offers', i, 'position', e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-brand-yellow outline-none text-sm text-gray-900 bg-white">
                               <option value="above-packs">Above Pack Selection</option>
                               <option value="top-of-page">Top of Page (Under Header)</option>
                             </select>
@@ -1057,7 +1057,7 @@ export default function ProductForm({ initialData = null, categories = [] }) {
                           <div className="md:col-span-2 pt-2 border-t border-gray-100 flex items-center gap-6">
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input type="checkbox" checked={offer.showCountdown} onChange={(e) => updateArrayItem('offers', i, 'showCountdown', e.target.checked)} className="w-4 h-4 text-brand-yellow rounded border-gray-300" />
-                              <span className="text-sm font-medium">Show live countdown timer</span>
+                              <span className="text-sm font-medium text-gray-900">Show live countdown timer</span>
                             </label>
                             <div className="flex-1 max-w-xs">
                                 <label className="block text-xs font-medium text-gray-600 mb-1">Priority (Higher shows first)</label>

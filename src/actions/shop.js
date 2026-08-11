@@ -11,11 +11,13 @@ export async function getShopFilters() {
         id: true,
         name: true,
         slug: true,
+        parentId: true,
+        sortOrder: true,
         _count: {
           select: { products: { where: { status: 'active' } } }
         }
       },
-      orderBy: { name: 'asc' }
+      orderBy: { sortOrder: 'asc' }
     });
 
     // Get max price across all active products
@@ -26,7 +28,7 @@ export async function getShopFilters() {
 
     return {
       success: true,
-      categories: categories.filter(c => c._count.products > 0),
+      categories: categories,
       maxPrice: maxPriceResult._max.price || 10000,
     };
   } catch (error) {

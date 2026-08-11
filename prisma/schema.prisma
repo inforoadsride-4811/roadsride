@@ -179,6 +179,31 @@ model ProductReview {
   @@index([approved])
 }
 
+model BlogComment {
+  id        String   @id @default(cuid())
+  blogId    String
+  blog      BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  author    String
+  rating    Int?     // 1-5 (Optional, for 5-star rating if needed)
+  content   String   @db.Text
+  images    Json?    // Array of image/GIF URLs
+  
+  adminReply   String? @db.Text
+  adminReplyAt DateTime?
+
+  approved  Boolean  @default(false) // Admin must approve
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([blogId])
+  @@index([customerId])
+  @@index([approved])
+}
+
 // ==========================================
 // Q&A
 // ==========================================
@@ -377,6 +402,7 @@ model Customer {
   addresses CustomerAddress[]
   orders    Order[]
   reviews   ProductReview[]
+  blogComments BlogComment[]
   cartItems CartItem[]
 
   @@index([authId])
@@ -548,6 +574,7 @@ model StoreSettings {
   whatsappNumber          String?
   supportEmail            String?
   socialLinks             Json?    // { facebook, instagram, twitter, youtube }
+  whatsappEnabledUrls     String?  @db.Text // Comma-separated paths like "/", "/product" where the button should appear
   footerContent           String?  @db.Text
   // Payment
   razorpayKeyId           String?
@@ -693,6 +720,7 @@ model BlogPost {
   seoKeywords     String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  comments        BlogComment[]
 
   @@index([status])
   @@index([slug])

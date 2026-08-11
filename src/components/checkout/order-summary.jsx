@@ -117,6 +117,35 @@ export default function OrderSummary({
         })}
       </div>
 
+      {/* Suggested Products (You might also like) */}
+      {suggestedProducts.length > 0 && (
+        <div className="mb-6 pt-4 border-t border-brand-border">
+          <h4 className="text-sm font-bold text-brand-black mb-3">You might also like</h4>
+          <div className="space-y-3">
+            {suggestedProducts.map(product => (
+              <div key={product.id} className="flex gap-3 items-center border border-gray-100 bg-white p-2 rounded-lg shadow-sm">
+                <div className="w-12 h-12 relative rounded bg-gray-50 flex-shrink-0">
+                  {product.images?.[0]?.src && (
+                    <Image src={product.images[0].src} alt={product.name} fill className="object-cover rounded" sizes="48px" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h5 className="text-xs font-medium text-brand-black truncate">{product.name}</h5>
+                  <p className="text-xs font-bold text-brand-black mt-0.5">{formatPrice(product.price)}</p>
+                </div>
+                <button
+                  onClick={() => handleAddSuggestion(product)}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-yellow text-brand-black hover:bg-yellow-400 transition-colors flex-shrink-0"
+                  aria-label="Add to cart"
+                >
+                  <Plus size={16} strokeWidth={2.5} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Coupon Section */}
       <div className="mb-6 pt-4 border-t border-brand-border">
         {appliedCoupons.length > 0 && (
@@ -156,7 +185,7 @@ export default function OrderSummary({
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Discount code"
+                placeholder="Coupon code"
                 value={localCouponCode}
                 onChange={(e) => setLocalCouponCode(e.target.value.toUpperCase())}
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-black uppercase"
@@ -214,8 +243,11 @@ export default function OrderSummary({
       {isPrepaid && (
         <div className="mt-4 bg-[#f0fdf4] border border-[#bbf7d0] rounded-lg p-3 flex flex-col gap-2">
           <h3 className="font-bold text-[#166534] text-sm mb-0.5">Prepaid Order Benefits:</h3>
-          <p className="text-[13px] font-semibold text-[#166534] flex items-center gap-2 m-0 leading-tight">
-            ✅ Extra 5% Off on Prepaid Orders
+          <p className="text-sm font-semibold text-[#166534] flex items-center gap-2">
+            ✅ Extra 5% Off
+          </p>
+          <p className="text-sm font-semibold text-[#166534] flex items-center gap-2">
+            ✅ Free Delivery
           </p>
           <p className="text-[13px] font-semibold text-[#166534] flex items-center gap-2 m-0 leading-tight">
             ✅ Priority Processing
@@ -226,33 +258,6 @@ export default function OrderSummary({
         </div>
       )}
 
-      {suggestedProducts.length > 0 && (
-        <div className="mt-6 border-t border-brand-border pt-6">
-          <h4 className="text-sm font-bold text-brand-black mb-3">You might also like</h4>
-          <div className="space-y-3">
-            {suggestedProducts.map(product => (
-              <div key={product.id} className="flex gap-3 items-center border border-gray-100 bg-white p-2 rounded-lg shadow-sm">
-                <div className="w-12 h-12 relative rounded bg-gray-50 flex-shrink-0">
-                  {product.images?.[0]?.src && (
-                    <Image src={product.images[0].src} alt={product.name} fill className="object-cover rounded" sizes="48px" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h5 className="text-xs font-medium text-brand-black truncate">{product.name}</h5>
-                  <p className="text-xs font-bold text-brand-black mt-0.5">{formatPrice(product.price)}</p>
-                </div>
-                <button
-                  onClick={() => handleAddSuggestion(product)}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-yellow text-brand-black hover:bg-yellow-400 transition-colors flex-shrink-0"
-                  aria-label="Add to cart"
-                >
-                  <Plus size={16} strokeWidth={2.5} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="border-t border-brand-border mt-6 pt-4">
         <div className="flex justify-between items-center">

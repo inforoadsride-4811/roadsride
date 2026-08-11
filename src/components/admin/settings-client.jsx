@@ -6,7 +6,8 @@ import { Save, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
-import { updateStoreSettings } from '@/actions/admin-products';
+import { updateStoreSettings, getStoreSettings } from '@/actions/admin-products';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const TABS = [
   { id: 'store', label: 'General Store Details' },
@@ -18,8 +19,21 @@ const TABS = [
 export default function SettingsClient({ initialSettings }) {
   const router = useRouter();
   const { addToast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('store');
   const [loading, setLoading] = useState(false);
+
+  const { data: settingsData } = useQuery({
+    queryKey: ['adminSettings'],
+    queryFn: async () => {
+      const res = await getStoreSettings();
+      if (!res.success) throw new Error(res.error);
+      return res.settings;
+    },
+    initialData: initialSettings
+  });
+
+  const settings = settingsData || initialSettings;
 
   const [formData, setFormData] = useState({
     // Store
@@ -27,6 +41,7 @@ export default function SettingsClient({ initialSettings }) {
     storeEmail: initialSettings.storeEmail || '',
     storePhone: initialSettings.storePhone || '',
     whatsappNumber: initialSettings.whatsappNumber || '',
+    whatsappEnabledUrls: initialSettings.whatsappEnabledUrls || '',
     supportEmail: initialSettings.supportEmail || '',
     storeAddress: initialSettings.storeAddress || '',
     footerContent: initialSettings.footerContent || '',
@@ -44,7 +59,28 @@ export default function SettingsClient({ initialSettings }) {
     // Storefront Display
     announcementEnabled: initialSettings.announcementEnabled ?? true,
     announcementText: initialSettings.announcementText || 'Cash on Delivery - 5% Discount on Prepaid Orders',
-    announcementSpeed: initialSettings.announcementSpeed || 30,
+    announcementSpeed: settings.announcementSpeed || 30,
+  });
+
+  // Keep local state in sync if external settings change, only if no unsaved changes are present
+  // For simplicity, we just initialize with the data above.
+  
+  const mutation = useMutation({
+    mutationFn: updateStoreSettings,
+    onSuccess: (res) => {
+      if (res.success) {
+        addToast({ title: 'Success', message: 'Settings saved securely.', type: 'success' });
+        queryClient.invalidateQueries({ queryKey: ['adminSettings'] });
+      } else {
+        addToast({ title: 'Error', message: res.error, type: 'error' });
+      }
+    },
+    onError: (error) => {
+      addToast({ title: 'Error', message: error.message || 'Update failed', type: 'error' });
+    },
+    onSettled: () => {
+      setLoading(false);
+    }
   });
 
   const handleChange = (e) => {
@@ -64,14 +100,7 @@ export default function SettingsClient({ initialSettings }) {
     dataToSave.prepaidDiscountPercent = parseFloat(dataToSave.prepaidDiscountPercent) || 0;
     dataToSave.announcementSpeed = parseInt(dataToSave.announcementSpeed, 10) || 30;
 
-    const res = await updateStoreSettings(dataToSave);
-    if (res.success) {
-      addToast({ title: 'Success', message: 'Settings saved securely.', type: 'success' });
-      router.refresh();
-    } else {
-      addToast({ title: 'Error', message: res.error, type: 'error' });
-    }
-    setLoading(false);
+    mutation.mutate(dataToSave);
   };
 
   return (
@@ -134,6 +163,12 @@ export default function SettingsClient({ initialSettings }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
                   <Input name="whatsappNumber" value={formData.whatsappNumber} onChange={handleChange} placeholder="+91..." />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Enabled URLs</label>
+                <p className="text-xs text-gray-500 mb-2">Comma-separated URLs where the sticky button appears (e.g. <code className="bg-gray-100 px-1 rounded">/</code>, <code className="bg-gray-100 px-1 rounded">/product</code>, <code className="bg-gray-100 px-1 rounded">/*</code> for all)</p>
+                <Input name="whatsappEnabledUrls" value={formData.whatsappEnabledUrls} onChange={handleChange} placeholder="/*" />
               </div>
 
               <div>

@@ -16,7 +16,7 @@ import { formatPrice } from '@/lib/product';
 import { checkoutSchema, validateForm } from '@/lib/validations';
 import { Loader2, MapPin, Home, Briefcase, Plus, CheckCircle2 } from 'lucide-react';
 
-export default function CheckoutForm({ isPrepaid, setIsPrepaid, total, appliedCoupons }) {
+export default function CheckoutForm({ isPrepaid, setIsPrepaid, total, appliedCoupons, orderSummary }) {
   const router = useRouter();
   const { addToast } = useToast();
   const { items, clearCart, getCartForCheckout } = useCartStore();
@@ -483,6 +483,13 @@ export default function CheckoutForm({ isPrepaid, setIsPrepaid, total, appliedCo
               {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Order Summary Injected Here (Mobile Only) */}
+      {orderSummary && (
+        <div className="mt-8 mb-8 lg:hidden">
+          {orderSummary}
         </div>
       )}
 

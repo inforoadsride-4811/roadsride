@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getCachedPublishedBlogs } from '@/actions/blogs';
-import { Calendar, User, ArrowRight } from 'lucide-react';
+import { Calendar, User, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const metadata = {
   title: 'Blog | RoadsRide',
@@ -11,7 +11,7 @@ export const metadata = {
 export default async function BlogPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams?.page || '1');
-  const response = await getCachedPublishedBlogs({ page, limit: 9 });
+  const response = await getCachedPublishedBlogs({ page, limit: 12 });
   const blogs = response.success ? response.blogs : [];
   const pagination = response.success ? response.pagination : null;
 
@@ -33,7 +33,7 @@ export default async function BlogPage({ searchParams }) {
             <p className="text-gray-500">Check back soon for exciting new content!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {blogs.map((blog) => (
               <article key={blog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col h-full group">
                 <Link href={`/blog/${blog.slug}`} className="block relative aspect-[16/10] overflow-hidden bg-gray-100 shrink-0">
@@ -89,6 +89,15 @@ export default async function BlogPage({ searchParams }) {
         {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
           <div className="mt-16 flex justify-center gap-2">
+            {pagination.page > 1 && (
+              <Link 
+                href={`/blog?page=${pagination.page - 1}`}
+                className="w-10 h-10 rounded-lg flex items-center justify-center font-bold transition-colors bg-white text-brand-black hover:bg-gray-100 border border-gray-200"
+              >
+                <ChevronLeft size={20} />
+              </Link>
+            )}
+
             {Array.from({ length: pagination.totalPages }).map((_, i) => (
               <Link 
                 key={i}
@@ -102,6 +111,15 @@ export default async function BlogPage({ searchParams }) {
                 {i + 1}
               </Link>
             ))}
+
+            {pagination.page < pagination.totalPages && (
+              <Link 
+                href={`/blog?page=${pagination.page + 1}`}
+                className="w-10 h-10 rounded-lg flex items-center justify-center font-bold transition-colors bg-white text-brand-black hover:bg-gray-100 border border-gray-200"
+              >
+                <ChevronRight size={20} />
+              </Link>
+            )}
           </div>
         )}
       </main>

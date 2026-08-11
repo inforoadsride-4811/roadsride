@@ -4,7 +4,7 @@ import { getCachedPublishedBlogs } from '@/actions/blogs';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 
 export default async function BlogSection() {
-  const response = await getCachedPublishedBlogs({ page: 1, limit: 3 });
+  const response = await getCachedPublishedBlogs({ page: 1, limit: 4 });
   const blogs = response.success ? response.blogs : [];
 
   if (blogs.length === 0) return null;
@@ -28,7 +28,7 @@ export default async function BlogSection() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {blogs.map((blog) => (
           <article
             key={blog.id}
@@ -36,7 +36,7 @@ export default async function BlogSection() {
           >
             <Link
               href={`/blog/${blog.slug}`}
-              className="block relative aspect-[16/10] overflow-hidden bg-gray-100 shrink-0"
+              className="block relative aspect-[2/1] overflow-hidden bg-gray-100 shrink-0"
             >
               {blog.coverImage ? (
                 <Image
